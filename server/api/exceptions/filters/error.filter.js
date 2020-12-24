@@ -10,7 +10,7 @@ class ErrorFilter {
       logger.info(error);
     }
 
-    //TODO: report error
+    //TODO: report error or save to database
 
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'UncaughtException',

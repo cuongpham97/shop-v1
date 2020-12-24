@@ -3,17 +3,10 @@ const morgan = require('morgan');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const config = require('../config');
-const mongodb = require('./database/mongodb/connect');
-const subscribers = require('./subscribers');
 const { unflattenQueryString } = require('./middleware/querystring');
 const { exceptionHandler } = require('./exceptions');
 
 const api = express();
-
-(async () => {
-  await mongodb.connect();
-  await subscribers();
-})();
 
 api.use(morgan('dev'));
 if (config.ENVIROMENT === 'DEVELOPMENT') {

@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/cuongpham97/shop-v1.git"
   },
-  "author": "cuongpham",
+  "author": "Phạm Quốc Cường",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/cuongpham97/shop-v1/issues"
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/cuongpham97/shop-v1#readme",
   "dependencies": {
     "async-middleware": "^1.2.1",
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "colors": "^1.4.0",
     "composable-middleware": "^0.3.0",
@@ -33,7 +33,6 @@
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "mongoose": "^5.11.6",
-    "mongoose-timestamp": "^0.6.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.2"
   },

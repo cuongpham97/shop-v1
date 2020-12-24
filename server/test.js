@@ -1,20 +1,17 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const _ = require('lodash');
+function Other() {}
 
-const TestSchema = new Schema({
-  phones: {
-    type: Schema.Types.ObjectId
-  }
-});
+function A() {
+  this.c =5
+}
 
-TestSchema.post('validate', function(error, doc, next) {
-  console.log(JSON.stringify(error));
-});
+function B() {}
+B.prototype = new A;
+B.prototype.constructor = B;
 
-mongoose.model('use', TestSchema, 'use');
+function C() {}
+C.prototype = new B;
+C.prototype.constructor = C;
 
-mongoose.model('use').create({ phones: { name: 5 } });
+let d = new C;
 
-
-console.log(_.startCase('decimal128'));
+console.log(d instanceof Other);

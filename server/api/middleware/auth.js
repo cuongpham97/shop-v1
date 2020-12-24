@@ -1,11 +1,15 @@
-const _ = require('lodash');
 const jwt = require('../../utilities/jwt');
+const _ = require('lodash');
+const { 
+  AuthenticationException, 
+  AuthorizationException 
+} = require('../../api/exceptions');
 
 function getTokenFromHeader(req) {
   let token = req.headers['authorization'] || req.headers['x-access-token'];
 
   if (!token) {
-    throw Error('Access token not provided');
+    throw new AuthenticationException({ message: 'Access token not provided' });
   }
 
   if (token.startsWith('Bearer ')) {
@@ -30,13 +34,13 @@ function PermissionChecklist() {
 
     let isOwnerId = !this.id || this.id == id; 
 
-    let isHasRole = !this.role || (this.role == scopes.name);
+    let hasRole = !this.role || (this.role == scopes.name);
     
-    let isHasPermission = !this.permissions.length || this.permissions.every(
+    let hasPermission = !this.permissions.length || this.permissions.every(
       p =>  _.get(scopes.permissions, p) == true
     );
     
-    return [isOwnerId, isHasRole, isHasPermission].every(Boolean);
+    return [isOwnerId, hasRole, hasPermission].every(Boolean);
   }
 }
 
@@ -72,7 +76,7 @@ module.exports = (accountType) => {
     let token = getTokenFromHeader(req);
     let extracted = await extractToken(token);
 
-    //merge extracted token to req.user || req.admin
+    // Merge extracted token to req.user || req.admin
     req[accountType] = Object.assign(req[accountType] || {}, extracted);
 
     let expected = checklist.check(req[accountType].role, req[accountType].id);
@@ -81,7 +85,9 @@ module.exports = (accountType) => {
       return next();
     }
 
-    throw Error('Unauthorized');
+    return next(
+      new AuthorizationException({ message: 'You don\'t have permission to access' })
+    );
   }
 
   return Object.assign(middleware, chain);

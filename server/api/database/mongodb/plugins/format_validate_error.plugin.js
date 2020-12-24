@@ -21,7 +21,6 @@ function customValidateErrorMessage(errorField) {
 
     case e.kind === 'minlength': 
       return `${e.path} can\'t be shorter than ${e.properties.minlength} characters`;
-     
 
     case e.kind === 'maxlength':
       return `${e.path} can\'t be longer than ${e.properties.maxlength} characters`;
@@ -38,7 +37,6 @@ function customValidateErrorMessage(errorField) {
 function formatValidateErrorPlugin(schema, options) {
 
   schema.post('validate', function (error, doc, next) {
-
     switch (true) {
       case !error: 
         return next();
