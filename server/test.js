@@ -1,17 +1,20 @@
-function Other() {}
+ const mongodb = require('./api/database/mongodb');
 
-function A() {
-  this.c =5
-}
 
-function B() {}
-B.prototype = new A;
-B.prototype.constructor = B;
 
-function C() {}
-C.prototype = new B;
-C.prototype.constructor = C;
+const _ = require('lodash');
+const query = require('./api/middleware/querystring')
 
-let d = new C;
+let req = {
+  query: { regexes: "displayName=Ph" }
+};
 
-console.log(d instanceof Other);
+query.unflattenQueryString(req, null, function(){});
+
+(async function() {
+  console.log(await mongodb.model('user').paginate({ "local.phone": "0326503636" }, {
+    regexes: req.query.regexes,
+    page: 1,
+    pageSize: 5
+  }));
+})()

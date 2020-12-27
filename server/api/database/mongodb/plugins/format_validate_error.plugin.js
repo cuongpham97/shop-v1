@@ -25,6 +25,9 @@ function customValidateErrorMessage(errorField) {
     case e.kind === 'maxlength':
       return `${e.path} can\'t be longer than ${e.properties.maxlength} characters`;
 
+    case e.kind === 'enum': 
+      return `${e.path} must be one of \`${e.properties.enumValues.join(', ')}\``;
+
     case schemaTypes.includes(_.upperFirst(e.kind)): 
       let kind = _.upperFirst(e.kind);
       return `${e.path} must be ${[...'UEOAI'].includes(kind[0]) ? 'an' : 'a'} \`${ kind === 'ObjectId' ? 'ID' : kind }\``;
@@ -51,6 +54,7 @@ function formatValidateErrorPlugin(schema, options) {
         return next(error);
     }
   });
+  
 }
 
 module.exports = formatValidateErrorPlugin;

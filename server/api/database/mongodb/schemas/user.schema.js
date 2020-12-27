@@ -1,7 +1,7 @@
 const { Schema } = require('mongoose');
 const { ValidationException } = require('../../../exceptions');
 const { regexes } = require('../../../../utilities/constants');
-const bcrypt = require('bcrypt');
+const { hashPassword } = require('../../../../utilities/tools');
 const _ = require('lodash');
 const Location = require('./location.schema');
 
@@ -66,13 +66,13 @@ const UserSchema = new Schema({
       type: String,
       trim: true,
       lowercase: true,
-      match: [regexes.EMAIL],
+      match: regexes.EMAIL,
       validate: { validator: uniqueEmail, msg: 'msg: local.email already in use' }
     },
     phone: {
       type: String,
       trim: true,
-      match: [regexes.PHONE_NUMBER],
+      match: regexes.PHONE_NUMBER,
       validate: { validator: uniquePhone, msg: 'msg: local.phone already in use' }
     },
     password: {
@@ -137,9 +137,7 @@ UserSchema.post('validate', async function(next)
 { 
   // Hash password
   if (!_.isEmpty(this.get('local'))) { 
-    let salt = await bcrypt.genSalt(10);
-    let hash = await bcrypt.hash(this.get('local.password'), salt);
-    this.set('local.password', hash);
+    this.set('local.password', hashPassword(this.get('local.password')));
   }
 
 });

@@ -6,11 +6,13 @@ const mongoose = new Mongoose;
 connect(mongoose);
 
 // Plugins
+const pagination = require('./plugins/pagination.plugin');
 const timestamp = require('./plugins/timestamp.plugin');
-const formatValidateErrorPlugin = require('./plugins/format_validate_error.plugin');
+const formatValidateError = require('./plugins/format_validate_error.plugin');
 
+mongoose.plugin(pagination);
 mongoose.plugin(timestamp);
-mongoose.plugin(formatValidateErrorPlugin);
+mongoose.plugin(formatValidateError);
 
 // Models
 const userModel = require('./models/user.model');
