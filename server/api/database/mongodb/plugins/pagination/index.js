@@ -1,9 +1,14 @@
 const _ = require('lodash');
 
-function buildQuery(query, options) {
+function validateOptions(options) {
+
+  return options;
+}
+
+function buildQuery(options) {
 
   // Search
-  let search = options.search ? [{ "$match": { "$text": { "$search": options.search } } }] : [];
+  let search = options.search ? [{ "$match": { "$text": { "$search": String(options.search) } } }] : [];
 
   // Regex 
   let fields = {};
@@ -11,7 +16,7 @@ function buildQuery(query, options) {
   regexes = !_.isEmpty(fields) ? [{ "$match": fields }] : [];
 
   // Query 
-  query = query ? [{ "$match": query }] : [];
+  let query = options.filters ? [{ "$match": options.filters }] : [];
 
   // Skip
   let skip = [{ "$skip": (options.page - 1) * options.pageSize || 0 }];
@@ -23,18 +28,17 @@ function buildQuery(query, options) {
   let sort = options.orders ? [{ "$sort": options.order }] : [];
 
   // Project
-  let project = options.fields ? [{ "$project": project }] : [];
+  let project = options.fields ? [{ "$project": options.fields }] : [];
 
   return [
     ... []
       .concat(search)
       .concat(regexes)
       .concat(query)
-      .concat(sort)
-      .concat(project),
+      .concat(sort),
     {
       "$facet": { 
-        "data": [].concat(skip).concat(limit), 
+        "data": [].concat(skip).concat(limit).concat(project), 
         "total": [{"$count": "total"}] 
       }
     },
@@ -42,7 +46,11 @@ function buildQuery(query, options) {
       "$project": {
         "data": 1,
         "total": { 
-          "$cond": { "if": { "$ne": ["$total", []] }, "then": { "$arrayElemAt": ["$total.total", 0] }, "else": 0 } 
+          "$cond": { 
+            "if": { "$ne": ["$total", []] }, 
+            "then": { "$arrayElemAt": ["$total.total", 0] }, 
+            "else": 0 
+          }
         }
       }
     }
@@ -52,30 +60,31 @@ function buildQuery(query, options) {
 function paginateResult(docs, options) {
   let collection = options.collectionName || (this.collection.name + 's');
 
+  let page = options.page || 1;
+  let pageSize = options.pageSize || 80;
+
   return {
     data: docs.data,
     metadata: {
       collection: collection,
-      page: options.page || 1,
-      pageSize: options.pageSize || 80,
-      maxPage: Math.ceil(docs.total / options.pageSize),
+      page: page,
+      pageSize: pageSize,
+      maxPage: Math.ceil(docs.total / pageSize),
       count: docs.data.length,
       total: docs.total,   
-      isPre: docs.total > (options.page - 2) * options.pageSize,
-      isNext: docs.total > options.page * options.pageSize
+      isPre: page > 1 && docs.total > (page - 2) * pageSize,
+      isNext: docs.total > page * pageSize
     }
   };
 }
 
 function paginationPlugin(schema, options) {
 
-  schema.statics.paginate = async function(query, options = {}, callback) {
+  schema.statics.paginate = async function(options = {}) {
 
-    let [docs] = await this.aggregate(buildQuery.call(this, query, options));
-
-    let result = paginateResult.call(this, docs, options);
-
-    return (callback) ? callback(result) : result;
+    let [docs] = await this.aggregate(buildQuery(options));
+    
+    return paginateResult.call(this, docs, options);
   }
 
 }

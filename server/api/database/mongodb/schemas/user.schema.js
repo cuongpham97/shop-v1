@@ -1,7 +1,7 @@
 const { Schema } = require('mongoose');
 const { ValidationException } = require('../../../exceptions');
 const { regexes } = require('../../../../utilities/constants');
-const { hashPassword } = require('../../../../utilities/tools');
+const { hashPassword } = require('../../../../utilities/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
 
@@ -67,13 +67,13 @@ const UserSchema = new Schema({
       trim: true,
       lowercase: true,
       match: regexes.EMAIL,
-      validate: { validator: uniqueEmail, msg: 'msg: local.email already in use' }
+      validate: { validator: uniqueEmail, msg: 'msg: "local.email" already in use' }
     },
     phone: {
       type: String,
       trim: true,
       match: regexes.PHONE_NUMBER,
-      validate: { validator: uniquePhone, msg: 'msg: local.phone already in use' }
+      validate: { validator: uniquePhone, msg: 'msg: "local.phone" already in use' }
     },
     password: {
       type: String,
@@ -119,13 +119,13 @@ UserSchema.pre('validate', async function(next) {
 
     if (!email && !phone) {
       return next(
-        new ValidationException({ message: 'local.email or local.phone number is required' })
+        new ValidationException({ message: '"local.email" or "local.phone" number is required' })
       );
     }
 
     if(!password) {
       return next(
-        new ValidationException({ message: 'local.password is required' })
+        new ValidationException({ message: '"local.password" is required' })
       );
     }
   }
@@ -133,13 +133,11 @@ UserSchema.pre('validate', async function(next) {
   return next();
 });
 
-UserSchema.post('validate', async function(next)
+UserSchema.post('validate', async function()
 { 
-  // Hash password
   if (!_.isEmpty(this.get('local'))) { 
-    this.set('local.password', hashPassword(this.get('local.password')));
+    this.set('local.password', await hashPassword(this.get('local.password')));
   }
-
 });
 
 module.exports = UserSchema;

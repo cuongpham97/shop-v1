@@ -1,8 +1,16 @@
-const bcrypt = require('bcrypt');
 
-exports.hashPassword = async function(password) {
-  let salt = await bcrypt.genSalt(10);
-  let hash = await bcrypt.hash(password, salt);
+exports.deepMap = function (object, enumerate, callback) {
 
-  return hash;
+  let keys = enumerate ? Object.getOwnPropertyNames(object) : Object.keys(object);
+
+  for (let key of keys) {
+  
+    if (typeof object[key] === 'object') {
+      deepMap(object[key], enumerate, callback);
+
+    } else {
+      object[key] = callback(object[key]);
+    }
+
+  }
 }

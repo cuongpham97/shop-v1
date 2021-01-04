@@ -1,3 +1,19 @@
+function sanitize(str) {
+  if (!typeof str === 'string' && !str instanceof String) {
+    throw new Error('Cannot convert ' + typeof str + 'to string');
+  }
+
+  return str.replace('$', '_');
+}
+
+function parseKey(str) {
+  switch (true) {
+    case str.startsWith("'") && str.endsWith("'"): return str.slice(1, -1);
+    case str.startsWith('"') && str.endsWith('"'): return str.slice(1, -1);
+    default: return str;
+  }
+}
+
 function parseValue(str) {
   switch (true) {
     case str == 'true'      : return true;
@@ -12,7 +28,7 @@ function parseValue(str) {
 }
 
 const patterns = {
-  '{key}={value},...': /(?<key>\w+)=(?<value>"(?:(?<=\\)"|[^"])+"|[^,]+)(?:,|$)/g,
+  '{key}={value},...': /(?<key>[^=]+)=(?<value>"(?:(?<=\\)"|[^"])+"|[^,]+)(?:,|$)/g,
   '{value},...'      : /(?<value>"(?:(?<=\\)"|[^"])+"|[^,]+)(?:,|$)/g
 }
 
@@ -30,7 +46,7 @@ function flatten(str) {
       patterns['{key}={value},...'].lastIndex = 0;
 
       while(match = patterns['{key}={value},...'].exec(str)) {
-        result[match.groups.key] = parseValue(match.groups.value);
+        result[parseKey(match.groups.key)] = parseValue(match.groups.value);
       }
 
       return result;
@@ -52,9 +68,9 @@ function flatten(str) {
   }
 }
 
-exports.unflattenQueryString = function (req, res, next) {
+exports.unflatten = function (req, res, next) {
   let query = req.query;
-  Object.keys(query).forEach(key => query[key] = flatten(query[key]));
+  Object.keys(query).forEach(key => query[key] = flatten(sanitize(query[key])));
   
   return next();
 }

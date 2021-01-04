@@ -7,7 +7,7 @@ class ErrorFilter {
   catch(error, req, res, next) {
 
     if(config.ENVIROMENT === 'DEVELOPMENT') {
-      logger.info(error);
+      logger.error(error);
     }
 
     //TODO: report error or save to database

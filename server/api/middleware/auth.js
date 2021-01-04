@@ -19,10 +19,13 @@ function getTokenFromHeader(req) {
   return token;
 }
 
-async function extractToken(token) {
-  let extracted = await jwt.verifyAccessToken(token);
-
-  return extracted;
+function extractToken(token) {
+  try {
+    return jwt.verifyAccessToken(token);
+  
+  } catch(e) {
+    throw new AuthenticationException({ message: e.message });
+  }
 }
 
 function PermissionChecklist() {
@@ -62,19 +65,19 @@ function PermissionChain(checklist) {
   }
 }
 
-module.exports = (accountType) => {
+module.exports = function (accountType) {
 
   if (!['user', 'admin'].includes(accountType)) {
-    throw Error(`Wrong argument ${accountType}`);
+    throw Error(`Auth middleware with wrong argument ${accountType}`);
   }
 
   let checklist = new PermissionChecklist();
   let chain = new PermissionChain(checklist);
 
-  let middleware = async function(req, res, next) {
+  let middleware = function(req, res, next) {
 
     let token = getTokenFromHeader(req);
-    let extracted = await extractToken(token);
+    let extracted = extractToken(token);
 
     // Merge extracted token to req.user || req.admin
     req[accountType] = Object.assign(req[accountType] || {}, extracted);

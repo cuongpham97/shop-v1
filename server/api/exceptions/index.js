@@ -1,10 +1,8 @@
-const Exception = require('./classes/exception.class');
-const ValidationException = require('./classes/validation.class');
-const AuthenticationException = require('./classes/authentication.class');
-const AuthorizationException = require('./classes/authorization.class');
-
+const exceptions = require('./classes/exception.class');
 const ExceptionFilter = require('./filters/exception.filter');
 const ErrorFilter = require('./filters/error.filter');
+
+const { Exception } = exceptions;
 
 const registerFilters = new Map([
   // [ ValidationException, ValidateExceptionFilter ]
@@ -29,10 +27,4 @@ async function exceptionHandler(error, req, res, next) {
   return (new ErrorFilter).catch(error, req, res, next);
 }
 
-module.exports = { 
-  Exception, 
-  ValidationException,
-  AuthenticationException,
-  AuthorizationException,
-  exceptionHandler 
-};
+module.exports = { ...exceptions, exceptionHandler };

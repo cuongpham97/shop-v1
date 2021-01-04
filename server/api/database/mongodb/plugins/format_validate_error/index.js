@@ -1,4 +1,4 @@
-const { ValidationException } = require('../../../exceptions');
+const { ValidationException } = require('../../../../exceptions');
 const _ = require('lodash');
 
 function customValidateErrorMessage(errorField) {
@@ -14,23 +14,29 @@ function customValidateErrorMessage(errorField) {
       return e.message.substring(5);
 
     case e.kind === 'required':
-      return `${e.path} is required`;
+      return `"${e.path}" is required`;
      
     case e.kind === 'regexp': 
-      return `${e.path} is invalid`;
+      return `"${e.path}" is invalid`;
 
     case e.kind === 'minlength': 
-      return `${e.path} can\'t be shorter than ${e.properties.minlength} characters`;
+      return `"${e.path}" must be longer than ${e.properties.minlength} characters`;
 
     case e.kind === 'maxlength':
-      return `${e.path} can\'t be longer than ${e.properties.maxlength} characters`;
+      return `"${e.path}" must be shorter than ${e.properties.maxlength} characters`;
+
+    case e.kind === 'min': 
+      return `"${e.path}" must be grater than or equal ${e.properties.min}`;
+
+    case e.kind === 'max': 
+      return `"${e.path}" must be less than or equal ${e.properties.max}`;
 
     case e.kind === 'enum': 
-      return `${e.path} must be one of \`${e.properties.enumValues.join(', ')}\``;
+      return `"${e.path}" must be one of \`${e.properties.enumValues.join(', ')}\``;
 
     case schemaTypes.includes(_.upperFirst(e.kind)): 
       let kind = _.upperFirst(e.kind);
-      return `${e.path} must be ${[...'UEOAI'].includes(kind[0]) ? 'an' : 'a'} \`${ kind === 'ObjectId' ? 'ID' : kind }\``;
+      return `"${e.path}" must be ${[...'UEOAI'].includes(kind[0]) ? 'an' : 'a'} ${ kind === 'ObjectId' ? 'ID' : kind.toLowerCase() }`;
 
     default: 
       return e.message;

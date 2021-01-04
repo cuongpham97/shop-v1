@@ -1,6 +1,7 @@
 const moment = require('moment');
+const { StatusCodes } = require('http-status-codes');
 
-class Exception extends Error {
+exports.Exception = class extends Error {
   constructor(args) {
     super();
     Error.captureStackTrace(this, this.constructor);
@@ -12,4 +13,35 @@ class Exception extends Error {
   }
 }
 
-module.exports = Exception;
+exports.ValidationException = class extends this.Exception {
+  constructor(args) {
+    super(
+      Object.assign({
+        name: 'ValidationException',
+        httpStatus: StatusCodes.UNPROCESSABLE_ENTITY
+      }, args)
+    );
+  }
+}
+
+exports.AuthenticationException = class extends this.Exception {
+  constructor(args) {
+    super(
+      Object.assign({
+        name: 'AuthenticationException',
+        httpStatus: StatusCodes.UNAUTHORIZED
+      }, args)
+    );
+  }
+}
+
+exports.AuthorizationException = class extends this.Exception {
+  constructor(args) {
+    super(
+      Object.assign({
+        name: 'AuthorizationException',
+        httpStatus: StatusCodes.UNAUTHORIZED
+      }, args)
+    );
+  }
+}

@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const config = require('../config');
-const { unflattenQueryString } = require('./middleware/querystring');
+const querystring = require('./middleware/querystring');
 const { exceptionHandler } = require('./exceptions');
 
 const api = express();
@@ -26,7 +26,7 @@ api.use(bodyParser.urlencoded({
   extended: true 
 }));
 api.use(express.json());
-api.use(unflattenQueryString);
+api.use(querystring.unflatten);
 
 const user = require('./routes/user.routes');
 
