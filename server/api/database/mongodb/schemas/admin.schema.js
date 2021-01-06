@@ -8,8 +8,7 @@ async function uniqueUsername(username) {
 }
 
 function validatePermission(permissions) {
-  //TODO: validate Mixed value
-  return true;
+  return Object.keys(permissions).every(key => typeof permissions[key] === 'boolean');
 }
 
 const AdminSchema = new Schema({
@@ -78,7 +77,7 @@ const AdminSchema = new Schema({
   }
 });
 
-AminSchema.post('validate', async function()
+AminSchema.pre(['save', 'create'], async function()
 { 
   this.set('password', await hashPassword(this.get('password')));
 });

@@ -1,16 +1,36 @@
+const _ = require('lodash');
 
-exports.deepMap = function (object, enumerate, callback) {
+exports.deepMap = function map(o, fn, traceArray = false, traceEnum = false) {
 
-  let keys = enumerate ? Object.getOwnPropertyNames(object) : Object.keys(object);
+  const keys = Object[traceEnum ? 'getOwnPropertyNames' : 'keys' ](o);
 
-  for (let key of keys) {
-  
-    if (typeof object[key] === 'object') {
-      deepMap(object[key], enumerate, callback);
+  for (const key of keys) {
+    
+    const action = fn({ key: key, value: o[key] });
 
-    } else {
-      object[key] = callback(object[key]);
+    if (!action) continue;
+
+    const newKey = action.key;
+    const value = action.value;
+
+    // Delete key
+    if (!newKey) {
+      delete o[key];
+      continue;
     }
 
+    o[newKey] = value;
+ 
+    // Rename key
+    if (newKey !== key) {
+      delete o[key];
+    }
+
+    if (typeof o[newKey] === 'object' && o[newKey] !== null) {
+
+      if (traceArray || !Array.isArray(o[newKey])) {
+        map(o[newKey], fn, traceArray, traceEnum);
+      } 
+    }
   }
 }

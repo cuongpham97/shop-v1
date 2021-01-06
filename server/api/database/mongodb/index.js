@@ -2,21 +2,29 @@ const connect = require('./connect');
 const { Mongoose } = require('mongoose');
 const mongoose = new Mongoose;
 
-// Connect to database
-connect(mongoose);
+// Models
+const userModel = require('./models/user.model');
 
 // Plugins
 const pagination = require('./plugins/pagination');
 const timestamp = require('./plugins/timestamp');
 const formatValidateError = require('./plugins/format_validate_error');
 
-mongoose.plugin(pagination);
-mongoose.plugin(timestamp);
-mongoose.plugin(formatValidateError);
+const models = [userModel];
+const plugins = [timestamp, pagination, formatValidateError];
 
-// Models
-const userModel = require('./models/user.model');
+module.exports = (function () {
 
-userModel.apply(mongoose);
+  // Connect to database
+  connect(mongoose);
 
-module.exports = mongoose;
+  // Use plugins
+  models.forEach(model => {
+    plugins.forEach(plugin => model.schema && model.schema.plugin(plugin));
+  });
+
+  // Use models
+  models.forEach(model => model.apply(mongoose));
+
+  return mongoose;
+})();

@@ -1,3 +1,5 @@
 const UserSchema = require('../schemas/user.schema');
 
-exports.apply = mongoose => mongoose.model('user', UserSchema, 'user');
+module.exports = {
+  schema: UserSchema, apply: mongoose => mongoose.model('user', UserSchema, 'user')
+}

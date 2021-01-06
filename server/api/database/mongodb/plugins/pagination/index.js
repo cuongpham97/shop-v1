@@ -1,34 +1,84 @@
+const validate = require('../../../../../utilities/validator');
 const _ = require('lodash');
 
-function validateOptions(options) {
+async function validateOptions(options) {
 
-  return options;
+  let { result, errors } = await validate(options, {
+    'search'    : 'string|trim|max:200',
+    'regexes'   : 'object',
+    'filters'   : 'object',
+    'orders'    : 'to:array',
+    'orders.*'  : 'string|min:1|max:100',
+    'fields'    : 'to:array',
+    'fields.*'  : 'string|min:1|max:100',
+    'page'      : 'integer|min:1',
+    'pageSize'  : 'integer|min:1|max:200'
+  });
+
+  if (errors) throw new Error(errors);
+
+  return result;
+}
+
+const makeQuery = {
+  search: function(text) {
+    return text ? [{ "$match": { "$text": { "$search": text } } }] : [];
+  },
+
+  regexes: function(regexes) {
+    let fields = {};
+
+    _.forEach(regexes, (value, key) => fields[key] = { "$regex": value, "$options": "im" });
+
+    return !_.isEmpty(fields) ? [{ "$match": fields }] : [];
+  },
+
+  query: function(filters) {
+    return filters ? [{ "$match": filters }] : [];
+  },
+
+  skip: function(page, pageSize) {
+    return [{ "$skip": (page - 1) * pageSize || 0 }];
+  },
+
+  limit: function(pageSize) {
+    return [{ "$limit": pageSize || 80 }];
+  },
+
+  sort: function(fields) {
+    if (!fields) return [];
+
+    let orders = {};
+
+    fields.forEach(field => field.startsWith('-') ? orders[field.substring(1)] = -1 : orders[field] = 1);
+
+    return [{ "$sort": orders }];
+  },
+
+  project: function(fields) {
+    if (!fields) return [];
+
+    const valid = fields.every(field => !field.startsWith('-')) || fields.every(field => field.startsWith('-'));
+
+    if (!valid) return [];
+
+    let project = {};
+
+    fields.forEach(field => field.startsWith('-') ? project[field.substring(1)] = 0 : project[field] = 1);
+
+    return [{ "$project": project }];
+  }
 }
 
 function buildQuery(options) {
-
-  // Search
-  let search = options.search ? [{ "$match": { "$text": { "$search": String(options.search) } } }] : [];
-
-  // Regex 
-  let fields = {};
-  _.forEach(options.regexes, (value, key) => fields[key] = { "$regex": value, "$options": "im" });
-  regexes = !_.isEmpty(fields) ? [{ "$match": fields }] : [];
-
-  // Query 
-  let query = options.filters ? [{ "$match": options.filters }] : [];
-
-  // Skip
-  let skip = [{ "$skip": (options.page - 1) * options.pageSize || 0 }];
   
-  // Limit
-  let limit = [{ "$limit": options.pageSize || 80 }];
-  
-  // Sort
-  let sort = options.orders ? [{ "$sort": options.order }] : [];
-
-  // Project
-  let project = options.fields ? [{ "$project": options.fields }] : [];
+  const search = makeQuery.search(options.search);
+  const regexes = makeQuery.regexes(options.regexes); 
+  const query = makeQuery.query(options.filters);
+  const skip = makeQuery.skip(options.page, options.pageSize);
+  const limit = makeQuery.limit(options.pageSize);
+  const sort = makeQuery.sort(options.orders);
+  const project = makeQuery.project(options.fields);
 
   return [
     ... []
@@ -80,7 +130,9 @@ function paginateResult(docs, options) {
 
 function paginationPlugin(schema, options) {
 
-  schema.statics.paginate = async function(options = {}) {
+  schema.statics.paginate = async function(options = {}, validateOpts = false) {
+
+    options = validateOpts ? await validateOptions(options) : options;
 
     let [docs] = await this.aggregate(buildQuery(options));
     

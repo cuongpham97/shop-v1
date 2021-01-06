@@ -1,19 +1,60 @@
 const { Schema } = require('mongoose');
-const { ValidationException } = require('../../../exceptions');
 const { regexes } = require('../../../../utilities/constants');
 const { hashPassword } = require('../../../../utilities/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
 
 async function uniqueEmail(email) {
-  const user = await this.constructor.findOne({ 'local.email': email });
+  const model = this.parent().constructor;
+  const user = await model.findOne({ 'local.email': email });
   return !user;
 }
 
 async function uniquePhone(phone) {
-  const user = await this.constructor.findOne({ 'local.phone': phone });
+  const model = this.parent().constructor;
+  const user = await model.findOne({ 'local.phone': phone });
   return !user;
 }
+
+const LocalProvider = new Schema({
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    match: regexes.EMAIL,
+    validate: { validator: uniqueEmail, msg: 'msg: "local.email" already in use' }
+  },
+  phone: {
+    type: String,
+    trim: true,
+    match: regexes.PHONE_NUMBER,
+    validate: { validator: uniquePhone, msg: 'msg: "local.phone" already in use' }
+  },
+  password: {
+    type: String,
+    minLength: 6,
+    maxLength: 16,
+    required: true
+  }
+}, { _id: false });
+
+LocalProvider.pre('validate', function (next) {
+  let email = this.get('email');
+  let phone = this.get('phone');
+
+  if (email && !phone) {
+    throw new Error('"local.email" or "local.phone" number is required');
+  }
+  
+  return next();
+});
+
+LocalProvider.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  this.set('password', await hashPassword(this.get('password')));
+
+  return next();
+});
 
 const UserSchema = new Schema({
   name: {
@@ -62,24 +103,7 @@ const UserSchema = new Schema({
     default: null
   },
   local: {
-    email: {
-      type: String,
-      trim: true,
-      lowercase: true,
-      match: regexes.EMAIL,
-      validate: { validator: uniqueEmail, msg: 'msg: "local.email" already in use' }
-    },
-    phone: {
-      type: String,
-      trim: true,
-      match: regexes.PHONE_NUMBER,
-      validate: { validator: uniquePhone, msg: 'msg: "local.phone" already in use' }
-    },
-    password: {
-      type: String,
-      minLength: 6,
-      maxLength: 16
-    }
+    type: LocalProvider
   },
   google: {
     id: String,
@@ -99,45 +123,15 @@ const UserSchema = new Schema({
   }
 });
 
-UserSchema.pre('validate', async function(next) {
-  let that = this;
-
+UserSchema.pre('validate', function (next) {
   let providers = ['google', 'facebook', 'local'];
-  let hasProvider = providers.some(provider => !_.isEmpty(that.get(provider)));
+  let hasProvider = providers.some(provider => !_.isEmpty(this.get(provider)));
 
   if (!hasProvider) {
-    return next(
-      new ValidationException({ message: 'At least one auth provider is required' })
-    );
-  }
-
-  if (!_.isEmpty(that.get('local'))) {
-
-    let email = that.get('local.email');
-    let phone = that.get('local.phone')
-    let password = that.get('local.password');
-
-    if (!email && !phone) {
-      return next(
-        new ValidationException({ message: '"local.email" or "local.phone" number is required' })
-      );
-    }
-
-    if(!password) {
-      return next(
-        new ValidationException({ message: '"local.password" is required' })
-      );
-    }
+    throw new Error('At least one auth provider is required');
   }
 
   return next();
-});
-
-UserSchema.post('validate', async function()
-{ 
-  if (!_.isEmpty(this.get('local'))) { 
-    this.set('local.password', await hashPassword(this.get('local.password')));
-  }
 });
 
 module.exports = UserSchema;

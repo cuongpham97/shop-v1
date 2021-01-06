@@ -1,5 +1,8 @@
 //  const mongodb = require('./api/database/mongodb');
 
+const { array } = require("joi");
+const { isArray } = require("lodash");
+
 
 
 // const _ = require('lodash');
@@ -103,7 +106,6 @@
 
 
 // const Joi = require('joi');
-// const validate = require('./utilities/validate');
 
 // let schema = Joi
 //   .object({
@@ -116,34 +118,53 @@
 //     pageSize: Joi.number().integer().min(1).max(200).default(80),
 //   });
 
-// validate({ page: 0 }, schema);
+// let d = new Date
+// schema.validate({
+//   search: 3,
+//   filters: {
+//     name: 3
+//   },
+//   fields: [3,4],
+//   page: '3',
+//   pageSize: 34
+// });
 
-const validator = require('./utilities/validator');
+// console.log(new Date - d)
 
+// const validate = require('./utilities/validator');
 
-let value = {
-  search: 4,
-  filters: "sdf",
-  fields: ['wewe'],
-  page: '0',
-  pageSize: 34
-};
+// let value = {
+//   search: 3,
+//   regexes: {
+//     name: "$",
+//     age: 25
+//   },
+//   filters: {
+//     name: "$5ff2e697f9378$a9ee3fc0c3f"
+//   },
+//   orders: 'name',
+//   fields: [3,4],
+//   page: '3',
+//   pageSize: 34,
+//   google: 4
+// };
 
-(async function () {
-  
-  let { result, errors } = await validator(value, {
-    'search'    :'string',
-    'regexes'   :'object',
-    'filters'   :'object',
-    'orders'    :'array',
-    'fields'    :'array',
-    'page'      :'integer|min:1',
-    'pageSize'  :'integer|min:1|max:200'
-  });
+// (async function () {
 
-  console.log(errors);
-})();
+//   let { result, errors } = await validate(value, {
+//     'search'    : 'string|trim|max:200',
+//     'regexes'   : 'object|mongo_guard',
+//     'filters'   : 'object|mongo_guard',
+//     'orders'    : 'to:array',
+//     'orders.*'  : 'string|min:1|max:100',
+//     'fields'    : 'to:array',
+//     'fields.*'  : 'string|min:1|max:100',
+//     'page'      : 'integer|min:1',
+//     'pageSize'  : 'integer|min:1|max:200'
+//   });
 
+//   //console.log(result, errors);
+// })();
 
 // let c = 6;
 
@@ -162,4 +183,247 @@ let value = {
 // });
 
 // validate.checkAsync(()=> { }, null);
+
+
+// const deepMap = require('./utilities/tools').deepMap;
+
+// deepMap(value, item => {
+  
+//   console.log(item);
+
+//   if (item.key == 'regexes') {
+//     item.value = 10;
+//   }
+
+//   return item;
+// });
+
+// console.log(value);
+
+// const _ = require('lodash');
+
+// const origin1 = {
+//   name: 'Cường',
+//   age: 200
+// }
+
+// const origin2 = {
+//   name: 'Phạm',
+//   age: 24
+// }
+
+// let query = {
+
+
+
+//   fields: from(req, 'query.fields', v => [].concat(v)),
+
+//   filters: from()
+
+// };
+
+
+// let template = {
+//   filters: {
+//     from: req.query,
+//     validate: 'required|array|min:100|max:200',
+//     transform: value => isArray(value) ? value : [value]
+//   },
+
+//   regexes: {
+//     name: {
+
+//     }
+//   }
+// }
+
+
+// let c = {
+//   arr: [1,2,3,4,5,6]
+// };
+
+
+//function mapping(template, )
+
+// const _ = require('lodash');
+
+// let value = {
+//   name: {
+//     first: "Phạm",
+//     last: "Cường"
+//   },
+//   skill: ['M', 'E', 'A', 'N'],
+//   age: 23,
+//   birthday: [27, 9, [2, 4]],
+//   info: {
+//     name: {
+//       value: {
+//         array: [1,2,3,4]
+//       },
+//       value2: {
+//         array: [4,5,7]
+//       }
+//     },
+//     name2: {
+//       value: 4
+//     }
+//   }
+// };
+
+// let schema = {
+//   name: {
+//     first: 'string|min:1|max:200',
+//     last: 'required|string'
+//   },
+//   skill: 'array',
+//   'skill.*': 'string',
+//   age: 'number',
+//   birthday: 'array',
+//   'birthday.*.2': 'string',
+//   '*.*.*.*.*': 'string'
+// }
+
+
+// function flatten(o) {
+//   let result = {};
+
+//   function recursive(o, path) {
+//     for (const [key, value] of Object.entries(o)) {
+      
+//       let currentPath = path ? `${path}.${key}` : key;
+  
+//       if (typeof value === 'object' && value !== null) {
+//         recursive(value, currentPath);
+//       }
+//       else {
+//         result[currentPath] = value;
+//       }
+//     }
+//   }
+
+//   recursive(o, null);
+
+//   return result;
+// }
+
+
+
+// function tracePath(o, path) {
+
+//   if (_.has(o, path)) return [path];
+
+//   const keys = path.replace(/\[(\w+|\*)\]/g, '.$1').replace(/^\./, '')
+//     .split(/\.*(\*)\.*/).filter(Boolean);
+
+//   let matchPath = [''];
+
+//   for (const key of keys) {
+
+//     let temp = [];
+
+//     for (const p of matchPath) {
+
+//       if (key !== '*') {
+//         let newPath = p ? `${p}.${key}` : key;
+//         _.has(o, newPath) && temp.push(newPath);
+//       }
+
+//       if (key === '*') {
+//         let ref = p ? _.get(o, p) : o;
+
+//         if (typeof ref === 'object' && ref !== null) {
+//           for (let [k, v] of Object.entries(ref)) {
+//             let newPath = p ? `${p}.${k}` : k;
+//             temp.push(newPath);
+//           }
+//         }
+
+//       }
+//     }
+
+//     if (!temp.length) return [];
+
+//     matchPath = temp;
+    
+//   }
+
+//   return matchPath;
+// }
+
+
+// function validate(input, rules) {
+
+
+//   for (let [path, rule] of Object.entries(flatten(rules))) {
+    
+//     let chain = rule.split('|');
+//     let matchPath = tracePath(input, path);
+
+//     console.log( matchPath);
+
+//   }
+
+// }
+  
+
+// let t = new Date;
+// validate(value, schema);
+
+// console.log(new Date - t);
+
+// const _ = require('lodash');
+
+// let a = [ { name: 4, age: 6} ];
+
+// _.remove(a, '*.age');
+
+// console.log(a);
+
+const mongoose = require('mongoose')
+
+
+const A = new mongoose.Schema({
+  age: {
+    type: String,
+    required: true,
+    validate: {
+      validator: value => false, msg: 'fields name.age is error'
+    }
+  },
+  c: {
+    type: String,
+    required: [true, 'msg: c is reueewrd']
+  }
+});
+
+
+const Test = new mongoose.Schema({
+  wrap: {
+    name: {
+      type: A
+    }
+  },
+  b: Number
+});
+
+Test.pre('save', function() {
+  console.log(this)
+})
+
+const model = mongoose.model('test', Test);
+
+(async () => {
+  try {
+    await model.create({
+      wrap:{
+        name: {
+          age: 5
+        }
+      },
+      b: 'ji'
+    });
+  } catch (e) {
+    console.log(JSON.stringify(e));
+  }
+})();
 
