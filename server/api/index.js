@@ -8,8 +8,8 @@ const { exceptionHandler } = require('./exceptions');
 
 const api = express();
 
-api.use(morgan('dev'));
-if (config.ENVIROMENT === 'DEVELOPMENT') {
+if (config.ENVIRONMENT === 'DEVELOPMENT') {
+  api.use(morgan('dev'));
   api.set('json spaces', 2);
 }
 

@@ -6,6 +6,7 @@ const _ = require('lodash');
 exports.find = async function(query) {
 
   let validation = await validate(query, {
+    'search'    : 'not_allow',
     'regexes'   : 'object|mongo_guard',
     'filters'   : 'object|mongo_guard',
     'orders'    : 'to:array',
@@ -20,12 +21,10 @@ exports.find = async function(query) {
     throw new ValidationException({ message: validation.errors });
   }
 
-  let options = validation.result;
-  _.unset(options, 'search');
-
-  return await mongodb.model('user').paginate(options);
+  return await mongodb.model('user').paginate(validation.result);
 }
 
-exports.create = async function(user) {
-  return await mongodb.model('user').create(user);
+exports.create = async function(user, provider = 'local') {
+  
+  return await mongodb.model('user').create(validation.result);
 }

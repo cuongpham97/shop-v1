@@ -1,10 +1,5 @@
 //  const mongodb = require('./api/database/mongodb');
 
-const { array } = require("joi");
-const { isArray } = require("lodash");
-
-
-
 // const _ = require('lodash');
 // const query = require('./api/middleware/querystring')
 
@@ -145,14 +140,15 @@ const { isArray } = require("lodash");
 //   orders: 'name',
 //   fields: [3,4],
 //   page: '3',
-//   pageSize: 34,
-//   google: 4
+//   pageSize: '7',
+//   phone: "99234234234",
+//   mail: '@gmail.com'
 // };
 
 // (async function () {
 
-//   let { result, errors } = await validate(value, {
-//     'search'    : 'string|trim|max:200',
+//   let validation = await validate(value, {
+//     'search'    : 'required|string|trim|max:200',
 //     'regexes'   : 'object|mongo_guard',
 //     'filters'   : 'object|mongo_guard',
 //     'orders'    : 'to:array',
@@ -160,10 +156,12 @@ const { isArray } = require("lodash");
 //     'fields'    : 'to:array',
 //     'fields.*'  : 'string|min:1|max:100',
 //     'page'      : 'integer|min:1',
-//     'pageSize'  : 'integer|min:1|max:200'
+//     'pageSize'  : 'integer|min:1|max:200',
+//     'phone'     : 'phone|unset',
+//     'mail'      : 'email'
 //   });
 
-//   //console.log(result, errors);
+//   console.log(validation);
 // })();
 
 // let c = 6;
@@ -379,51 +377,133 @@ const { isArray } = require("lodash");
 
 // console.log(a);
 
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
 
 
-const A = new mongoose.Schema({
-  age: {
-    type: String,
-    required: true,
-    validate: {
-      validator: value => false, msg: 'fields name.age is error'
-    }
-  },
-  c: {
-    type: String,
-    required: [true, 'msg: c is reueewrd']
-  }
-});
+// const A = new mongoose.Schema({
+//   age: {
+//     type: String,
+//     required: true,
+//     validate: {
+//       validator: value => false, msg: 'fields name.age is error'
+//     }
+//   },
+//   c: {
+//     type: String,
+//     required: [true, 'msg: c is reueewrd']
+//   }
+// });
 
 
-const Test = new mongoose.Schema({
-  wrap: {
-    name: {
-      type: A
-    }
-  },
-  b: Number
-});
+// const Test = new mongoose.Schema({
+//   wrap: {
+//     name: {
+//       type: A
+//     }
+//   },
+//   b: Number
+// });
 
-Test.pre('save', function() {
-  console.log(this)
-})
+// Test.pre('save', function() {
+//   console.log(this)
+// })
 
-const model = mongoose.model('test', Test);
+// const model = mongoose.model('test', Test);
 
-(async () => {
-  try {
-    await model.create({
-      wrap:{
-        name: {
-          age: 5
-        }
-      },
-      b: 'ji'
-    });
-  } catch (e) {
-    console.log(JSON.stringify(e));
-  }
+// (async () => {
+//   try {
+//     await model.create({
+//       wrap:{
+//         name: {
+//           age: 5
+//         }
+//       },
+//       b: 'ji'
+//     });
+//   } catch (e) {
+//     console.log(JSON.stringify(e));
+//   }
+// })();
+
+// const image = require('fs').readFileSync("C:/Users/C/Desktop/125776990_4000342333361903_5202260670226130935_n.jpg");
+
+// const CLIENT_ID = '05e575fdb8dbcdd';
+// const CLIENT_SECRET = '9a11e838176a20cb7a3df6046f05297062957a1a';
+
+// const axios = require('axios');
+// const FormData = require('form-data');
+
+// (async function() {
+
+
+//   //get access token
+
+//   let data = new FormData;
+//   data.append('image', image);
+//   // //data.append('client_secret', CLIENT_SECRET);
+
+//   // console.log(data);
+
+//   const request = axios.create({
+//     baseURL: 'https://api.imgur.com/3/image',
+//     headers: {'Authorization': 'Bearer 037d39692b02dba51214d257d20982d9d1511ff2'}
+//   });
+
+//   request.post('/', image)
+//    .then(res => console.log(res.data))
+//    .catch(error => console.log(error.response.data))
+
+
+// })();
+
+// const axios = require('axios');
+
+// axios.get()
+//   .then(res => console.log(res.data))
+//   .catch(e => console.log)
+
+// const config = require('./config');
+// const open = require('open');
+// const http = require('http');
+// const express = require('express');
+// const _ = require('lodash');
+
+// const PORT = 3800;
+
+// const app = express();
+// app.get('/catchtoken', (req, res) => {
+  
+//   if (_.isEmpty(req.query)) {
+//     return res.send(`<script>window.location.href="http://localhost:3800/catchtoken?" + window.location.hash.substring(1)</script>`);
+//   }
+
+//   console.log(req.query);
+  
+// });
+
+// const server = http.createServer(app);
+
+// server.on('listening', function () {
+//   open(`https://api.imgur.com/oauth2/authorize?client_id=${config.Imgur.client_id}&response_type=token`);
+// });
+
+// function generateToken() {
+
+
+
+//   server.listen(PORT);
+
+// }
+
+// generateToken();
+
+const imgur = require('./utilities/imgur');
+
+(async function () {
+
+  const image = require('fs').readFileSync('z.txt').toString();
+
+
+  console.log(await imgur.deleteImage('jny07P4eNQbdQLc'));
+
 })();
-

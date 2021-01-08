@@ -5,9 +5,54 @@ const { deepMap } = require('../tools');
 const _ = require('lodash');
 
 /**
+ * Remove attribute
+ */
+Validator.register('unset', function(val, args, attribute) {
+
+  let input = this.validator.input;
+  _.unset(input, attribute);
+
+  return true;
+});
+
+/**
+ * Check is a phone number
+ */
+Validator.register('phone', function(val, args, attribute) {
+
+  let input = this.validator.input;
+  let value = _.get(input, attribute);
+
+  return /^[+0-9]{8,12}$/.test(value);
+});
+
+/**
+ * Check is a email
+ */
+Validator.register('email', function(val, args, attribute) {
+
+  let input = this.validator.input;
+  let value = _.get(input, attribute);
+
+  let regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (!regex.test(value)) {
+    // added support domain 3-n level https://github.com/skaterdav85/validatorjs/issues/384
+    regex = /^((?:[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]|[^\u0000-\u007F])+@(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?(?:\.(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?)+)*$/;
+  }
+  return regex.test(value);
+});
+
+/**
+ * Not allow attribute
+ */
+Validator.register('not_allow', function(val) {
+  return false;
+});
+
+/**
  * Cast value
  */
-Validator.register('to', function (val, args, attribute) {
+Validator.register('to', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -26,7 +71,7 @@ Validator.register('to', function (val, args, attribute) {
 /**
  * Check value is a object.
  */
-Validator.register('object', function (val, args, attribute) {
+Validator.register('object', function(val, args, attribute) {
   let value = _.get(this.validator.input, attribute);
 
   return typeof value === 'object' && value !== null;
@@ -35,7 +80,7 @@ Validator.register('object', function (val, args, attribute) {
 /**
  * Check value is a mongodb objectId and cast to ObjectId.
  */
-Validator.register('mongo_id', function (val, args, attribute) {
+Validator.register('mongo_id', function(val, args, attribute) {
   
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -52,7 +97,7 @@ Validator.register('mongo_id', function (val, args, attribute) {
 /**
  *  Remove all $ sign that start of a string, key and value of an object.
  */
-Validator.register('mongo_guard', function (val, args, attribute) {
+Validator.register('mongo_guard', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -82,7 +127,7 @@ Validator.register('mongo_guard', function (val, args, attribute) {
 /**
  * Check value is a string and cast to string
  */
-Validator.register('string', function (val, args, attribute) {
+Validator.register('string', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -99,7 +144,7 @@ Validator.register('string', function (val, args, attribute) {
 /**
  * Check value is a integer and cast to integer
  */
-Validator.register('integer', function (val, args, attribute) {
+Validator.register('integer', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -116,7 +161,7 @@ Validator.register('integer', function (val, args, attribute) {
 /**
  * Check is a array
  */
-Validator.register('array', function (val, args, attribute) {
+Validator.register('array', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -127,7 +172,7 @@ Validator.register('array', function (val, args, attribute) {
 /**
  * Cast value to primative data type of javascipt.
  */
-Validator.register('primative', function (val, args, attribute) {
+Validator.register('primative', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -155,7 +200,7 @@ Validator.register('primative', function (val, args, attribute) {
   }
 });
 
-Validator.register('uppercase', function (val, args, attribute) {
+Validator.register('uppercase', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -167,7 +212,7 @@ Validator.register('uppercase', function (val, args, attribute) {
   return true;
 });
 
-Validator.register('lowercase', function (val, args, attribute) {
+Validator.register('lowercase', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -179,7 +224,7 @@ Validator.register('lowercase', function (val, args, attribute) {
   return true;
 });
 
-Validator.register('trim', function (val, args, attribute) {
+Validator.register('trim', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);
@@ -191,7 +236,7 @@ Validator.register('trim', function (val, args, attribute) {
   return true;
 });
 
-Validator.register('title', function (val, args, attribute) {
+Validator.register('title', function(val, args, attribute) {
 
   let input = this.validator.input;
   let value = _.get(input, attribute);

@@ -3,6 +3,8 @@ const rules = require('./rules');
 
 Validator.setMessages('en', require('./lang/en.json'));
 
+Validator.setAttributeFormatter(attribute => `"${attribute}"`);
+
 module.exports = function (input, rules, customMessages, validator = Validator) {
 
   const validation = new validator(input, rules, customMessages);

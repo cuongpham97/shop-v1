@@ -21,7 +21,7 @@ const logger = {
 }
 
 module.exports = new Proxy(logger, {
-  get: function (target, prop) {
-    return target.log(prop);
+  get: function (target, type) {
+    return target.log(type);
   }
 });

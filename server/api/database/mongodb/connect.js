@@ -6,7 +6,7 @@ module.exports = (mongoose, callback = null) => {
   // Create connection
   mongoose.connect(
     config.database.mongodb.URI, 
-    config.database.mongodb.Opts
+    config.database.mongodb.OPTIONS
   );
 
   // Connect success

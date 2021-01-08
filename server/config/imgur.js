@@ -1,0 +1,5 @@
+module.exports = {
+  CLIENT_ID: '82515a9b37042b9',
+  CLIENT_SECRET: 'a10492164e63bbc071bdec8e08ae312380748b7f',
+  REFRESH_TOKEN: '1f18db137a7fcde7b6a74370b24227311cbb20dc'
+};

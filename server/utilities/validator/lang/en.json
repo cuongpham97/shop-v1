@@ -12,7 +12,6 @@
     "string": ":attribute must be between :min and :max characters"
   },
   "confirmed": ":attribute confirmation does not match",
-  "email": ":attribute is invalid",
   "date": ":attribute must be a date",
   "def": "The :attribute attribute has errors",
   "digits": ":attribute must be :digits digits",
@@ -54,5 +53,8 @@
   "lowercase": ":attribute is invalid, lowercase fail",
   "trim": ":attribute is invalid, trim string fail",
   "title": ":attribute is invalid, title string fail",
-  "array": ":attribute must be an array"
+  "array": ":attribute must be an array",
+  "not_allow": ":attribute is not allowed",
+  "email": ":attribute is invalid",
+  "phone": ":attribute is invalid"
 }
