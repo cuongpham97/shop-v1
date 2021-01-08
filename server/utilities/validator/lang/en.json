@@ -12,7 +12,7 @@
     "string": ":attribute must be between :min and :max characters"
   },
   "confirmed": ":attribute confirmation does not match",
-  "date": ":attribute must be a date",
+  "date": ":attribute must be a date with format: \":format\"",
   "def": "The :attribute attribute has errors",
   "digits": ":attribute must be :digits digits",
   "digits_between": ":attribute must be between :min and :max digits",
@@ -36,7 +36,7 @@
   "required_unless": ":attribute is required when :or is not :value",
   "required_with": ":attribute is required when :is not empty",
   "required_with_all": ":attribute is required when :fields are not empty",
-  "required_without": ":attribute is required when :is empty",
+  "required_without": ":attribute is required when \":is\" empty",
   "required_without_all": ":attribute is required when :fields are empty",
   "same": ":attribute and :same fields must match",
   "size": {
@@ -55,6 +55,6 @@
   "title": ":attribute is invalid, title string fail",
   "array": ":attribute must be an array",
   "not_allow": ":attribute is not allowed",
-  "email": ":attribute is invalid",
-  "phone": ":attribute is invalid"
+  "email": ":attribute is not an email",
+  "phone": ":attribute is not a phone number"
 }

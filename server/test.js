@@ -129,7 +129,7 @@
 // const validate = require('./utilities/validator');
 
 // let value = {
-//   search: 3,
+//   search: '1997/03/27',
 //   regexes: {
 //     name: "$",
 //     age: 25
@@ -138,30 +138,30 @@
 //     name: "$5ff2e697f9378$a9ee3fc0c3f"
 //   },
 //   orders: 'name',
-//   fields: [3,4],
-//   page: '3',
-//   pageSize: '7',
+//   fields: [ 5,4],
+//   page: 3,
+//   pageSize: 300,
 //   phone: "99234234234",
-//   mail: '@gmail.com'
+//   mail: 'a@gmail.com'
 // };
 
 // (async function () {
 
+//   let t = new Date;
 //   let validation = await validate(value, {
-//     'search'    : 'required|string|trim|max:200',
-//     'regexes'   : 'object|mongo_guard',
+//     'search'    : 'date:YYYY/MM/DD',
+//     'regexes'   : ['object','mongo_guard'],
 //     'filters'   : 'object|mongo_guard',
 //     'orders'    : 'to:array',
 //     'orders.*'  : 'string|min:1|max:100',
 //     'fields'    : 'to:array',
 //     'fields.*'  : 'string|min:1|max:100',
-//     'page'      : 'integer|min:1',
-//     'pageSize'  : 'integer|min:1|max:200',
-//     'phone'     : 'phone|unset',
-//     'mail'      : 'email'
+//     'page'      : 'min:3',
+//     'pageSize'  : 'integer',
+//     'mail'      : ['required_without:phone', 'email']
 //   });
 
-//   console.log(validation);
+//   console.log(new Date -t);
 // })();
 
 // let c = 6;
@@ -497,13 +497,13 @@
 
 // generateToken();
 
-const imgur = require('./utilities/imgur');
+// const imgur = require('./utilities/imgur');
 
-(async function () {
+// (async function () {
 
-  const image = require('fs').readFileSync('z.txt').toString();
+//   const image = require('fs').readFileSync('z.txt').toString();
 
 
-  console.log(await imgur.deleteImage('jny07P4eNQbdQLc'));
+//   console.log(await imgur.deleteImage('jny07P4eNQbdQLc'));
 
-})();
+// })();

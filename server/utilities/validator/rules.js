@@ -1,112 +1,189 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const Validator = require('validatorjs');
+const moment = require('moment');
 const { deepMap } = require('../tools');
 const _ = require('lodash');
 
 /**
- * Remove attribute
+ * required_without:foo,bar
  */
-Validator.register('unset', function(val, args, attribute) {
+Validator.registerAsync('required_without', function (field, value, args, done) {
 
-  let input = this.validator.input;
-  _.unset(input, attribute);
+  if (!_.isEmpty(value)) return done(); 
 
-  return true;
+  const without = args.split(',').some(i => !_.has(this.input, i));
+
+  return without 
+    ? done(false, null, { is: args })
+    : done();
 });
 
 /**
- * Check is a phone number
+ * Date
  */
-Validator.register('phone', function(val, args, attribute) {
+Validator.registerAsync('date', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+  let format = args || 'YYYY/MM/DD';
 
-  return /^[+0-9]{8,12}$/.test(value);
+  return moment(value, format, true).isValid()
+    ? done()
+    : done(false, null, { format: format });
 });
 
 /**
- * Check is a email
+ * Regex
  */
-Validator.register('email', function(val, args, attribute) {
+Validator.registerAsync('regex', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+  let rg = /^\/(?<regex>.+)\/(?<options>[img]*)$/;
+
+  if (!rg.test(args)) {
+    return done(new RegExp(args).test(value))
+  }
+
+  let match = rg.exec(args);
+
+  return done(new RegExp(match.groups.regex, match.groups.options).test(value))
+});
+
+/**
+ * Check length
+ */
+Validator.registerAsync('max', function(field, value, args, done) {
+
+  let max = parseInt(args);
+
+  if (typeof value === 'number') {
+    return max >= value 
+      ? done(true)
+      : done(false, null, { max: max });
+  }
+
+  return max > value.length
+    ? done(true)
+    : done(false, null, { max: max });
+});
+
+// /**
+//  * Check length
+//  */
+Validator.registerAsync('min', function(field, value, args, done) {
+  
+  let min = parseInt(args);
+
+  if (typeof value === 'number') {
+    return value >= min
+      ? done(true)
+      : done(false, null, { min: min });
+  }
+
+  return value.length >= min
+    ? done(true)
+    : done(false, null, { min: min });
+});
+
+
+// /**
+//  * Remove attribute
+//  */
+Validator.registerAsync('unset', function(field, value, args, done) {
+
+  _.unset(input, field);
+
+  return done(true);
+});
+
+// /**
+//  * Check is a phone number
+//  */
+Validator.registerAsync('phone', function(field, value, args, done) {
+
+  return /^[+0-9]{8,12}$/.test(value) 
+    ? done(true)
+    : done(false);
+});
+
+// /**
+//  * Check is a email
+//  */
+Validator.registerAsync('email', function(field, value, args, done) {
 
   let regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  
   if (!regex.test(value)) {
     // added support domain 3-n level https://github.com/skaterdav85/validatorjs/issues/384
     regex = /^((?:[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]|[^\u0000-\u007F])+@(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?(?:\.(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?)+)*$/;
   }
-  return regex.test(value);
+
+  return regex.test(value) 
+    ? done(true)
+    : done(false);
 });
 
-/**
- * Not allow attribute
- */
-Validator.register('not_allow', function(val) {
-  return false;
+// /**
+//  * Not allow attribute
+//  */
+Validator.registerAsync('not_allow', function(field, value, args, done) {
+  return done(false);
 });
 
-/**
- * Cast value
- */
-Validator.register('to', function(val, args, attribute) {
+// /**
+//  * Cast value
+//  */
+Validator.registerAsync('to', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
-
-  let type = args;
+  args = args.split(',');
+  let type = args[0];
 
   switch (type) {
     case 'array': 
-      _.set(input, attribute, [].concat(value));
-      return true;
+      _.set(this.input, field, [].concat(value));
+      return done(true);
+    
+    case 'date':
+      const format = args[1] || '';
+      _.set(this.input, field, moment(value, format).toDate());
+      return done(true);
 
-    default: return false;
+    default: return done(false);
   }
 });
 
-/**
- * Check value is a object.
- */
-Validator.register('object', function(val, args, attribute) {
-  let value = _.get(this.validator.input, attribute);
+// /**
+//  * Check value is a object.
+//  */
+Validator.registerAsync('object', function(field, value, args, done) {
 
-  return typeof value === 'object' && value !== null;
+  return (typeof value === 'object' && value !== null) 
+    ? done(true)
+    : done(false);
 });
 
-/**
- * Check value is a mongodb objectId and cast to ObjectId.
- */
-Validator.register('mongo_id', function(val, args, attribute) {
-  
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+// /**
+//  * Check value is a mongodb objectId and cast to ObjectId.
+//  */
+Validator.registerAsync('mongo_id', function(field, value, args, done) {
 
   const isId = /^[0-9a-fA-F]{24}$/.test(value);
 
-  if (!isId) return false;
+  if (!isId) return done(false);
 
-  _.set(input, attribute, ObjectId(value));
+  _.set(this.input, field, ObjectId(value));
 
-  return true;
+  return done(true);
 });
 
-/**
- *  Remove all $ sign that start of a string, key and value of an object.
- */
-Validator.register('mongo_guard', function(val, args, attribute) {
-
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+// /**
+//  *  Remove all $ sign that start of a string, key and value of an object.
+//  */
+Validator.registerAsync('mongo_guard', function(field, value, args, done) {
 
   switch (true) {
     // Is a string
     case typeof value === 'string' || value instanceof String:
-      _.set(input, attribute, value.replace(/^\$/, '\\$'));
-      return true;
+      _.set(this.input, field, value.replace(/^\$/, '\\$'));
+      return done();
     
     // Is a object
     case typeof value === 'object' && value !== null:
@@ -117,133 +194,109 @@ Validator.register('mongo_guard', function(val, args, attribute) {
         }
       }, true);
   
-      return true;
+      return done();
     
     // Other
-    default: return true;
+    default: return done();
   }
 });
 
-/**
- * Check value is a string and cast to string
- */
-Validator.register('string', function(val, args, attribute) {
-
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+// /**
+//  * Check value is a string and cast to string
+//  */
+Validator.registerAsync('string', function(field, value, args, done) {
 
   const isString = !(typeof value === 'object') || value == null;
 
-  if (!isString) return false;
+  if (!isString) return done(false);
 
-  _.set(input, attribute, '' + value);
+  _.set(this.input, field, '' + value);
 
-  return true;
+  return done(true);
 });
 
-/**
- * Check value is a integer and cast to integer
- */
-Validator.register('integer', function(val, args, attribute) {
-
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+// /**
+//  * Check value is a integer and cast to integer
+//  */
+Validator.registerAsync('integer', function(field, value, args, done) {
 
   const isInteger = /^\d+$/.test(value);
 
-  if (!isInteger) return false;
+  if (!isInteger) return done(false);
 
-  _.set(input, attribute, parseInt(value));
+  _.set(this.input, field, parseInt(value));
 
-  return true;
+  return done(true);
 });
 
-/**
- * Check is a array
- */
-Validator.register('array', function(val, args, attribute) {
+// /**
+//  * Check is a array
+//  */
+Validator.registerAsync('array', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
-
-  return Array.isArray(value);
+  return done(Array.isArray(value));
 });
 
-/**
- * Cast value to primative data type of javascipt.
- */
-Validator.register('primative', function(val, args, attribute) {
-
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+// /**
+//  * Cast value to primative data type of javascipt.
+//  */
+Validator.registerAsync('primative', function(field, value, args, done) {
 
   switch (value) {
     case 'true': 
-      _.set(input, attribute, true);
-      return true;
+      _.set(this.input, field, true);
+      return done();
 
     case 'false': 
-      _.set(input, attribute, false);
-      return true;
+      _.set(this.input, field, false);
+      return done();
     
     case 'null':
-      _.set(input, attribute, null);
-      return true;
+      _.set(this.input, field, null);
+      return done();
     
     case 'undefined':
-      _.set(input, attribute, undefined);
-      return true;
+      _.set(this.input, field, undefined);
+      return done();
     
     default:
-      _.set(input, attribute, /^\d+$/.test(value) ? Number(value) : value);
-      return true;
+      _.set(this.input, field, /^\d+$/.test(value) ? Number(value) : value);
+      return done();
   }
 });
 
-Validator.register('uppercase', function(val, args, attribute) {
+Validator.registerAsync('uppercase', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+  if (!value.toUpperCase) return done(false);
 
-  if (!value.toUpperCase) return false;
+  _.set(this.input, field, value.toUpperCase());
 
-  _.set(input, attribute, value.toUpperCase());
-
-  return true;
+  return done(true);
 });
 
-Validator.register('lowercase', function(val, args, attribute) {
+Validator.registerAsync('lowercase', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+  if (!value.toLowerCase) return done(false);
 
-  if (!value.toLowerCase) return false;
+  _.set(this.input, field, value.toLowerCase());
 
-  _.set(input, attribute, value.toLowerCase());
-
-  return true;
+  return done(true);
 });
 
-Validator.register('trim', function(val, args, attribute) {
+Validator.registerAsync('trim', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+  if (!value.trim) return done(false);
 
-  if (!value.trim) return false;
+  _.set(this.input, field, value.trim());
 
-  _.set(input, attribute, value.trim());
-
-  return true;
+  return done(true);
 });
 
-Validator.register('title', function(val, args, attribute) {
+Validator.registerAsync('title', function(field, value, args, done) {
 
-  let input = this.validator.input;
-  let value = _.get(input, attribute);
+  if (!value.toUpperCase) return done(false);
 
-  if (!value.toUpperCase) return false;
+  _.set(this.input, field, _.startCase(_.toLower(value)));
 
-  _.set(input, attribute, _.startCase(_.toLower(value)));
-
-  return true;
+  return done(true);
 });

@@ -1,8 +1,8 @@
 const Validator = require('validatorjs');
+const override = require('./override');
 const rules = require('./rules');
 
 Validator.setMessages('en', require('./lang/en.json'));
-
 Validator.setAttributeFormatter(attribute => `"${attribute}"`);
 
 module.exports = function (input, rules, customMessages, validator = Validator) {
@@ -10,9 +10,8 @@ module.exports = function (input, rules, customMessages, validator = Validator) 
   const validation = new validator(input, rules, customMessages);
 
   return new Promise(resolve => validation.checkAsync( 
-    () => resolve({ result: input, errors: null }),
+    () => { resolve({ result: input, errors: null }) },
     () => {        
-
       let errors = [];
         
       for (const [field, error] of Object.entries(validation.errors.all())) {
