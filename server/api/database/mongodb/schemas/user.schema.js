@@ -3,6 +3,7 @@ const { regexes } = require('../../../../utilities/constants');
 const { hashPassword } = require('../../../../utilities/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
+const Image = require('./Image.schema');
 
 async function uniqueEmail(email) {
   const model = this.parent().constructor;
@@ -32,8 +33,6 @@ const LocalProvider = new Schema({
   },
   password: {
     type: String,
-    minLength: 6,
-    maxLength: 16,
     required: true
   }
 }, { _id: false });
@@ -42,7 +41,7 @@ LocalProvider.pre('validate', function (next) {
   let email = this.get('email');
   let phone = this.get('phone');
 
-  if (email && !phone) {
+  if (!email && !phone) {
     throw new Error('"local.email" or "local.phone" number is required');
   }
   
@@ -99,7 +98,7 @@ const UserSchema = new Schema({
     default: []
   },
   avatar: {
-    type: String,
+    type: Image,
     default: null
   },
   local: {

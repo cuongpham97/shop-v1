@@ -4,7 +4,7 @@ function timestampPlugin(schema, options) {
 
   schema.set('timestamps', {
     createdAt: true,
-    updatedAt: { setOnInsert: false },
+    updatedAt: true,
     currentTime: () => moment().format()
   });
 

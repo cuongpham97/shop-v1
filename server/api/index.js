@@ -22,10 +22,9 @@ api.use((req, res, next) => {
 api.disable('x-powered-by');
 api.set('etag', false);
 
-api.use(bodyParser.urlencoded({ 
-  extended: true 
-}));
-api.use(express.json());
+//api.use(bodyParser.urlencoded({ litmit: '18mb',extended: true }));
+
+api.use(express.json({ limit: '18mb' }));
 api.use(unflatten);
 
 const user = require('./routes/user.routes');

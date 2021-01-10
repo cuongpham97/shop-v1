@@ -56,5 +56,6 @@
   "array": ":attribute must be an array",
   "not_allow": ":attribute is not allowed",
   "email": ":attribute is not an email",
-  "phone": ":attribute is not a phone number"
+  "phone": ":attribute is not a phone number",
+  "only_one_of": "\":fields\" only one of these must be present"
 }

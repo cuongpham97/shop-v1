@@ -6,7 +6,7 @@ const config = require('../../../config');
 class ErrorFilter {
   catch(error, req, res, next) {
 
-    if(config.ENVIROMENT === 'DEVELOPMENT') {
+    if(config.ENVIRONMENT === 'DEVELOPMENT') {
       logger.error(error);
     }
 

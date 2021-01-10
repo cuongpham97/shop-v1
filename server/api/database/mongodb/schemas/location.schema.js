@@ -22,6 +22,6 @@ const Location = new Schema({
     maxLength: 100,
     required: true
   }
-});
+}, { _id: false });
 
 module.exports = Location;

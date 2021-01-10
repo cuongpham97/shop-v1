@@ -1,4 +1,5 @@
 const connect = require('./connect');
+const transaction = require('./transaction');
 const { Mongoose } = require('mongoose');
 const mongoose = new Mongoose;
 
@@ -28,3 +29,5 @@ module.exports = (function () {
 
   return mongoose;
 })();
+
+module.exports.transaction = transaction(mongoose);

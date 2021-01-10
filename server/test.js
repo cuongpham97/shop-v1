@@ -504,6 +504,40 @@
 //   const image = require('fs').readFileSync('z.txt').toString();
 
 
-//   console.log(await imgur.deleteImage('jny07P4eNQbdQLc'));
+//   console.log(await imgur.uploadImage({
+//     image: image,
+//     name: 'user.name',
+//     description: 'user upload'
+//   }));
 
 // })();
+
+const mongoose = require('mongoose');
+
+const NestedSchema = new mongoose.Schema({
+  value: Number
+});
+
+NestedSchema.post('validate', function (error, doc, next) {
+  next();
+})
+
+const UserSchema = new mongoose.Schema({
+  name: NestedSchema
+});
+
+UserSchema.post('validate', function (error, doc, next) {
+  console.log(this.parent())
+  next();
+})
+
+const User = mongoose.model('user', UserSchema);
+
+(async function () {
+  await User.create({
+    name: {  value: 'sdfsdf' }
+  })
+})();
+
+
+

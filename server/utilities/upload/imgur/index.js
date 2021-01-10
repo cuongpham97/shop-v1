@@ -1,6 +1,6 @@
 const axios = require('axios');
 const FormData = require('form-data');
-const config = require('../../config');
+const config = require('../../../config');
 const moment = require('moment');
 
 let accessToken = config.imgur.ACCESS_TOKEN;

@@ -6,16 +6,28 @@ const { deepMap } = require('../tools');
 const _ = require('lodash');
 
 /**
+ * only_one_of
+ */
+Validator.registerAsync('only_one_of', function (field, value, args, done) {
+
+  let count = args.split(',').filter(key => _.has(this.input, key)).length;
+
+  return count === 1 
+    ? done(true)
+    : done(false, null, { field: args });
+});
+
+/**
  * required_without:foo,bar
  */
 Validator.registerAsync('required_without', function (field, value, args, done) {
 
   if (!_.isEmpty(value)) return done(); 
 
-  const without = args.split(',').some(i => !_.has(this.input, i));
+  const without = args.split(',').find(i => !_.has(this.input, i));
 
   return without 
-    ? done(false, null, { is: args })
+    ? done(false, null, { is: without })
     : done();
 });
 
@@ -44,7 +56,7 @@ Validator.registerAsync('regex', function(field, value, args, done) {
 
   let match = rg.exec(args);
 
-  return done(new RegExp(match.groups.regex, match.groups.options).test(value))
+  return done(new RegExp(match.groups.regex, match.groups.options).test(value));
 });
 
 /**
