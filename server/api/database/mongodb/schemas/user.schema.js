@@ -1,17 +1,21 @@
 const { Schema } = require('mongoose');
 const { regexes } = require('../../../../utilities/constants');
-const { hashPassword } = require('../../../../utilities/hashing');
+const { hashPassword, comparePassword } = require('../../../../utilities/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
 const Image = require('./Image.schema');
 
 async function uniqueEmail(email) {
+  if (!this.isModified('email')) return true;
+  
   const model = this.parent().constructor;
   const user = await model.findOne({ 'local.email': email });
   return !user;
 }
 
 async function uniquePhone(phone) {
+  if (!this.isModified('phone')) return true;
+
   const model = this.parent().constructor;
   const user = await model.findOne({ 'local.phone': phone });
   return !user;
@@ -132,5 +136,9 @@ UserSchema.pre('validate', function (next) {
 
   return next();
 });
+
+UserSchema.methods.comparePassword = async function (password) {
+  return await comparePassword(password, this.get('local.password'));
+}
 
 module.exports = UserSchema;

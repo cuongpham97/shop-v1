@@ -13,6 +13,17 @@ exports.Exception = class extends Error {
   }
 }
 
+exports.NotFoundException = class extends this.Exception {
+  constructor(args) {
+    super(
+      Object.assign({
+        name: 'NotFoundException',
+        httpStatus: StatusCodes.NOT_FOUND
+      }, args)
+    );
+  }
+}
+
 exports.ValidationException = class extends this.Exception {
   constructor(args) {
     super(
@@ -41,6 +52,17 @@ exports.AuthorizationException = class extends this.Exception {
       Object.assign({
         name: 'AuthorizationException',
         httpStatus: StatusCodes.UNAUTHORIZED
+      }, args)
+    );
+  }
+}
+
+exports.BadRequestException = class extends this.Exception {
+  constructor(args) {
+    super(
+      Object.assign({
+        name: 'BadRequestException',
+        httpStatus: StatusCodes.BAD_REQUEST
       }, args)
     );
   }

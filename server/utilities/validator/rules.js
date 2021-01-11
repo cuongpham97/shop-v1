@@ -6,6 +6,16 @@ const { deepMap } = require('../tools');
 const _ = require('lodash');
 
 /**
+ * Check value is equal with `{field}Confirm` field
+ */
+Validator.registerAsync('confirmed', function (field, value, args, done) {
+
+  return value === _.get(this.input, field + 'Confirm')
+    ? done(true)
+    : done(false);
+});
+
+/**
  * only_one_of
  */
 Validator.registerAsync('only_one_of', function (field, value, args, done) {

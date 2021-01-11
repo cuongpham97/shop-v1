@@ -1,13 +1,13 @@
 const mongodb = require('../database/mongodb');
 const validate = require('../../utilities/validator');
-const { ValidationException } = require('../exceptions');
 const _ = require('lodash');
 const { regexes } = require('../../utilities/constants');
 const upload = require('../../utilities/upload');
+const { ValidationException, NotFoundException, BadRequestException } = require('../exceptions');
 
 exports.find = async function (query) {
 
-  let validation = await validate(query, {
+  const validation = await validate(query, {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
     'filters': 'object|mongo_guard',
@@ -26,9 +26,28 @@ exports.find = async function (query) {
   return await mongodb.model('user').paginate(validation.result);
 }
 
+exports.findById = async function (id) {
+
+  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+
+  const user = await mongodb.model('user').findById(id);
+
+  if (!user) {
+    throw new NotFoundException({ message: 'User ID not found' });
+  }
+
+  return user;
+}
+
 exports.create = async function (user, provider = 'local') {
 
-  let rule = {
+  const rule = {
     'name': 'object',
     'name.first': 'string|trim|min:1|max:20',
     'name.last': 'string|trim|min:1|max:20',
@@ -45,7 +64,7 @@ exports.create = async function (user, provider = 'local') {
     'active': 'not_allow'
   };
 
-  let providerRules = {
+  const providerRules = {
     local: {
       'local': 'required|object|only_one_of:local.email,local.phone',
       'local.email': 'string|trim|lowercase|email',
@@ -68,7 +87,7 @@ exports.create = async function (user, provider = 'local') {
     }
   }
 
-  let validation = await validate(user, _.merge(rule, providerRules[provider]));
+  const validation = await validate(user, _.merge(rule, providerRules[provider]));
 
   if (validation.errors) {
     throw new ValidationException({ message: validation.errors });
@@ -96,4 +115,116 @@ exports.create = async function (user, provider = 'local') {
 
     return newUser;
   });
+}
+
+exports.partialUpdate = async function (id, data) {
+
+  data.id = id;
+
+  const validation = await validate(data, {
+    'id': 'mongo_id',
+    'name': 'object',
+    'name.first': 'string|trim|min:1|max:20',
+    'name.last': 'string|trim|min:1|max:20',
+    'displayName': 'string|trim|min:2|max:100',
+    'gender': ['lowercase', 'regex:' + regexes.GENDER],
+    'birthday': 'date:YYYY/MM/DD',
+    'phones': 'to:array',
+    'phones.*': 'string|trim|phone',
+    'addresses': 'array',
+    'addresses.*': 'object',
+    'addresses.*.block': 'required|trim|min:1|max:100',
+    'addresses.*.district': 'required|trim|min:1|max:100',
+    'addresses.*.province': 'required|trim|min:1|max:100',
+    'active': 'not_allow',
+    'local': 'not_allow',
+    'google': 'not_allow',
+    'facebook': 'not_allow'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+  _.unset(validation.result, 'id');
+
+  data = validation.result;
+
+  let user = await mongodb.model('user').findById(id);
+
+  if (!user) {
+    throw new NotFoundException({ message: 'User ID not found' });
+  }
+  
+  if (data.avatar) {
+    const newImage = await upload.uploadImage(data.avatar, user.displayName + ' avatar');
+
+    const oldImage = user.avatar;
+    if (oldImage) await upload.deleteImage(oldImage);
+
+    data.avatar = newImage;
+  }
+
+  user = _.merge(user, data);
+  await user.save();
+
+  return true;
+}
+
+exports.changePassword = async function (id, data) {
+
+  data.id = id;
+
+  const validation = await validate(data, { 
+    'id': 'mongo_id',
+    'password': 'required|string|min:6|max:16',
+    'newPassword': 'required|string|min:6|max:16' 
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+
+  let user = await mongodb.model('user').findById(id);
+
+  if (!user) {
+    throw new NotFoundException({ message: 'User ID not found' });
+  }
+
+  if (!user.local) {
+    throw new BadRequestException({ message: 'User does not use local provider' });
+  }
+
+  const match = await user.comparePassword(validation.result.password);
+
+  if (!match) {
+    throw new ValidationException({ message: 'Password is incorrect' });
+  }
+
+  user = _.merge(user, { local: { password: validation.result.newPassword } });
+  await user.save();
+
+  return true;
+}
+
+exports.deleteById = async function (id) {
+  
+  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+
+  const result = await mongodb.model('user').deleteOne({ _id: id });
+
+  if (!result.deletedCount) {
+    throw new NotFoundException({ message: 'User ID does not exist' });
+  }
+
+  return true;
 }

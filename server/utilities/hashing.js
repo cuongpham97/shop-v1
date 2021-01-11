@@ -6,3 +6,7 @@ exports.hashPassword = async function (password) {
 
   return hash;
 }
+
+exports.comparePassword = async function (password, encrypted) {
+  return bcrypt.compare(password, encrypted);
+}
