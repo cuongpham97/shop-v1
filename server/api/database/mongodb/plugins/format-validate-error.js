@@ -1,4 +1,4 @@
-const { ValidationException } = require('../../../../exceptions');
+const { ValidationException } = require('../../../exceptions');
 const _ = require('lodash');
 
 function customErrorMessage(path, error) {

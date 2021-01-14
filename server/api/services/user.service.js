@@ -172,15 +172,19 @@ exports.partialUpdate = async function (id, data) {
   return true;
 }
 
-exports.changePassword = async function (id, data) {
+exports.changePassword = async function (id, data, role = 'user') {
 
   data.id = id;
 
-  const validation = await validate(data, { 
+  const rules = {
     'id': 'mongo_id',
     'password': 'required|string|min:6|max:16',
-    'newPassword': 'required|string|min:6|max:16' 
-  });
+    'newPassword': 'required|string|min:6|max:16'
+  };
+
+  if (role === 'admin') _.unset(rules.password);
+
+  const validation = await validate(data, rules);
 
   if (validation.errors) {
     throw new ValidationException({ message: validation.errors });
@@ -198,7 +202,9 @@ exports.changePassword = async function (id, data) {
     throw new BadRequestException({ message: 'User does not use local provider' });
   }
 
-  const match = await user.comparePassword(validation.result.password);
+  const match = role === 'admin' 
+    ? true 
+    : await user.comparePassword(validation.result.password);
 
   if (!match) {
     throw new ValidationException({ message: 'Password is incorrect' });
@@ -227,4 +233,32 @@ exports.deleteById = async function (id) {
   }
 
   return true;
+}
+
+exports.deleteMany = async function (ids) {
+  
+  const validation = await validate({ 'ids': ids }, {
+    'ids': 'to:array',
+    'ids.*': 'mongo_id'
+  });
+
+  if (validate.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  ids = validation.result.ids;
+
+  const found = await mongodb.model('user').find({ _id: { "$in": ids } }).select('_id');
+
+  const result = await mongodb.model('user').deleteMany({ _id: { "$in": found } }); 
+
+  if (!result.deletedCount) {
+    throw new NotFoundException({ message: 'User IDs does not exist' });
+  }
+
+  return {
+    expected: ids.length,
+    found: found,
+    deletedCount: 0
+  };
 }

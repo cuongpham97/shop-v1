@@ -32,16 +32,15 @@ const request = new Proxy(axios, {
     return async function (...args) {
       await checkToken();
 
-      let instance = axios.create({ 
+      const instance = axios.create({ 
         headers: { Authorization: `Bearer ${accessToken}` } 
       });
 
       try {
-        let response = await instance[method](...args);
+        const response = await instance[method](...args);
         return response.data;
 
       } catch (e) {
-        console.log(e.response.data)
         throw new Error('Call Imgur api failed, args: ' + JSON.stringify([ method, args[0] ]));
       }
     }
@@ -68,9 +67,9 @@ exports.deleteAlbum = function (hash) {
 /**
  * 
  * @param {Base64String} image
- * @param {String}  type
- * @param {String}  name
- * @param {String}  [description]
+ * @param {String} type
+ * @param {String} name
+ * @param {String} [description]
  * @param {String} [album]
  * 
  */

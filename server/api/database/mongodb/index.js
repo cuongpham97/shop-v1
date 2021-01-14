@@ -9,7 +9,7 @@ const userModel = require('./models/user.model');
 // Plugins
 const pagination = require('./plugins/pagination');
 const timestamp = require('./plugins/timestamp');
-const formatValidateError = require('./plugins/format_validate_error');
+const formatValidateError = require('./plugins/format-validate-error');
 
 const models = [userModel];
 const plugins = [timestamp, pagination, formatValidateError];

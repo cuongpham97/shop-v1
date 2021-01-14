@@ -1,4 +1,4 @@
-const validate = require('../../../../../utilities/validator');
+const validate = require('../../../../utilities/validator');
 const _ = require('lodash');
 
 async function validateOptions(options) {

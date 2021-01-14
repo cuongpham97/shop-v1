@@ -512,32 +512,54 @@
 
 // })();
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 
-const NestedSchema = new mongoose.Schema({
-  value: Number
-});
+// const NestedSchema = new mongoose.Schema({
+//   value: Number
+// });
 
-NestedSchema.post('validate', function (error, doc, next) {
+// NestedSchema.post('validate', function (error, doc, next) {
+//   next();
+// })
+
+// const UserSchema = new mongoose.Schema({
+//   name: NestedSchema
+// });
+
+// UserSchema.post('validate', function (error, doc, next) {
+//   console.log(this.parent())
+//   next();
+// })
+
+// const User = mongoose.model('user', UserSchema);
+
+// (async function () {
+//   await User.create({
+//     name: {  value: 'sdfsdf' }
+//   })
+// })();
+
+const express = require('express');
+const wrap = require('async-middleware').wrap;
+const HttpServer = require('./http-server');
+
+const app = express();
+const router = express.Router();
+
+router.get('/', wrap(
+[(req, res, next) => {
+  console.log('okkkk');
   next();
-})
+},
+(req, res, next) => {
+  console.log('ok2')
+}]
+))
 
-const UserSchema = new mongoose.Schema({
-  name: NestedSchema
-});
+app.use(router);
 
-UserSchema.post('validate', function (error, doc, next) {
-  console.log(this.parent())
-  next();
-})
+const server = new HttpServer(app);
 
-const User = mongoose.model('user', UserSchema);
+server.listen(80);
 
-(async function () {
-  await User.create({
-    name: {  value: 'sdfsdf' }
-  })
-})();
-
-
-
+router.get('/', auth('user').hasPermission('create.user'), wrap(userCtrl.createNewUserAccount));
