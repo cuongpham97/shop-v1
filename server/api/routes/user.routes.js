@@ -1,6 +1,6 @@
 const wrap = require('async-middleware').wrap;
 const router = require('express').Router();
-const userCtrl = require('../controllers/user.controller');
+const userCtrl = require('~controllers/user.controller');
 
 router.get('/users/:id', wrap(userCtrl.getUserById));
 router.post('/users', wrap(userCtrl.registerNewUserAccount));

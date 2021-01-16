@@ -1,5 +1,5 @@
 const http = require('http');
-const logger = require('./utilities/logger');
+const logger = require('~utils/logger');
 
 function HttpServer(app) {
   this.server = http.createServer(app);

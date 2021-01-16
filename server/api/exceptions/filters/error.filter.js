@@ -1,10 +1,10 @@
 const moment = require('moment');
 const { StatusCodes } = require('http-status-codes');
-const logger = require('../../../utilities/logger'); 
-const config = require('../../../config');
+const logger = require('~utils/logger'); 
+const config = require('~config');
 
 class ErrorFilter {
-  catch(error, req, res, next) {
+  catch(error, _req, res, _next) {
 
     if(config.ENVIRONMENT === 'DEVELOPMENT') {
       logger.error(error);

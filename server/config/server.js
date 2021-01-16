@@ -1,4 +1,4 @@
-const logger = require('../utilities/logger');
+const logger = require('~utils/logger');
 
 ['APP_PORT'].forEach(params => {
   if (!process.env[params]) {

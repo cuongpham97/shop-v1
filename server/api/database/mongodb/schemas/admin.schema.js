@@ -1,6 +1,6 @@
 const { Schema } = require('mongoose');
-const { regexes } = require('../../../../utilities/constants');
-const { hashPassword } = require('../../../../utilities/hashing');
+const { regexes } = require('~utils/constants');
+const { hashPassword } = require('~utils/hashing');
 
 async function uniqueUsername(username) {
   const admin = await this.constructor.findOne({ 'username': username });

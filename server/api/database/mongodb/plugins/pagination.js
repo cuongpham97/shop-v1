@@ -1,4 +1,4 @@
-const validate = require('../../../../utilities/validator');
+const validate = require('~utils/validator');
 const _ = require('lodash');
 
 async function validateOptions(options) {
@@ -128,7 +128,7 @@ function paginateResult(docs, options) {
   };
 }
 
-function paginationPlugin(schema, options) {
+function paginationPlugin(schema, _options) {
 
   schema.statics.paginate = async function(options = {}, validateOpts = false) {
 

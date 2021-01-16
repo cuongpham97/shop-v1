@@ -1,3 +1,4 @@
+require('module-alias/register');
 const dotenv = require('dotenv');
 const { join } = require('path');
 
@@ -6,6 +7,7 @@ if (env.error) {
   throw env.error;
 }
 
+const moduleAlias = require('./path');
 const environment = require('./environment');
 const server = require('./server');
 const jwt = require('./jwt');

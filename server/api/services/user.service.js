@@ -1,9 +1,9 @@
-const mongodb = require('../database/mongodb');
-const validate = require('../../utilities/validator');
+const mongodb = require('~database/mongodb');
+const validate = require('~utils/validator');
 const _ = require('lodash');
-const { regexes } = require('../../utilities/constants');
-const upload = require('../../utilities/upload');
-const { ValidationException, NotFoundException, BadRequestException } = require('../exceptions');
+const { regexes } = require('~utils/constants');
+const upload = require('~utils/upload');
+const { ValidationException, NotFoundException, BadRequestException } = require('~exceptions');
 
 exports.find = async function (query) {
 

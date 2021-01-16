@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-function timestampPlugin(schema, options) {
+function timestampPlugin(schema, _options) {
 
   schema.set('timestamps', {
     createdAt: true,

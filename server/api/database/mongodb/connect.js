@@ -1,5 +1,5 @@
-const config = require('../../../config');
-const logger = require('../../../utilities/logger');
+const config = require('~config');
+const logger = require('~utils/logger');
 
 module.exports = (mongoose, callback = null) => {
 

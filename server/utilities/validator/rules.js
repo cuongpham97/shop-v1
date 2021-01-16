@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const Validator = require('validatorjs');
 const moment = require('moment');
-const { deepMap } = require('../tools');
+const { deepMap } = require('~utils/tools');
 const _ = require('lodash');
 
 /**

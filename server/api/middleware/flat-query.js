@@ -34,7 +34,7 @@ function unflatten(str) {
   }
 }
 
-exports.unflatten = function (req, res, next) {
+exports.unflatten = function (req, _res, next) {
 
   Object.keys(req.query).forEach(param => req.query[param] = unflatten(req.query[param]));
 

@@ -1,6 +1,6 @@
 const { Schema } = require('mongoose');
-const { regexes } = require('../../../../utilities/constants');
-const { hashPassword, comparePassword } = require('../../../../utilities/hashing');
+const { regexes } = require('~utils/constants');
+const { hashPassword, comparePassword } = require('~utils/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
 const Image = require('./Image.schema');

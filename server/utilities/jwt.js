@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const config = require('../config').jwt;
+const config = require('~config').jwt;
 
 exports.createAccessToken = (payload) => jwt.sign(payload, config.ACCESS_PRIVATE_KEY, {
   algorithm: 'RS256',

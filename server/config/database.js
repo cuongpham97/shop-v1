@@ -1,4 +1,4 @@
-const logger = require('../utilities/logger');
+const logger = require('~utils/logger');
 
 ['DB_MONGODB_URI'].forEach(params => {
   if (!process.env[params]) {

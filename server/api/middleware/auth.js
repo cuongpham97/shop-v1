@@ -1,9 +1,9 @@
-const jwt = require('../../utilities/jwt');
+const jwt = require('~utils/jwt');
 const _ = require('lodash');
 const { 
   AuthenticationException, 
   AuthorizationException 
-} = require('../../api/exceptions');
+} = require('~exceptions');
 
 function getTokenFromHeader(req) {
   let token = req.headers['authorization'] || req.headers['x-access-token'];
@@ -76,21 +76,24 @@ module.exports = function (accountType) {
 
   let middleware = function(req, res, next) {
 
-    let token = getTokenFromHeader(req);
-    let extracted = extractToken(token);
+    try {
+      const token = getTokenFromHeader(req);
+      const extracted = extractToken(token);
 
-    // Merge extracted token to req.user || req.admin
-    req[accountType] = Object.assign(req[accountType] || {}, extracted);
+      // Merge extracted token to req.user || req.admin
+      req[accountType] = Object.assign(req[accountType] || {}, extracted);
+    
+      let expected = checklist.check(req[accountType].role, req[accountType].id);
 
-    let expected = checklist.check(req[accountType].role, req[accountType].id);
-
-    if (expected) {
-      return next();
+      if (expected) return next();
+  
+      return next(
+        new AuthorizationException({ message: 'You don\'t have permission to access' })
+      );
+      
+    }catch (e) {
+      return next(e);
     }
-
-    return next(
-      new AuthorizationException({ message: 'You don\'t have permission to access' })
-    );
   }
 
   return Object.assign(middleware, chain);

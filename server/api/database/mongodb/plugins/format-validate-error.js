@@ -1,4 +1,4 @@
-const { ValidationException } = require('../../../exceptions');
+const { ValidationException } = require('~exceptions');
 const _ = require('lodash');
 
 function customErrorMessage(path, error) {
@@ -44,7 +44,7 @@ function customErrorMessage(path, error) {
   }
 }
 
-function afterValidate(error, doc, next) {
+function afterValidate(error, _doc, next) {
 
   if (this.parent() || !error) return next();
 
