@@ -539,27 +539,64 @@
 //   })
 // })();
 
-const express = require('express');
-const wrap = require('async-middleware').wrap;
+// function AuthCheck() {
+//   this.id = '';
+//   this.role = '';
+//   this.can = [];
+
+//   this.check = function (roles, id) {
+
+//     const ownerId = !this.id || this.id === id;
+//     const hasRole = !this.role || _.has(roles, role);
+//     const hasPermission = true// TODO: check later !this.can.length || 
+  
+//     return [ownerId, hasRole, hasPermission].every(Boolean);
+//   }
+// }
+
+// function MiddlewareChain(checker) {
+  
+//   this.ownerId = function () {
+//     checker.
+//   }
+
+// }
+
+// function auth(type) {
+//   return true;
+// }
+
+const config = require('./config');
+const Guard = require('~middleware/guard');
 const HttpServer = require('./http-server');
-
+const express = require('express');
+const jwt = require('~utils/jwt');
 const app = express();
-const router = express.Router();
 
-router.get('/', wrap(
-[(req, res, next) => {
-  console.log('okkkk');
-  next();
+app.get('/:id', 
+
+function (req, res, next) {
+  req.headers['authorization'] = jwt.createAccessToken({
+    id: 500,
+    roles: {
+      admin: {
+        'user.create': true,
+        'product.create': false
+      },
+      shiper: {
+        'user.read': true,
+        'order.create': true
+      }
+    }
+  });
+  return next();
 },
-(req, res, next) => {
-  console.log('ok2')
-}]
-))
+  Guard.auth('admin').role('shiper').can('user.create', 'user.delete').ownerId('params.id')
+,function (req, res, next) {
+  console.log(req.admin)
+}
 
-app.use(router);
+);
 
 const server = new HttpServer(app);
-
 server.listen(80);
-
-router.get('/', auth('user').hasPermission('create.user'), wrap(userCtrl.createNewUserAccount));

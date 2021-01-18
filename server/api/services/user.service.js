@@ -99,7 +99,7 @@ exports.create = async function (user, provider = 'local') {
     return await mongodb.model('user').create(user);
   }
 
-  return await mongodb.transaction(async function (session, commit, abort) {
+  return await mongodb.transaction(async function (session, _commit, _abort) {
     
     const imageData = user.avatar;
     _.unset(user, 'avatar');

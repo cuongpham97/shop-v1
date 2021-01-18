@@ -1,18 +1,20 @@
-const wrap = require('async-middleware').wrap;
 const router = require('express').Router();
 const userCtrl = require('~controllers/user.controller');
+const tools = require('~utils/tools');
 
-router.get('/users/:id', wrap(userCtrl.getUserById));
-router.post('/users', wrap(userCtrl.registerNewUserAccount));
-router.patch('/users/:id', wrap(userCtrl.partialUpdateUser));
-router.put('/users/:id/password', wrap(userCtrl.changeUserPassword));
-router.delete('/users/:id', wrap(userCtrl.deleteUserById));
+module.exports = tools.applyRoutes(router, [
 
-router.get('/admin/users', wrap(userCtrl.getManyUser));
-router.get('/admin/users/:id', wrap(userCtrl.getUserById));
-router.patch('/admin/users/:id', wrap(userCtrl.partialUpdateUser));
-router.put('/admin/users/:id/password', wrap(userCtrl.changeUserPassword));
-router.delete('/admin/users/:id', wrap(userCtrl.deleteUserById));
-router.delete('/admin/users', wrap(userCtrl.deleteManyUser));
+  ['GET', '/users/:id', userCtrl.getUserById],
+  ['POST', '/users', userCtrl.registerNewUserAccount],
+  ['PATCH', '/users/:id', userCtrl.partialUpdateUser],
+  ['PUT', '/users/:id/password', userCtrl.changeUserPassword],
+  ['DELETE', '/users/:id', userCtrl.deleteUserById],
 
-module.exports = router;
+  ['GET', '/admin/users', userCtrl.getManyUser],
+  ['GET', '/admin/users/:id', userCtrl.getUserById],
+  ['PATCH', '/admin/users/:id', userCtrl.partialUpdateUser],
+  ['PUT', '/admin/users/:id/password', userCtrl.changeUserPassword],
+  ['DELETE', '/admin/users/:id', userCtrl.deleteUserById],
+  ['DELETE', '/admin/users', userCtrl.deleteManyUser]
+  
+]);

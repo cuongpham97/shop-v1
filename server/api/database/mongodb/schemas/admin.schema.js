@@ -1,13 +1,18 @@
 const { Schema } = require('mongoose');
 const { regexes } = require('~utils/constants');
-const { hashPassword } = require('~utils/hashing');
+const { hashPassword, comparePassword } = require('~utils/hashing');
+const Image = require('./Image.schema');
 
 async function uniqueUsername(username) {
+  if (!this.isModified('username')) return true;
+ 
   const admin = await this.constructor.findOne({ 'username': username });
   return !admin;
 }
 
 function validatePermission(permissions) {
+  if (!this.isModified('role.permissions')) return true;
+
   return Object.keys(permissions).every(key => typeof permissions[key] === 'boolean');
 }
 
@@ -46,10 +51,7 @@ const AdminSchema = new Schema({
     trim: true,
     match: regexes.PHONE_NUMBER
   },
-  avatar: {
-    type: String,
-    default: null
-  },
+  avatar: Image,
   username: {
     type: String,
     match: /^\w[\w\_\.]+$/,
@@ -77,10 +79,15 @@ const AdminSchema = new Schema({
   }
 });
 
-AminSchema.pre(['save', 'create'], async function()
-{ 
+AdminSchema.pre('save', async function(next) { 
+  if (!this.isModified('password')) return true;
   this.set('password', await hashPassword(this.get('password')));
+ 
+  return next();
 });
 
+AdminSchema.methods.comparePassword = async function (password) {
+  return await comparePassword(password, this.get('password'));
+}
 
 module.exports = AdminSchema;

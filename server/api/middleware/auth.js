@@ -1,8 +1,8 @@
 const jwt = require('~utils/jwt');
 const _ = require('lodash');
-const { 
-  AuthenticationException, 
-  AuthorizationException 
+const {
+  AuthenticationException,
+  AuthorizationException
 } = require('~exceptions');
 
 function getTokenFromHeader(req) {
@@ -22,8 +22,8 @@ function getTokenFromHeader(req) {
 function extractToken(token) {
   try {
     return jwt.verifyAccessToken(token);
-  
-  } catch(e) {
+
+  } catch (e) {
     throw new AuthenticationException({ message: e.message });
   }
 }
@@ -35,31 +35,31 @@ function PermissionChecklist() {
 
   this.check = function (scopes, id) {
 
-    let isOwnerId = !this.id || this.id == id; 
+    let isOwnerId = !this.id || this.id == id;
 
     let hasRole = !this.role || (this.role == scopes.name);
-    
+
     let hasPermission = !this.permissions.length || this.permissions.every(
-      p =>  _.get(scopes.permissions, p) == true
+      p => _.get(scopes.permissions, p) == true
     );
-    
+
     return [isOwnerId, hasRole, hasPermission].every(Boolean);
   }
 }
 
 function PermissionChain(checklist) {
-  
-  this.isOwnerId = function(id) {
+
+  this.isOwnerId = function (id) {
     checklist.id = id;
     return this;
   }
 
-  this.hasRole = function(role) {
+  this.hasRole = function (role) {
     checklist.role = role;
     return this;
   }
 
-  this.hasPermission = function(...permissions) {
+  this.hasPermission = function (...permissions) {
     checklist.permissions.concat(permissions);
     return this;
   }
@@ -74,26 +74,21 @@ module.exports = function (accountType) {
   let checklist = new PermissionChecklist();
   let chain = new PermissionChain(checklist);
 
-  let middleware = function(req, res, next) {
+  let middleware = function (req, _res, next) {
 
-    try {
-      const token = getTokenFromHeader(req);
-      const extracted = extractToken(token);
+    const token = getTokenFromHeader(req);
+    const extracted = extractToken(token);
 
-      // Merge extracted token to req.user || req.admin
-      req[accountType] = Object.assign(req[accountType] || {}, extracted);
-    
-      let expected = checklist.check(req[accountType].role, req[accountType].id);
+    // Merge extracted token to req.user || req.admin
+    req[accountType] = Object.assign(req[accountType] || {}, extracted);
 
-      if (expected) return next();
-  
-      return next(
-        new AuthorizationException({ message: 'You don\'t have permission to access' })
-      );
-      
-    }catch (e) {
-      return next(e);
-    }
+    let expected = checklist.check(req[accountType].role, req[accountType].id);
+
+    if (expected) return next();
+
+    return next(
+      new AuthorizationException({ message: 'You don\'t have permission to access' })
+    );
   }
 
   return Object.assign(middleware, chain);

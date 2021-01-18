@@ -1,4 +1,17 @@
 const _ = require('lodash');
+const wrap = require('async-middleware').wrap;
+
+exports.applyRoutes = function (router, routes) {
+  for (let [method, route, ...middleware] of routes) {
+
+    method = method.toLowerCase();
+    middleware = middleware.map(m => wrap(m));
+    
+    router[method](route, ...middleware);
+  }
+
+  return router;
+}
 
 exports.deepMap = function map(o, fn, traceArray = false, traceEnum = false) {
 
