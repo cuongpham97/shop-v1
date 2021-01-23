@@ -17,14 +17,14 @@ exports.registerNewUserAccount = async function (req, res) {
 exports.partialUpdateUser = async function (req, res) {
   await userService.partialUpdate(req.params.id, req.body);
 
-  return res.status(StatusCodes.NO_CONTENT).json(null);
+  return res.status(StatusCodes.NO_CONTENT).end();
 }
 
 exports.changeUserPassword = async function (req, res) {
   const role = _.isEmpty(req.admin) ? 'user' : 'admin';
   await userService.changePassword(req.params.id, req.body, role);
 
-  return res.status(StatusCodes.NO_CONTENT).json(null);
+  return res.status(StatusCodes.NO_CONTENT).end();
 }
 
 exports.getManyUser = async function (req, res) {
@@ -36,7 +36,7 @@ exports.getManyUser = async function (req, res) {
 exports.deleteUserById = async function (req, res) {
   await userService.deleteById(req.params.id);
 
-  return res.status(StatusCodes.NO_CONTENT).json(null);
+  return res.status(StatusCodes.NO_CONTENT).end();
 }
 
 exports.deleteManyUser = async function (req, res) {

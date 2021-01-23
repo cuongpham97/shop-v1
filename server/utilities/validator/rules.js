@@ -5,6 +5,17 @@ const moment = require('moment');
 const { deepMap } = require('~utils/tools');
 const _ = require('lodash');
 
+Validator.registerAsync('any', function (field, value, args, done) {
+  return done(true);
+});
+
+Validator.registerAsync('in', function (field, value, args, done) {
+
+  return args.split(',').includes(value)
+    ? done(true)
+    : done(false, null, { includes: args });
+});
+
 /**
  * Check value is equal with `{field}Confirm` field
  */

@@ -3,7 +3,7 @@ const { regexes } = require('~utils/constants');
 const { hashPassword, comparePassword } = require('~utils/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
-const Image = require('./Image.schema');
+const Image = require('./image.schema');
 
 async function uniqueEmail(email) {
   if (!this.isModified('email')) return true;

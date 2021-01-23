@@ -566,37 +566,88 @@
 //   return true;
 // }
 
-const config = require('./config');
-const Guard = require('~middleware/guard');
+// const config = require('./config');
+// const Guard = require('~middleware/guard');
+// const HttpServer = require('./http-server');
+// const express = require('express');
+// const jwt = require('~utils/jwt');
+// const app = express();
+
+// app.get('/:id', 
+
+// function (req, res, next) {
+//   req.headers['authorization'] = jwt.createAccessToken({
+//     id: 500,
+//     roles: {
+//       admin: {
+//         'user.create': true,
+//         'product.create': false
+//       },
+//       shiper: {
+//         'user.read': true,
+//         'order.create': true
+//       },
+//       saler: {
+
+//       }
+//     }
+//   });
+//   return next();
+// },
+
+//   guard.auth('admin').can('admin.user.create|*.user.delete|admin').ownerId('params.id')
+
+// ,function (req, res, next) {
+  
+//   console.log(req.admin)
+
+// }
+
+// );
+
+// const server = new HttpServer(app);
+// server.listen(80);
+
+const cf = require('./config');
 const HttpServer = require('./http-server');
 const express = require('express');
 const jwt = require('~utils/jwt');
 const app = express();
 
-app.get('/:id', 
+const chain = require('./api/middleware/chain');
 
-function (req, res, next) {
-  req.headers['authorization'] = jwt.createAccessToken({
-    id: 500,
-    roles: {
-      admin: {
-        'user.create': true,
-        'product.create': false
-      },
-      shiper: {
-        'user.read': true,
-        'order.create': true
-      }
+const guard = chain({
+  auth: function (account) {
+
+    return function (req, res, next) {
+    
+      console.log('auth run')
+      return next();
     }
-  });
-  return next();
-},
-  Guard.auth('admin').role('shiper').can('user.create', 'user.delete').ownerId('params.id')
-,function (req, res, next) {
-  console.log(req.admin)
-}
+  },
 
+  role: function (role) {
+    return function (req, res, next) {
+      console.log('role run')
+      return next();
+    }
+  }
+});
+
+app.get('/', guard.auth('admin').role('superadmin'),
+
+  function (req, res, next) {
+    console.log('resssss');
+  },
+  function (error, req, res, next) {
+ 
+  }
 );
 
-const server = new HttpServer(app);
+
+app.get('/user', guard.auth('ok'), function (req, res, next) {
+  console.log('ok');
+})
+
+let server = new HttpServer(app);
 server.listen(80);

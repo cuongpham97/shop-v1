@@ -26,8 +26,10 @@ api.use(unflatten);
 
 // Define route
 const user = require('~routes/user.routes');
+const auth = require('~routes/auth.routes');
 
 api.use(user);
+api.use(auth);
 
 api.use('*', () => { 
   throw new NotFoundException({ message: 'Request does not match any route' });

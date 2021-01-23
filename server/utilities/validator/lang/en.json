@@ -17,7 +17,7 @@
   "digits": ":attribute must be :digits digits",
   "digits_between": ":attribute must be between :min and :max digits",
   "different": ":attribute and :different must be different",
-  "in": ":attribute is invalid",
+  "in": ":attribute must be one of the following value: :includes",
   "integer": ":attribute must be an integer",
   "hex": ":attribute must be a hexadecimal",
   "min": {

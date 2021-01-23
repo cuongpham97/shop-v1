@@ -1,101 +1,65 @@
-const { AuthenticationException, AuthorizationException } = require('~exceptions');
-const jwt = require('~utils/jwt');
-const _ = require('lodash');
+const rules = {};
 
-const auth = {
-  getTokenFromHeader: function (req) {
-    const token = req.headers['authorization'] || req.headers['x-access-token'];
+function register(rule) {
+  const { name, expect, handler } = rule;
 
-    if (!token) {
-      throw new AuthenticationException({ message: 'Access token not provided' });
-    }
-
-    if (token.startsWith('Bearer ')) {
-      token = token.substring(7);
-    }
-
-    return token;
-  },
-
-  decodeToken: function (token) {
-    try {
-      return jwt.verifyAccessToken(token);
-  
-    } catch (e) {
-      throw new AuthenticationException({ message: e.message });
-    }
-  },
-
-  permissionExpected: function () {
-    return { id: null, role: [], can: [] };
-  },
-
-  checkPermission: function (expected, decodedToken, req) {
-
-    // Check id
-    const id = _.get(req, expected.id);
+  switch (true) {
+    case typeof name !== 'string':
+      throw Error('Rule name must be a string');
     
-    if (id != decodedToken.id) return false;
+    case typeof expect !== 'function': 
+      throw Error('expect must be a function');
 
-    // Check role
-    
-
-    // Check action
-
-    return true;
-  },
-
-  middlewareChain: function (expected) {
-    return {
-      ownerId: function (from = '') {
-        expected.id = from;
-        return this;
-      },
-
-      role: function (...role) {
-        expected.role = expected.role.concat(role);
-        return this;
-      },
-
-      can: function (...can) {
-        expected.can = expected.can.concat(can);
-        return this;
-      }
-    };
-  },
-
-  createMiddleware: function (accountType) {
-    const self = this;
-
-    const expected = self.permissionExpected();
-
-    const middleware = function (req, _res, next) {
-      
-      const token = self.getTokenFromHeader(req);
-      const decodedToken = self.decodeToken(token);
-
-      req[accountType] = Object.assign(req[accountType] || {}, decodedToken);
-
-      const check = self.checkPermission(expected, decodedToken, req);
-
-      if (check) return next();
-
-      return next(
-        new AuthorizationException({ message: 'You don\'t have permission to access' })
-      );
-    }
-
-    return Object.assign(middleware, self.middlewareChain(expected));
+    case typeof handler !== 'function': 
+      throw Error('handler must be a function');
   }
+
+  rules[name] = { expect, handler };
 }
 
-module.exports = {
-  auth: function (accountType) {
+function middlewareChain(handlerList) {
+  const chain = {};
 
-    if (!['user', 'admin'].includes(accountType)) {
-      throw Error(`Auth middleware with wrong argument '${accountType}'`);
+  for (const [ name, { expect, handler } ] of Object.entries(rules)) {
+
+    chain[name] = function (...args) {
+
+      const data = expect(...args);
+      handlerList.push(handler.bind(this, data));
+
+      return this;
+    }
+  }
+
+  return chain;
+}
+
+function createMiddleware() {
+  const handlerList = [];
+
+  const middleware = async function (req, res, next) {
+    try {
+      for (const fn of handlerList) {
+        await fn(req, res)
+      }
+      return next();
+
+    } catch (error) {
+      return next(error); 
+    }
+  }
+
+  return Object.assign(middleware, middlewareChain(handlerList));
+}
+
+module.exports = new Proxy({}, { 
+  get: function (_target, property, _receiver) {
+    
+    if (property === 'register') {
+      return register;
     }
 
-    return auth.createMiddleware(accountType);
+    const middleware = createMiddleware();
+    return middleware[property].bind(middleware);
   }
-};
+});

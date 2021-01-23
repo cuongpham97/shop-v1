@@ -108,7 +108,7 @@ function buildQuery(options) {
 }
 
 function paginateResult(docs, options) {
-  let collection = options.collectionName || (this.collection.name + 's');
+  let collection = options.collectionName || (this.collection.name);
 
   let page = options.page || 1;
   let pageSize = options.pageSize || 80;
