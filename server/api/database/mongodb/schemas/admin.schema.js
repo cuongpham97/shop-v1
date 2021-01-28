@@ -1,7 +1,19 @@
 const { Schema } = require('mongoose');
 const { regexes } = require('~utils/constants');
 const { hashPassword, comparePassword } = require('~utils/hashing');
+const moment = require('moment');
 const Image = require('./Image.schema');
+const Location = require('./location.schema');
+
+// const Role = new Schema({
+//   name: {
+//     type: String,
+//     required: true
+//   },
+//   permission: {
+
+//   } 
+// });
 
 async function uniqueUsername(username) {
   if (!this.isModified('username')) return true;
@@ -42,17 +54,22 @@ const AdminSchema = new Schema({
   gender: {
     type: String,
     lowercase: true,
-    match: regexes.GENDER
+    match: regexes.GENDER,
+    required: true
   },
   birthday: {
-    type: Date
+    type: Date,
+    required: true
   },
   phone: {
     type: String,
-    trim: true,
     match: regexes.PHONE_NUMBER
   },
-  avatar: Image,
+  address: Location,
+  avatar: {
+    type: Image,
+    default: null
+  },
   username: {
     type: String,
     match: /^\w[\w\_\.]+$/,
@@ -70,13 +87,21 @@ const AdminSchema = new Schema({
   role: {
     name: {
       type: String,
-      enum: ['superadmin'],
+      enum: ['superadmin', 'shipper'],
       required: true
     },
     permissions: {
       type: Schema.Types.Mixed,
       validate: { validator: validatePermission, message: 'msg: role.permissions is invalid' }
     }
+  },
+  tokenVersion: {
+    type: String,
+    default: moment().valueOf()
+  },
+  active: {
+    type: Boolean,
+    default: true
   }
 });
 

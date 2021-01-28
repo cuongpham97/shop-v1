@@ -4,6 +4,7 @@ const { hashPassword, comparePassword } = require('~utils/hashing');
 const _ = require('lodash');
 const Location = require('./location.schema');
 const Image = require('./image.schema');
+const moment = require('moment');
 
 async function uniqueEmail(email) {
   if (!this.isModified('email')) return true;
@@ -119,6 +120,10 @@ const UserSchema = new Schema({
     name: String,
     token: String,
     email: String
+  },
+  tokenVersion: {
+    type: String,
+    default: moment().valueOf()
   },
   active: {
     type: Boolean,

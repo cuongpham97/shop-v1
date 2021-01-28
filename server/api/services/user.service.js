@@ -5,6 +5,8 @@ const { regexes } = require('~utils/constants');
 const upload = require('~utils/upload');
 const { ValidationException, NotFoundException, BadRequestException } = require('~exceptions');
 
+exports.model = mongodb.model('user');
+
 exports.find = async function (query) {
 
   const validation = await validate(query, {
@@ -26,7 +28,7 @@ exports.find = async function (query) {
   return await mongodb.model('user').paginate(validation.result);
 }
 
-exports.findById = async function (id) {
+exports.findById = async function (id, fields = null) {
 
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
@@ -36,7 +38,7 @@ exports.findById = async function (id) {
 
   id = validation.result.id;
 
-  const user = await mongodb.model('user').findById(id);
+  const user = await mongodb.model('user').findById(id, fields);
 
   if (!user) {
     throw new NotFoundException({ message: 'User ID not found' });

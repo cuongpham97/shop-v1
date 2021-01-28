@@ -4,14 +4,14 @@ function MiddlewareChain(chain) {
   return this.createMiddleware();
 }
 
-MiddlewareChain.prototype.fnChain = function (expect) {
+MiddlewareChain.prototype.fnChain = function (context) {
   
   const prototype = {};
 
   for (const [name, fn] of Object.entries(this.chain)) {
     prototype[name] = function (...args) {
 
-      expect.push(fn(...args));
+      context.chain.push(fn.call(context, ...args));
       return this;
     }
   }
@@ -21,20 +21,24 @@ MiddlewareChain.prototype.fnChain = function (expect) {
 
 MiddlewareChain.prototype.createMiddleware = function () {
 
-  const expect = [];
+  const context = { chain: [], context: {} }
 
   const middleware = async function (req, res, next) {
 
-    const _expect = [...expect];
-    const func = _expect.shift();
+    const _context = { 
+      chain: [...context.chain], 
+      context: { ...context.context }
+    };
+
+    const func = _context.chain.shift();
 
     return new Promise(function (resolve) {
 
-      func(req, res, function nextFn(error) {
+      func.call(_context, req, res, function nextFn(error) {
         if (error) return next(error);
 
-        const _next = _expect.shift();
-        return _next ? _next(req, res, next) : next();
+        const _next = _context.chain.shift();
+        return _next ? _next.call(_context, req, res, next) : next();
       });
 
       return resolve();
@@ -42,7 +46,7 @@ MiddlewareChain.prototype.createMiddleware = function () {
     .catch(error => next(error));
   }
 
-  return Object.assign(middleware, this.fnChain(expect));
+  return Object.assign(middleware, this.fnChain(context));
 }
 
 module.exports = function (chain) {

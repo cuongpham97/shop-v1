@@ -608,46 +608,31 @@
 // const server = new HttpServer(app);
 // server.listen(80);
 
-const cf = require('./config');
-const HttpServer = require('./http-server');
-const express = require('express');
-const jwt = require('~utils/jwt');
-const app = express();
+// const cf = require('./config');
+// const HttpServer = require('./http-server');
+// const express = require('express');
+// const jwt = require('~utils/jwt');
+// const app = express();
 
-const chain = require('./api/middleware/chain');
+// const guard = require('~middleware/guard');
 
-const guard = chain({
-  auth: function (account) {
+// app.get('/:id', 
 
-    return function (req, res, next) {
-    
-      console.log('auth run')
-      return next();
-    }
-  },
+// function (req, res, next) {
 
-  role: function (role) {
-    return function (req, res, next) {
-      console.log('role run')
-      return next();
-    }
-  }
-});
+//   req.headers['authorization'] = jwt.createAccessToken({ 
+//     id: '60103f8a498cf31904832133',
+//     version: '1611677041158'
+//   });
 
-app.get('/', guard.auth('admin').role('superadmin'),
+//   return next();
+// },
 
-  function (req, res, next) {
-    console.log('resssss');
-  },
-  function (error, req, res, next) {
- 
-  }
-);
+// guard.auth('user').ownerId('params.id'),
 
+// function (req, res, next) {
+//   console.log(req.user);
+// });
 
-app.get('/user', guard.auth('ok'), function (req, res, next) {
-  console.log('ok');
-})
-
-let server = new HttpServer(app);
-server.listen(80);
+// let server = new HttpServer(app);
+// server.listen(80);
