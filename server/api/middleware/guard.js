@@ -42,7 +42,7 @@ function checkTokenVersion(profile, tokenVersion) {
 
 module.exports = chain({
 
-  auth: function (accountType) {
+  auth: async function (accountType) {
 
     if (!['user', 'admin'].includes(accountType)) {
       throw Error(`Auth middleware with wrong argument '${accountType}'`);
@@ -70,7 +70,7 @@ module.exports = chain({
   },
 
   ownerId: function (from) {
-
+    
     return function (req, _res, next) {
 
       const reqId = _.get(req, from);

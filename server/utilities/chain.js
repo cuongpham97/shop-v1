@@ -1,3 +1,6 @@
+function concat(...promises) {
+  return promises.reduce((p1, p2) => p1.then(v1 => p2.then(v2 => v1.concat(v2))), Promise.resolve([]));
+}
 
 function MiddlewareChain(chain) {
   this.chain = chain;
@@ -10,23 +13,26 @@ MiddlewareChain.prototype.fnChain = function (context) {
 
   for (const [name, fn] of Object.entries(this.chain)) {
     prototype[name] = function (...args) {
+      
+      context.chain = concat(context.chain, Promise.resolve(fn.call(context, ...args)));
 
-      context.chain.push(fn.call(context, ...args));
+      context.chain.catch(error => { throw error; });
+      //context.chain.push(fn.call(context, ...args));
       return this;
     }
   }
-
+  
   return prototype;
 }
 
 MiddlewareChain.prototype.createMiddleware = function () {
 
-  const context = { chain: [], context: {} }
+  const context = { chain: Promise.resolve([]), context: {} }
 
   const middleware = async function (req, res, next) {
 
     const _context = { 
-      chain: [...context.chain], 
+      chain: [...(await context.chain)], 
       context: { ...context.context }
     };
 

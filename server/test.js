@@ -1,5 +1,4 @@
 //  const mongodb = require('./api/database/mongodb');
-
 // const _ = require('lodash');
 // const query = require('./api/middleware/querystring')
 
@@ -608,31 +607,69 @@
 // const server = new HttpServer(app);
 // server.listen(80);
 
-// const cf = require('./config');
-// const HttpServer = require('./http-server');
-// const express = require('express');
-// const jwt = require('~utils/jwt');
-// const app = express();
+const cf = require('./config');
+const HttpServer = require('./http-server');
+const express = require('express');
+const jwt = require('~utils/jwt');
+const app = express();
 
-// const guard = require('~middleware/guard');
+const guard = require('~middleware/guard');
 
-// app.get('/:id', 
+app.get('/:id', 
 
-// function (req, res, next) {
+function (req, res, next) {
 
-//   req.headers['authorization'] = jwt.createAccessToken({ 
-//     id: '60103f8a498cf31904832133',
-//     version: '1611677041158'
-//   });
+  req.headers['authorization'] = jwt.createAccessToken({ 
+    id: '60103f8a498cf31904832133',
+    version: '1611677041158'
+  });
 
-//   return next();
-// },
+  return next();
+},
 
-// guard.auth('user').ownerId('params.id'),
+guard.auth('user').ownerId('params.id'),
 
-// function (req, res, next) {
-//   console.log(req.user);
-// });
+function (req, res, next) {
+  console.log(req.user);
+});
 
-// let server = new HttpServer(app);
-// server.listen(80);
+let server = new HttpServer(app);
+server.listen(80);
+
+// const role = {
+//   name: "superadmin",
+//   level: 1,
+//   permission: {
+//     users: ['create', 'read', 'update', 'delete'],
+//     orders: ['create', 'read', 'update', 'delete']
+//   }
+// }
+
+// const roles = ['superadmin', 'shipper']
+
+
+// guard.auth('admin').higher('shipper').can('users.create')
+
+// function can(action) {
+
+//   const [resource, permission] = action.split('.');
+
+//   return async function (req, res, next) {
+
+//   }
+// }
+
+// let p0 = Promise.resolve(Promise.resolve(0)).catch(console.log)
+// let p1 = Promise.resolve([1]);
+// let p3 = new Promise((resolve, reject) => {
+//   console.log('3')
+//   reject(2);
+// })
+// let p2 = Promise.resolve(2);
+
+// function concat(...promises) {
+ 
+//   return promises.reduce((p1, p2) => p1.then(v1 => p2.then(v2 => v1.concat(v2))), Promise.resolve([]));
+// }
+
+// let v = concat(p0, p1, p3, p2).then(console.log)
