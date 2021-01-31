@@ -11,6 +11,7 @@
     "numeric": ":attribute must be between :min and :max",
     "string": ":attribute must be between :min and :max characters"
   },
+  "boolean": ":attribute must be a boolean type",
   "confirmed": ":attribute confirmation does not match",
   "date": ":attribute must be a date with format: \":format\"",
   "def": "The :attribute attribute has errors",
@@ -45,6 +46,7 @@
   },
   "string": ":attribute must be a string",
   "url": ":attribute is invalid",
+  "unique": ":atrribute must be an array",
   "regex": ":attribute is invalid",
   "attributes": {},
   "object": ":attribute must be an object",

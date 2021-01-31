@@ -5,28 +5,11 @@ const moment = require('moment');
 const Image = require('./Image.schema');
 const Location = require('./location.schema');
 
-// const Role = new Schema({
-//   name: {
-//     type: String,
-//     required: true
-//   },
-//   permission: {
-
-//   } 
-// });
-
 async function uniqueUsername(username) {
   if (!this.isModified('username')) return true;
  
   const admin = await this.constructor.findOne({ 'username': username });
   return !admin;
-}
-
-function validatePermission(permissions) {
-  if (!this.isModified('role.permissions')) return true;
-
-  // TODO: validate permissions
-  return true;
 }
 
 const AdminSchema = new Schema({
@@ -76,7 +59,7 @@ const AdminSchema = new Schema({
     minLength: 6,
     maxLength: 16,
     required: true,
-    validate: { validator: uniqueUsername, msg: 'msg: username already in use' }
+    validate: { validator: uniqueUsername, msg: 'msg: Username already in use' }
   },
   password: {
     type: String,
@@ -84,16 +67,9 @@ const AdminSchema = new Schema({
     maxLength: 16,
     required: true,
   },
-  role: {
-    name: {
-      type: String,
-      enum: ['superadmin', 'shipper'],
-      required: true
-    },
-    permissions: {
-      type: Schema.Types.Mixed,
-      validate: { validator: validatePermission, message: 'msg: role.permissions is invalid' }
-    }
+  roles: {
+    type: [String],
+    default: []
   },
   tokenVersion: {
     type: String,

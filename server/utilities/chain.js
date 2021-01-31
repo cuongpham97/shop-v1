@@ -15,9 +15,9 @@ MiddlewareChain.prototype.fnChain = function (context) {
     prototype[name] = function (...args) {
       
       context.chain = concat(context.chain, Promise.resolve(fn.call(context, ...args)));
-
+      
       context.chain.catch(error => { throw error; });
-      //context.chain.push(fn.call(context, ...args));
+
       return this;
     }
   }

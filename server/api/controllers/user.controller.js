@@ -3,7 +3,7 @@ const userService  = require('~services/user.service');
 const _ = require('lodash');
 
 exports.getUserById = async function (req, res) {
-  const user = await userService.findById(req.params.id);
+  const user = await userService.findById(req.params.id, req.query.fields);
 
   return res.status(StatusCodes.OK).json(user);
 }
@@ -21,7 +21,22 @@ exports.partialUpdateUser = async function (req, res) {
 }
 
 exports.changeUserPassword = async function (req, res) {
-  const role = _.isEmpty(req.admin) ? 'user' : 'admin';
+
+  let role;
+
+  switch (true) {
+    case req.user:
+      role = 'self';
+      break;
+    
+    case req.admin:
+      role = 'admin';
+      break;
+
+    default:
+      throw new Error('Must be authenticated to do this action');
+  }
+
   await userService.changePassword(req.params.id, req.body, role);
 
   return res.status(StatusCodes.NO_CONTENT).end();

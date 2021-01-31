@@ -1,16 +1,14 @@
 const moment = require('moment');
 const { StatusCodes } = require('http-status-codes');
-const logger = require('~utils/logger'); 
+const report = require('~utils/report'); 
 const config = require('~config');
 
 class ErrorFilter {
   catch(error, _req, res, _next) {
 
     if(config.ENVIRONMENT === 'DEVELOPMENT') {
-      logger.error(error);
+      report.error(error);
     }
-
-    //TODO: report error or save to database
 
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'UncaughtException',

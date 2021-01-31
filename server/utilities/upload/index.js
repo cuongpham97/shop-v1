@@ -1,6 +1,7 @@
 const imgur = require('./imgur');
+const report = require('~utils/report');
 
-exports.uploadImage = async function (image, name = '', description = 'user avatar') {
+exports.uploadImage = async function (image, name = '', description = '') {
 
   const response = await imgur.uploadImage({
     name: name,
@@ -17,16 +18,19 @@ exports.uploadImage = async function (image, name = '', description = 'user avat
     width: data.width,
     height: data.height,
     size: data.size,
-    meta: {
+    imgur: {
       id: data.id,
       deleteHash: data.deletehash,
-      description: data.description
-    }
+    },
+    description: data.description
   };
 }
 
 exports.deleteImage = async function (image) {
-  return typeof image === 'string'
-    ? await imgur.deleteImage(image)
-    : await imgur.deleteImage(image.meta.deleteHash);
+  
+  const request = typeof image === 'string'
+    ? imgur.deleteImage(image)
+    : imgur.deleteImage(image.imgur.deleteHash);
+
+  return request.catch(e => report.error(e));
 } 

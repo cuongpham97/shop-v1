@@ -3,7 +3,12 @@ const validate = require('~utils/validator');
 const _ = require('lodash');
 const { regexes } = require('~utils/constants');
 const upload = require('~utils/upload');
-const { ValidationException, NotFoundException, BadRequestException } = require('~exceptions');
+const { 
+  ValidationException, 
+  NotFoundException,
+  BadRequestException,
+  AuthenticationException
+} = require('~exceptions');
 
 exports.model = mongodb.model('user');
 
@@ -163,7 +168,7 @@ exports.partialUpdate = async function (id, data) {
     const newImage = await upload.uploadImage(data.avatar, user.displayName + ' avatar');
 
     const oldImage = user.avatar;
-    if (oldImage) await upload.deleteImage(oldImage);
+    if (oldImage) upload.deleteImage(oldImage);
 
     data.avatar = newImage;
   }
@@ -174,17 +179,20 @@ exports.partialUpdate = async function (id, data) {
   return true;
 }
 
-exports.changePassword = async function (id, data, role = 'user') {
+/**
+ * @param {string} id 
+ * @param {object} data
+ * @param {('self'|'admin')} role
+ */
+exports.changePassword = async function (id, data, role = 'self') {
 
   data.id = id;
 
   const rules = {
     'id': 'mongo_id',
-    'password': 'required|string|min:6|max:16',
+    'password': role === 'self' ? 'required|string|min:6|max:16' : 'unset',
     'newPassword': 'required|string|min:6|max:16'
   };
-
-  if (role === 'admin') _.unset(rules.password);
 
   const validation = await validate(data, rules);
 
@@ -209,7 +217,7 @@ exports.changePassword = async function (id, data, role = 'user') {
     : await user.comparePassword(validation.result.password);
 
   if (!match) {
-    throw new ValidationException({ message: 'Password is incorrect' });
+    throw new AuthenticationException({ message: 'Password is incorrect' });
   }
 
   user = _.merge(user, { local: { password: validation.result.newPassword } });
@@ -228,10 +236,14 @@ exports.deleteById = async function (id) {
 
   id = validation.result.id;
 
-  const result = await mongodb.model('user').deleteOne({ _id: id });
+  const user = await mongodb.model('user').findByIdAndDelete(id).select('_id avatar');
 
-  if (!result.deletedCount) {
+  if (!user) {
     throw new NotFoundException({ message: 'User ID does not exist' });
+  }
+
+  if (user.avatar) {
+    await upload.deleteImage(user.avatar);
   }
 
   return true;
@@ -240,27 +252,32 @@ exports.deleteById = async function (id) {
 exports.deleteMany = async function (ids) {
   
   const validation = await validate({ 'ids': ids }, {
-    'ids': 'to:array',
+    'ids': 'to:array|unique',
     'ids.*': 'mongo_id'
   });
 
-  if (validate.errors) {
+  if (validation.errors) {
     throw new ValidationException({ message: validation.errors });
   }
 
   ids = validation.result.ids;
 
-  const found = await mongodb.model('user').find({ _id: { "$in": ids } }).select('_id');
+  const docs = await mongodb.model('user').find({ _id: { "$in": ids } }).select('_id avatar');
 
-  const result = await mongodb.model('user').deleteMany({ _id: { "$in": found } }); 
-
-  if (!result.deletedCount) {
+  if (!docs.length) {
     throw new NotFoundException({ message: 'User IDs does not exist' });
   }
 
+  const images = docs.map(doc => doc.avatar);
+  const found = docs.map(doc => doc._id);
+
+  const result = await mongodb.model('user').deleteMany({ _id: { "$in": found } }); 
+
+  images.forEach(image => upload.deleteImage(image));
+  
   return {
     expected: ids.length,
     found: found,
-    deletedCount: 0
+    deletedCount: result.deletedCount
   };
 }

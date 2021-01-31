@@ -5,6 +5,22 @@ const moment = require('moment');
 const { deepMap } = require('~utils/tools');
 const _ = require('lodash');
 
+Validator.registerAsync('unique', function (field, value, args, done) {
+
+  if (!Array.isArray(value)) return done(false);
+
+  _.set(this.input, field, [...new Set(value)]);
+
+  return done(true);
+});
+
+Validator.registerAsync('boolean', function (field, value, args, done) {
+  
+  return typeof value === 'boolean'
+    ? done(true)
+    : done(false);
+});
+
 Validator.registerAsync('any', function (field, value, args, done) {
   return done(true);
 });
@@ -36,6 +52,18 @@ Validator.registerAsync('only_one_of', function (field, value, args, done) {
   return count === 1 
     ? done(true)
     : done(false, null, { field: args });
+});
+
+/**
+ * The field under validation must be present and not empty only if any of the other specified fields are present
+ */
+Validator.registerAsync('required_with', function (field, value, args, done) {
+  
+  const present = args.split(',').filter(key => _.has(this.input, key)).length;
+
+  return (present && _.isEmpty(value))
+    ? done(false, null, { is: args })
+    : done(true);
 });
 
 /**

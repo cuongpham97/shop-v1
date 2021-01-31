@@ -607,34 +607,34 @@
 // const server = new HttpServer(app);
 // server.listen(80);
 
-const cf = require('./config');
-const HttpServer = require('./http-server');
-const express = require('express');
-const jwt = require('~utils/jwt');
-const app = express();
+// const cf = require('./config');
+// const HttpServer = require('./http-server');
+// const express = require('express');
+// const jwt = require('~utils/jwt');
+// const app = express();
 
-const guard = require('~middleware/guard');
+// const guard = require('~middleware/guard');
 
-app.get('/:id', 
+// app.get('/:id', 
 
-function (req, res, next) {
+// function (req, res, next) {
 
-  req.headers['authorization'] = jwt.createAccessToken({ 
-    id: '60103f8a498cf31904832133',
-    version: '1611677041158'
-  });
+//   req.headers['authorization'] = jwt.createAccessToken({ 
+//     id: '60103f8a498cf31904832133',
+//     version: '1611677041158'
+//   });
 
-  return next();
-},
+//   return next();
+// },
 
-guard.auth('user').ownerId('params.id'),
+// guard.auth('user').ownerId('params.id'),
 
-function (req, res, next) {
-  console.log(req.user);
-});
+// function (req, res, next) {
+//   console.log(req.user);
+// });
 
-let server = new HttpServer(app);
-server.listen(80);
+// let server = new HttpServer(app);
+// server.listen(80);
 
 // const role = {
 //   name: "superadmin",
@@ -648,7 +648,7 @@ server.listen(80);
 // const roles = ['superadmin', 'shipper']
 
 
-// guard.auth('admin').higher('shipper').can('users.create')
+// guard.auth('admin').can('users.create')
 
 // function can(action) {
 
@@ -657,7 +657,7 @@ server.listen(80);
 //   return async function (req, res, next) {
 
 //   }
-// }
+//}
 
 // let p0 = Promise.resolve(Promise.resolve(0)).catch(console.log)
 // let p1 = Promise.resolve([1]);
@@ -673,3 +673,39 @@ server.listen(80);
 // }
 
 // let v = concat(p0, p1, p3, p2).then(console.log)
+
+const cf = require('./config');
+const roleService = require('./api/services/role.service');
+
+(async function () {
+
+  const newRole = await roleService.create({
+    name: "admin",
+    level: 2,
+    permission: {
+        "user": [
+          "create",
+          "read",
+          "update",
+          "delete"
+      ],
+      "product": [
+          "create",
+          "reate",
+          "update",
+          "delete"
+      ],
+      "order": [
+          "create",
+          "read",
+          "update",
+          "delete"
+      ]
+    },
+    active: true
+  } ,"6016a56e860fe32b64380ab9");
+
+
+  console.log(newRole)
+
+})();

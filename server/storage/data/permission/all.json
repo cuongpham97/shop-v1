@@ -1,0 +1,17 @@
+[
+  {
+    "name": "user",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  },
+  {
+    "name": "admin",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  },
+  {
+    "name": "role",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  }
+]

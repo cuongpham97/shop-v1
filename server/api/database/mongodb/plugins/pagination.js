@@ -110,8 +110,8 @@ function buildQuery(options) {
 function paginateResult(docs, options) {
   let collection = options.collectionName || (this.collection.name);
 
-  let page = options.page || 1;
-  let pageSize = options.pageSize || 80;
+  let page = options.page;
+  let pageSize = options.pageSize;
 
   return {
     data: docs.data,
@@ -132,6 +132,8 @@ function paginationPlugin(schema, _options) {
 
   schema.statics.paginate = async function(options = {}, validateOpts = false) {
 
+    options = _.assign({ page: 1, pageSize: 80 }, options);
+    
     options = validateOpts ? await validateOptions(options) : options;
 
     let [docs] = await this.aggregate(buildQuery(options));

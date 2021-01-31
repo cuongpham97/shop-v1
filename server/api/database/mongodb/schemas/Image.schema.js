@@ -13,11 +13,11 @@ const Image = new Schema({
   width: Number,
   height: Number,
   size: Number,
-  meta: {
+  imgur: {
     id: String,
-    deleteHash: String,
-    description: String
-  }
+    deleteHash: String
+  },
+  description: String
 }, { _id: false });
 
 module.exports = Image;

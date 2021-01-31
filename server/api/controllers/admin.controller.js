@@ -1,0 +1,51 @@
+const { StatusCodes } = require('http-status-codes');
+const adminService  = require('~services/admin.service');
+
+exports.getManyAdmin = async function (req, res) {
+  const admins = await adminService.find(req.query);
+
+  return res.status(StatusCodes.OK).json(admins);
+}
+
+exports.getAdminById = async function (req, res) {
+  const admin = await adminService.findById(req.params.id, req.query.fields);
+
+  return res.status(StatusCodes.OK).json(admin);
+}
+
+exports.registerNewAdminAccount = async function (req, res) {
+  const newAdmin = await adminService.create(req.body);
+
+  return res.status(StatusCodes.OK).json(newAdmin);
+};
+
+exports.partialUpdateAdmin = async function (req, res) {
+  await adminService.partialUpdate(req.params.id, req.body);
+
+  return res.status(StatusCodes.NO_CONTENT).end();
+}
+
+exports.changeAdminPassword = async function (req, res) {
+
+  if (!req.admin) throw new Error('Must be authenticated to do this action');
+
+  const role = req.admin.roles && req.admin.roles.indexOf('superadmin') !== -1
+    ? 'superadmin'
+    : 'self';
+
+  await adminService.changePassword(req.params.id, req.body, role);
+
+  return res.status(StatusCodes.NO_CONTENT).end();
+}
+
+exports.deleteAdminById = async function (req, res) {
+  await adminService.deleteById(req.params.id);
+
+  return res.status(StatusCodes.NO_CONTENT).end();
+}
+
+exports.deleteManyAdmin = async function (req, res) {
+  const result = await adminService.deleteMany(req.query.ids);
+
+  return res.status(StatusCodes.OK).json(result);
+}
