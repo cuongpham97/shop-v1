@@ -213,7 +213,12 @@ exports.changePassword = async function (id, data, role = 'self') {
     throw new AuthenticationException({ message: 'Password is incorrect' });
   }
 
-  user = _.merge(user, { local: { password: validation.result.newPassword } });
+  const update = { 
+    local: { password: validation.result.newPassword }, 
+    tokenVersion: moment().valueOf() 
+  };
+
+  user = _.merge(user, update);
   await user.save();
 
   return true;

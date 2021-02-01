@@ -133,12 +133,16 @@ exports.create = async function (role, creatorId = null) {
 
   role = validation.result;
 
-  if (role.level >= SUPERADMIN_ROLE_LEVEL) {
+  if (role.level <= SUPERADMIN_ROLE_LEVEL) {
     throw new ValidationException({ message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL });
   }
 
   if (role.creator.id) {
     const admin = await mongodb.model('admin').findById(role.creator.id).select('_id displayName');
+
+    if (!admin) {
+      throw new NotFoundException({ message: 'Admin ID does not exist' });
+    }
 
     role.creator.name = admin.displayName;
   }
@@ -146,4 +150,122 @@ exports.create = async function (role, creatorId = null) {
   const newRole = await mongodb.model('role').create(role);
 
   return newRole;
+}
+
+exports.partialUpdate = async function (id, data, updatorId = null) {
+
+  data.id = id;
+
+  data.updator = {
+    id: updatorId
+  };
+
+  const validation = await validate(data, {
+    'id': 'mongo_id',
+    'name': 'string|min:1|max:200',
+    'level': 'integer',
+    'permission': 'object',
+    'updator': 'object',
+    'updator.id': 'mongo_id',
+    'active': 'boolean'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+  _.unset(validation.result, 'id');
+
+  data = validation.result;
+
+  if (data.level <= SUPERADMIN_ROLE_LEVEL) {
+    throw new ValidationException({ message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL });
+  }
+
+  let role = await mongodb.model('role').findById(id);
+
+  if (!role) {
+    throw new NotFoundException({ message: 'Role ID does not exist' });
+  }
+
+  if (role.name === 'superadmin') {
+    throw new BadRequestException({ message: 'Cannot update "superadmin" role' });
+  }
+
+  if (data.updator.id) {
+    const admin = await mongodb.model('admin').findById(data.updator.id).select('_id displayName');
+
+    if (!admin) {
+      throw new NotFoundException({ message: 'Admin ID does not exist' });
+    }
+
+    data.creator.name = admin.displayName;
+  }
+
+  role = _.merge(role, data);
+  await role.save();
+
+  return true;
+}
+
+exports.deleteById = async function (id) {
+
+  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+
+  const role = await mongodb.model('role').findById(id).select('_id name');
+
+  if (!role) {
+    throw new NotFoundException({ message: 'Role ID does not exist' });
+  }
+
+  if (role.name === 'superadmin') {
+    throw new BadRequestException({ message: 'Cannot delete "superadmin" role' });
+  }
+  
+  await mongodb.model('role').deleteOne({ _id: id });
+
+  return true;
+}
+
+exports.deleteMany = async function (ids) {
+  
+  const validation = await validate({ 'ids': ids }, {
+    'ids': 'to:array|unique',
+    'ids.*': 'mongo_id'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  ids = validation.result.ids;
+
+  const docs = await mongodb.model('role').find({ _id: { "$in": ids } }).select('_id name');
+
+  if (!docs.length) {
+    throw new NotFoundException({ message: 'Role IDs does not exist' });
+  }
+
+  docs.forEach(doc => {
+    if (doc.name === 'superadmin') {
+      throw new BadRequestException({ message: 'Cannot delete "superadmin" role' });
+    }  
+  });
+
+  const found = docs.map(doc => doc._id);
+
+  const result = await mongodb.model('role').deleteMany({ _id: { "$in": found } }); 
+
+  return {
+    expected: ids.length,
+    found: found,
+    deletedCount: result.deletedCount
+  };
 }

@@ -19,3 +19,21 @@ exports.createNewRole = async function (req, res) {
 
   return res.status(StatusCodes.OK).json(newRole);
 }
+
+exports.partialUpdateRole = async function (req, res) {
+  await roleService.partialUpdate(req.params.id, req.body);
+
+  return res.status(StatusCodes.NO_CONTENT).end();
+}
+
+exports.deleteRoleById = async function (req, res) {
+  await roleService.deleteById(req.params.id);
+
+  return res.status(StatusCodes.NO_CONTENT).end();
+}
+
+exports.deleteManyRole = async function (req, res) {
+  const result = await roleService.deleteMany(req.query.ids);
+
+  return res.status(StatusCodes.OK).json(result);
+}

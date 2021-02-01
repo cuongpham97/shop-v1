@@ -1,6 +1,7 @@
 const validate = require('~utils/validator');
 const { mongodb } = require('~database');
 const upload = require('~utils/upload');
+const moment = require('moment');
 const { regexes } = require('~utils/constants');
 
 exports.model = mongodb.model('admin');
@@ -104,6 +105,7 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
   data.id = id;
 
   const validation = await validate(data, {
+    'id': 'mongo_id',
     'name': 'object',
     'name.first': 'string|trim|min:1|max:20',
     'name.last': 'string|trim|min:1|max:20',
@@ -189,7 +191,13 @@ exports.changePassword = async function (id, data, role = 'self') {
     throw new AuthenticationException({ message: 'Password is incorrect' })
   }
 
-  admin = _.merge(admin, { password: validation.result.newPassword });
+  const update = { 
+    password: validation.result.newPassword,
+    tokenVersion: moment().valueOf()
+  };
+
+  admin = _.merge(admin, update);
+
   await user.save();
   
   return true;
