@@ -8,6 +8,7 @@ if (env.error) {
 }
 
 const moduleAlias = require('./path');
+const global = require('./global');
 const environment = require('./environment');
 const server = require('./server');
 const jwt = require('./jwt');

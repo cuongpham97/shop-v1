@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const wrap = require('async-middleware').wrap;
 
 exports.applyRoutes = function (router, routes) {

@@ -1,4 +1,5 @@
+async function init() {
+  
+}
 
-module.exports = async () => {
-
-};
+module.exports = { init };

@@ -7,6 +7,13 @@ exports.getManyRole = async function (req, res) {
   return res.status(StatusCodes.OK).json(roles);
 }
 
+exports.getRoleById = async function (req, res) {
+
+  const role = await roleService.findById(req.params.id);
+
+  return res.status(StatusCodes.OK).json(role);
+}
+
 exports.createNewRole = async function (req, res) {
   const newRole = await roleService.create(req.body);
 

@@ -14,7 +14,7 @@ exports.alias = {
   '~middleware': `${root}/api/middleware`,
   '~database': `${root}/api/database`,
   '~exceptions': `${root}/api/exceptions`,
-  '~subcribers': `${root}/api/subcribers`
+  '~subscribers': `${root}/api/subscribers`
 };
 
 moduleAlias.addAliases(this.alias);

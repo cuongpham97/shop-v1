@@ -674,38 +674,50 @@
 
 // let v = concat(p0, p1, p3, p2).then(console.log)
 
+// const cf = require('./config');
+// const roleService = require('./api/services/role.service');
+
+// (async function () {
+
+//   const newRole = await roleService.create({
+//     name: "admin",
+//     level: 2,
+//     permission: {
+//         "user": [
+//           "create",
+//           "read",
+//           "update",
+//           "delete"
+//       ],
+//       "product": [
+//           "create",
+//           "reate",
+//           "update",
+//           "delete"
+//       ],
+//       "order": [
+//           "create",
+//           "read",
+//           "update",
+//           "delete"
+//       ]
+//     },
+//     active: true
+//   } ,"6016a56e860fe32b64380ab9");
+
+
+//   console.log(newRole)
+
+// })();
+
 const cf = require('./config');
-const roleService = require('./api/services/role.service');
 
-(async function () {
+const { init, mongodb } = require('~database');
 
-  const newRole = await roleService.create({
-    name: "admin",
-    level: 2,
-    permission: {
-        "user": [
-          "create",
-          "read",
-          "update",
-          "delete"
-      ],
-      "product": [
-          "create",
-          "reate",
-          "update",
-          "delete"
-      ],
-      "order": [
-          "create",
-          "read",
-          "update",
-          "delete"
-      ]
-    },
-    active: true
-  } ,"6016a56e860fe32b64380ab9");
+init().then(async() => {
+  console.log('after connect');
+  let user = await mongodb.model('user').find();
 
+  console.log(user);
 
-  console.log(newRole)
-
-})();
+});

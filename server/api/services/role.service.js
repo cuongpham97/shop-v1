@@ -1,27 +1,74 @@
-const mongodb = require('~database/mongodb');
 const validate = require('~utils/validator');
+const permissionService = require('./permission.service');
+const { mongodb } = require('~database');
 
-const cache = { 
-  roles: []
-};
+const SUPERADMIN_ROLE_LEVEL = 0;
 
-async function ensureCached() {
-  if (!cache.roles.length) {
-    cache.roles = await mongodb.model('role').find();
+const cache = {
+
+  roles: [],
+
+  ensureCached: async function () {
+
+    if (cache.roles.length) return;
+    cache.roles = await mongodb.model('role').find({ active: true });
+  },
+
+  findByNames: async function (...names) {
+    await this.ensureCached();
+  
+    return this.roles.filter(role => names.includes(role.name)  );
+  },
+
+  getAllPermission: async function (...roleNames) {
+    const roles = await this.findByNames(...roleNames);
+
+    const merge = function (o1, o2) {
+
+      for (const [key, value2] of _.entries(o2)) {
+        const value1 = o1[key];
+
+        o1[key] = value1 ? [...new Set([...[].concat(value1), ...[].concat(value2)])] : value2;
+      }
+
+      return o1;
+    }
+
+    const permission = {};
+
+    for (const role of roles) {
+      merge(permission, role.permission);
+    }
+    
+    return permission;
   }
-}
+};
 
 (async function () {
 
-  // TODO: ensure superadmin role is exist
+  mongodb.model('role').watch().on('change', cache.ensureCached);
 
-  mongodb.model('role').watch().on('change', ensureCached);
+  const permission = {};
+
+  permissionService.getAllPermission().forEach(p => {
+    permission[p.name] = p.action;
+  });
+
+  const baseRole = await mongodb.model('role')
+    .findOneAndUpdate(
+      { name: 'superadmin' },
+      {
+        name: 'superadmin',
+        level: SUPERADMIN_ROLE_LEVEL,
+        permission: permission,
+        active: true
+      }, 
+      { new: true, upsert: true }
+    );
+  
 })();
 
-exports.getRoleByNames = async function (...names) {
-  await ensureCached();
-  //TODO
-}
+exports.cache = cache;
 
 exports.model = mongodb.model('role');
 
@@ -86,7 +133,9 @@ exports.create = async function (role, creatorId = null) {
 
   role = validation.result;
 
-  // TODO: validate role level;
+  if (role.level >= SUPERADMIN_ROLE_LEVEL) {
+    throw new ValidationException({ message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL });
+  }
 
   if (role.creator.id) {
     const admin = await mongodb.model('admin').findById(role.creator.id).select('_id displayName');

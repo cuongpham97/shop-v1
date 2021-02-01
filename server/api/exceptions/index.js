@@ -1,30 +1,9 @@
-const exceptions = require('./classes/exception.class');
-const ExceptionFilter = require('./filters/exception.filter');
-const ErrorFilter = require('./filters/error.filter');
+const exceptions = require('./classes');
+const exceptionHandler = require('./handler');
 
-const { Exception } = exceptions;
-
-const registerFilters = new Map([
-  // [ ValidationException, ValidateExceptionFilter ]
-]);
-
-async function exceptionHandler(error, req, res, next) {
-  if (!error) return next();
-
-  // Handle errors with registered filter
-  for (let [exceptionType, filter] of registerFilters) {
-    if (error.constructor === exceptionType) {
-      return (new filter).catch(error, req, res, next);
-    }
-  }
-
-  // Handle errors that inherit from Exception class
-  if (error instanceof Exception) {
-    return (new ExceptionFilter).catch(error, req, res, next);
-  }
-
-  // Handle uncaught errors
-  return (new ErrorFilter).catch(error, req, res, next);
+// Exports exception class to global
+for (const [name, exception] of _.entries(exceptions)) {
+  global[name] = exception;
 }
 
 module.exports = { ...exceptions, exceptionHandler };

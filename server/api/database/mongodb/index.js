@@ -16,20 +16,42 @@ const formatValidateError = require('./plugins/format-validate-error');
 const models = [userModel, adminModel, roleModel];
 const plugins = [timestamp, pagination, formatValidateError];
 
-module.exports = (function () {
+function init() {
 
-  // Connect to database
-  connect(mongoose);
+  return new Promise(function (resolve, _reject) {
 
-  // Use plugins
-  models.forEach(model => {
-    plugins.forEach(plugin => model.schema && model.schema.plugin(plugin));
+    // Connect to database, convert calback to async
+    connect(mongoose, () => resolve());
+
+    // Use plugins
+    models.forEach(model => {
+      plugins.forEach(plugin => model.schema && model.schema.plugin(plugin));
+    });
+  
+    // Use models
+    models.forEach(model => model.apply(mongoose));
+  
+    return mongoose;
   });
+}
 
-  // Use models
-  models.forEach(model => model.apply(mongoose));
+module.exports = new Proxy(mongoose, { 
+  get: function (_target, property, _receiver) {
 
-  return mongoose;
-})();
+    switch (property) {
 
-module.exports.transaction = transaction(mongoose);
+      case 'init': 
+        return init;
+
+      case 'instace':
+        return mongoose;
+
+      case 'transaction': 
+        return transaction(mongoose);
+
+      default:
+        return mongoose[property];
+    }
+
+  }
+});

@@ -1,7 +1,7 @@
 const config = require('~config');
 const logger = require('~utils/logger');
 
-module.exports = (mongoose, callback = null) => {
+module.exports = async function (mongoose, cb = null) {
 
   // Create connection
   mongoose.connect(
@@ -28,9 +28,7 @@ module.exports = (mongoose, callback = null) => {
 
   // Open connection
   mongoose.connection.once('open', function () {
-    if (callback && typeof (callback) === 'function') {
-      callback();
-    }
+    if (cb) cb();
   });
 
   // Process ends, close the connection
