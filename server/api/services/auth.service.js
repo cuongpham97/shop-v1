@@ -5,6 +5,8 @@ const roleService = require('~services/role.service');
 const config = require('~config');
 const jwt = require('~utils/jwt');
 
+// TODO: strict admin token / user token
+
 exports.getToken = async function (credentials, accountType = 'user') {
 
   if (!credentials) {
@@ -55,11 +57,110 @@ exports.getToken = async function (credentials, accountType = 'user') {
       }),
 
       expiresIn: config.jwt.ACCESS_TOKEN_LIFE
-    }
+    };
   }
 
   if (accountType === 'admin') {
-    // TODO: create admin token
-    console.log('admin running');
+    
+    const admin = await mongodb.model('admin').findOne({
+      username: username
+    });
+
+    if (!admin || !await admin.comparePassword(password)) {
+      throw new AuthenticationException({ message: 'Invalid credentials' });
+    }
+
+    return {
+      name: admin.displayName,
+      avatar: (admin.avatar && admin.avatar.url) || null,
+
+      accessToken: jwt.createAccessToken({
+        id: admin._id,
+        version: admin.tokenVersion
+      }),
+
+      refreshToken: jwt.createRefreshToken({
+        id: admin._id,
+        version: admin.tokenVersion
+      }),
+
+      scopes: await roleService.cache.getAllPermission(...admin.roles),
+
+      expiresIn: config.jwt.ACCESS_TOKEN_LIFE
+    };
+  }
+}
+
+exports.refreshToken = async function (data, accountType = 'user') {
+
+  const token = data.refreshToken;
+
+  if (!token) {
+    throw new AuthenticationException({ message: 'Refresh token not provided' });
+  }
+
+  let decodedToken;
+
+  try {
+    decodedToken = jwt.verifyRefreshToken(token);
+
+  } catch (e) {
+    throw new AuthenticationException({ message: _.upperFirst(e.message) });
+  }
+
+  const { id, version } = decodedToken;
+
+  if (accountType === 'user') {
+
+    const user = await mongodb.model('user').findById(id);
+
+    if (!user) {
+      throw new AuthenticationException({ message: 'User ID does not exist' });
+    }
+
+    if (user.tokenVersion != version) {
+      throw new AuthenticationException({ message: 'Cannot use this token' });
+    }
+
+    return {
+      accessToken: jwt.createAccessToken({
+        id: user._id,
+        version: user.tokenVersion
+      }),
+
+      refreshToken: jwt.createRefreshToken({
+        id: user._id,
+        version: user.tokenVersion
+      }),
+
+      expiresIn: config.jwt.ACCESS_TOKEN_LIFE
+    };
+  }
+
+  if (accountType === 'admin') {
+
+    const admin = await mongodb.model('admin').findById(id);
+
+    if (!admin) {
+      throw new AuthenticationException({ message: 'Admin ID does not exist' });
+    }
+
+    if (admin.tokenVersion != version) {
+      throw new AuthenticationException({ message: 'Cannot use this token' });
+    }
+
+    return {
+      accessToken: jwt.createAccessToken({
+        id: admin._id,
+        version: admin.tokenVersion
+      }),
+
+      refreshToken: jwt.createRefreshToken({
+        id: admin._id,
+        version: admin.tokenVersion
+      }),
+
+      expiresIn: config.jwt.ACCESS_TOKEN_LIFE
+    };
   }
 }

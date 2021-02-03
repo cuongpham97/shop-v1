@@ -2,8 +2,22 @@ const { Schema } = require('mongoose');
 const { regexes } = require('~utils/constants');
 const { hashPassword, comparePassword } = require('~utils/hashing');
 const moment = require('moment');
-const Image = require('./Image.schema');
 const Location = require('./location.schema');
+
+const Avatar = new Schema({
+  name: String,
+  type: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  width: Number,
+  height: Number,
+  size: Number
+});
 
 async function uniqueUsername(username) {
   if (!this.isModified('username')) return true;
@@ -50,7 +64,7 @@ const AdminSchema = new Schema({
   },
   address: Location,
   avatar: {
-    type: Image,
+    type: Avatar,
     default: null
   },
   username: {
@@ -63,8 +77,6 @@ const AdminSchema = new Schema({
   },
   password: {
     type: String,
-    minLength: 6,
-    maxLength: 16,
     required: true,
   },
   roles: {

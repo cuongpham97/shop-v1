@@ -5,6 +5,9 @@ const tools = require('~utils/tools');
 module.exports = tools.applyRoutes(router, [
 
   ['GET', '/auth/token', authCtrl.getUserToken],
-  ['GET', '/admin/auth/token', authCtrl.getAdminToken]
+  ['POST', '/auth/token/refresh', authCtrl.refreshUserToken],
   
+  ['GET', '/admin/auth/token', authCtrl.getAdminToken],
+  ['POST', '/admin/auth/token/refresh', authCtrl.refreshAdminToken]
+
 ]);

@@ -1,8 +1,8 @@
 const validate = require('~utils/validator');
+const imageService = require('~services/image.service');
 const { mongodb } = require('~database');
-const upload = require('~utils/upload');
-const moment = require('moment');
 const { regexes } = require('~utils/constants');
+const moment = require('moment');
 
 exports.model = mongodb.model('admin');
 
@@ -29,7 +29,7 @@ exports.find = async function (query) {
 
 exports.findById = async function (id, fields = null) {
   
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' });
 
   if (validation.errors) {
     throw new ValidationException({ message: validation.errors });
@@ -56,6 +56,7 @@ exports.create = async function (admin) {
     'gender': ['required', 'lowercase', 'regex:' + regexes.GENDER],
     'birthday': 'required|date:YYYY/MM/DD',
     'phones': 'string|trim|phone',
+    'avatar': 'mongo_id',
     'address': 'object',
     'address.block': 'required_with:address|string|trim|min:1|max:100',
     'address.district': 'required_with:address|string|trim|min:1|max:100',
@@ -78,18 +79,18 @@ exports.create = async function (admin) {
   }
 
   return await mongodb.transaction(async function (session, _commit, _abort) {
-
-    const imageData = admin.avatar;
-    _.unset(admin, 'avatar');
-
-    let [newAdmin] = await mongodb.model('admin')
-      .create([admin], { session: session });
     
-    const image = await upload.uploadImage(imageData, admin.displayName + ' avatar');
+    const image = await mongodb.model('image').findById(admin.avatar);
 
-    newAdmin = await mongodb.model('admin').findByIdAndUpdate(newAdmin.id, {
-      avatar: image
-    }, { new: true, session: session });
+    if (!image) {
+      throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+    }
+  
+    admin.avatar = image;
+
+    const [newAdmin] = await mongodb.model('admin').create([admin], { session: session });
+
+    await imageService.set(image._id, `admin/${newAdmin.id}/avatar`);
 
     return newAdmin;
   });
@@ -113,6 +114,7 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
     'gender': ['lowercase', 'regex:' + regexes.GENDER],
     'birthday': 'date:YYYY/MM/DD',
     'phones': 'string|trim|phone',
+    'avatar': 'mongo_id',
     'address': 'object',
     'address.block': 'required_with:address|string|trim|min:1|max:100',
     'address.district': 'required_with:address|string|trim|min:1|max:100',
@@ -138,14 +140,28 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
   if (!admin) {
     throw new NotFoundException({ message: 'Admin ID not found' });
   }
-  
-  if (data.avatar) {
-    const newImage = await upload.uploadImage(data.avatar, admin.displayName + ' avatar')
-  
-    const oldImage = admin.avatar;
-    if (oldImage) upload.deleteImage(oldImage);
+
+  if (_.has(data, 'avatar')) {
+
+    let newImage = null;
+
+    if (data.avatar) {
+      newImage = await mongodb.model('image').findById(data.avatar);
+
+      if (!newImage) {
+        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+      }
+    }
+
+    await imageService.set(newImage._id, `admin/${admin._id}/avatar`);
 
     data.avatar = newImage;
+
+    const oldImage = admin.avatar;
+
+    if (oldImage) {
+      await imageService.unset(oldImage._id, `admin/${admin._id}/avatar`);
+    }
   }
 
   admin = _.merge(admin, data);
@@ -219,8 +235,10 @@ exports.deleteById = async function (id) {
     throw new NotFoundException({ message: 'Admin ID does not exist' });
   }
 
-  if (admin.avatar) {
-    upload.deleteImage(admin.avatar);
+  const image = admin.avatar;
+
+  if (image) {
+    await imageService.unset(image._id, `admin/${admin.id}/avatar`);
   }
 
   return true;
@@ -239,19 +257,19 @@ exports.deleteMany = async function (ids) {
 
   ids = validation.result.ids;
 
-  const docs = await mongodb.model('admin').find({ _id: { "$in": ids } }).select('_id avatar');
+  const docs = await mongodb.model('admin').find({ "_id": { "$in": ids } }).select('_id avatar');
 
   if (!docs.length) {
     throw new NotFoundException({ message: 'Admin IDs does not exist' });
   }
 
-  const images = docs.map(doc => doc.avatar);
   const found = docs.map(doc => doc._id);
+  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
 
-  const result = await mongodb.model('admin').deleteMany({ _id: { "$in": found } }); 
+  const result = await mongodb.model('admin').deleteMany({ "_id": { "$in": found } }); 
 
-  images.forEach(image => upload.deleteImage(image));
-
+  await imageService.unsetMany(images, found.map(id => `admin/${id}/avatar`));
+  
   return {
     expected: ids.length,
     found: found,

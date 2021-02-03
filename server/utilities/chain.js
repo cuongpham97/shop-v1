@@ -8,20 +8,20 @@ function MiddlewareChain(chain) {
 }
 
 MiddlewareChain.prototype.fnChain = function (context) {
-  
+
   const prototype = {};
 
   for (const [name, fn] of Object.entries(this.chain)) {
     prototype[name] = function (...args) {
-      
+
       context.chain = concat(context.chain, Promise.resolve(fn.call(context, ...args)));
-      
+
       context.chain.catch(error => { throw error; });
 
       return this;
     }
   }
-  
+
   return prototype;
 }
 
@@ -31,25 +31,34 @@ MiddlewareChain.prototype.createMiddleware = function () {
 
   const middleware = async function (req, res, next) {
 
-    const _context = { 
-      chain: [...(await context.chain)], 
+    const _context = {
+      chain: [...(await context.chain)],
       context: { ...context.context }
     };
 
     const func = _context.chain.shift();
 
-    return new Promise(function (resolve) {
+    async function nextFn(error) {
 
-      func.call(_context, req, res, function nextFn(error) {
-        if (error) return next(error);
+      if (error) return next(error);
 
-        const _next = _context.chain.shift();
-        return _next ? _next.call(_context, req, res, next) : next();
-      });
+      const _next = _context.chain.shift();
+      
+      if (!_next) return next();
+      
+      const wrapped = async function (req, res, next) {
+        try {
+          return await _next.call(_context, req, res, next);
+        
+        } catch(e) {
+          return next(e);
+        }
+      }
 
-      return resolve();
-    })
-    .catch(error => next(error));
+      return await wrapped(req, res, nextFn);
+    }
+
+    await func.call(_context, req, res, nextFn);
   }
 
   return Object.assign(middleware, this.fnChain(context));

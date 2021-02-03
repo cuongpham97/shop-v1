@@ -710,14 +710,6 @@
 
 // })();
 
-const cf = require('./config');
+const _ = require('lodash');
 
-const { init, mongodb } = require('~database');
-
-init().then(async() => {
-  console.log('after connect');
-  let user = await mongodb.model('user').find();
-
-  console.log(user);
-
-});
+console.log(_.has({ a: null }, 'a'));

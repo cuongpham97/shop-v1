@@ -7,13 +7,14 @@ const mongoose = new Mongoose;
 const userModel = require('./models/user.model');
 const adminModel = require('./models/admin.model');
 const roleModel = require('./models/role.model');
+const imageModel = require('./models/image.model');
 
 // Plugins
 const pagination = require('./plugins/pagination');
 const timestamp = require('./plugins/timestamp');
 const formatValidateError = require('./plugins/format-validate-error');
 
-const models = [userModel, adminModel, roleModel];
+const models = [userModel, adminModel, roleModel, imageModel];
 const plugins = [timestamp, pagination, formatValidateError];
 
 function init() {

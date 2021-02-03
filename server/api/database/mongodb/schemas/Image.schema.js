@@ -17,7 +17,15 @@ const Image = new Schema({
     id: String,
     deleteHash: String
   },
+  usedFor: {
+    type: [String],
+    default: []
+  },
+  creator: {
+    id: String,
+    name: String
+  },
   description: String
-}, { _id: false });
+});
 
 module.exports = Image;
