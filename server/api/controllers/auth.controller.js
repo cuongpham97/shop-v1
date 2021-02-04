@@ -1,9 +1,9 @@
 const { StatusCodes } = require('http-status-codes');
 const authService = require('~services/auth.service');
 
-exports.getUserToken = async function (req, res) {
+exports.getCustomerToken = async function (req, res) {
 
-  const result = await authService.getToken(req.headers['authorization'], 'user');
+  const result = await authService.getToken(req.headers['authorization'], 'customer');
 
   return res.status(StatusCodes.OK).json(result);
 }
@@ -15,9 +15,9 @@ exports.getAdminToken = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.refreshUserToken = async function (req, res) {
+exports.refreshCustomerToken = async function (req, res) {
   
-  const result = await authService.refreshToken(req.body, 'user');
+  const result = await authService.refreshToken(req.body, 'customer');
 
   return res.status(StatusCodes.OK).json(result);
 }

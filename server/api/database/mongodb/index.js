@@ -4,7 +4,7 @@ const { Mongoose } = require('mongoose');
 const mongoose = new Mongoose;
 
 // Models
-const userModel = require('./models/user.model');
+const customerModel = require('./models/customer.model');
 const adminModel = require('./models/admin.model');
 const roleModel = require('./models/role.model');
 const imageModel = require('./models/image.model');
@@ -14,7 +14,7 @@ const pagination = require('./plugins/pagination');
 const timestamp = require('./plugins/timestamp');
 const formatValidateError = require('./plugins/format-validate-error');
 
-const models = [userModel, adminModel, roleModel, imageModel];
+const models = [customerModel, adminModel, roleModel, imageModel];
 const plugins = [timestamp, pagination, formatValidateError];
 
 function init() {

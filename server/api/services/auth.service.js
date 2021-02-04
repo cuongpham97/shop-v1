@@ -5,9 +5,7 @@ const roleService = require('~services/role.service');
 const config = require('~config');
 const jwt = require('~utils/jwt');
 
-// TODO: strict admin token / user token
-
-exports.getToken = async function (credentials, accountType = 'user') {
+exports.getToken = async function (credentials, account = 'customer') {
 
   if (!credentials) {
     throw new AuthenticationException({ message: 'Invalid credentials' });
@@ -30,37 +28,39 @@ exports.getToken = async function (credentials, accountType = 'user') {
     throw new AuthenticationException({ message: 'Invalid credentials' });
   }
 
-  if (accountType === 'user') {
+  if (account === 'customer') {
 
     const phoneOrEmail = regexes.PHONE_NUMBER.test(username) ? 'phone' : 'email';
 
-    const user = await mongodb.model('user').findOne({ 
+    const customer = await mongodb.model('customer').findOne({ 
       [`local.${phoneOrEmail}`]: username 
     });
 
-    if (!user || !await user.comparePassword(password)) {
+    if (!customer || !await customer.comparePassword(password)) {
       throw new AuthenticationException({ message: 'Invalid credentials' });
     }
 
     return {
-      name: user.displayName,
-      avatar: (user.avatar && user.avatar.url) || null,
+      name: customer.displayName,
+      avatar: (customer.avatar && customer.avatar.url) || null,
 
       accessToken: jwt.createAccessToken({
-        id: user._id,
-        version: user.tokenVersion
+        type: 'customer',
+        id: customer._id,
+        version: customer.tokenVersion
       }),
 
       refreshToken: jwt.createRefreshToken({
-        id: user._id,
-        version: user.tokenVersion
+        type: 'customer',
+        id: customer._id,
+        version: customer.tokenVersion
       }),
 
       expiresIn: config.jwt.ACCESS_TOKEN_LIFE
     };
   }
 
-  if (accountType === 'admin') {
+  if (account === 'admin') {
     
     const admin = await mongodb.model('admin').findOne({
       username: username
@@ -75,11 +75,13 @@ exports.getToken = async function (credentials, accountType = 'user') {
       avatar: (admin.avatar && admin.avatar.url) || null,
 
       accessToken: jwt.createAccessToken({
+        type: 'admin',
         id: admin._id,
         version: admin.tokenVersion
       }),
 
       refreshToken: jwt.createRefreshToken({
+        type: 'admin',
         id: admin._id,
         version: admin.tokenVersion
       }),
@@ -91,7 +93,7 @@ exports.getToken = async function (credentials, accountType = 'user') {
   }
 }
 
-exports.refreshToken = async function (data, accountType = 'user') {
+exports.refreshToken = async function (data, account = 'customer') {
 
   const token = data.refreshToken;
 
@@ -110,34 +112,36 @@ exports.refreshToken = async function (data, accountType = 'user') {
 
   const { id, version } = decodedToken;
 
-  if (accountType === 'user') {
+  if (account === 'customer') {
 
-    const user = await mongodb.model('user').findById(id);
+    const customer = await mongodb.model('customer').findById(id);
 
-    if (!user) {
-      throw new AuthenticationException({ message: 'User ID does not exist' });
+    if (!customer) {
+      throw new AuthenticationException({ message: 'Customer ID does not exist' });
     }
 
-    if (user.tokenVersion != version) {
+    if (customer.tokenVersion != version) {
       throw new AuthenticationException({ message: 'Cannot use this token' });
     }
 
     return {
       accessToken: jwt.createAccessToken({
-        id: user._id,
-        version: user.tokenVersion
+        type: 'customer',
+        id: customer._id,
+        version: customer.tokenVersion
       }),
 
       refreshToken: jwt.createRefreshToken({
-        id: user._id,
-        version: user.tokenVersion
+        type: 'customer',
+        id: customer._id,
+        version: customer.tokenVersion
       }),
 
       expiresIn: config.jwt.ACCESS_TOKEN_LIFE
     };
   }
 
-  if (accountType === 'admin') {
+  if (account === 'admin') {
 
     const admin = await mongodb.model('admin').findById(id);
 
@@ -151,11 +155,13 @@ exports.refreshToken = async function (data, accountType = 'user') {
 
     return {
       accessToken: jwt.createAccessToken({
+        type: 'admin',
         id: admin._id,
         version: admin.tokenVersion
       }),
 
       refreshToken: jwt.createRefreshToken({
+        type: 'admin',
         id: admin._id,
         version: admin.tokenVersion
       }),

@@ -173,15 +173,15 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
 /**
  * @param {string} id 
  * @param {object} data 
- * @param {('self'|'superadmin')} role 
+ * @param {('admin'|'superadmin')} role 
  */
-exports.changePassword = async function (id, data, role = 'self') {
+exports.changePassword = async function (id, data, role = 'admin') {
 
   data.id = id;
 
   const rules = {
     'id': 'mongo_id',
-    'password': role === 'self' ? 'required|string|min:6|max:16' : 'unset',
+    'password': role === 'admin' ? 'required|string|min:6|max:16' : 'unset',
     'newPassword': 'required|string|min:6|max:16'
   };
 
@@ -208,13 +208,13 @@ exports.changePassword = async function (id, data, role = 'self') {
   }
 
   const update = { 
-    password: validation.result.newPassword,
-    tokenVersion: moment().valueOf()
+    "password": validation.result.newPassword,
+    "tokenVersion": moment().valueOf()
   };
 
   admin = _.merge(admin, update);
 
-  await user.save();
+  await admin.save();
   
   return true;
 }

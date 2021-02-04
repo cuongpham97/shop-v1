@@ -27,11 +27,15 @@ exports.partialUpdateAdmin = async function (req, res) {
 
 exports.changeAdminPassword = async function (req, res) {
 
-  if (!req.admin) throw new Error('Must be authenticated to do this action');
+  let role = req.user && req.user.type;
 
-  const role = req.admin.roles && req.admin.roles.indexOf('superadmin') !== -1
+  if (role !== 'admin') {
+    throw new AuthenticationException('Must be authenticated to do this action');
+  }
+
+  role = req.user.roles && req.user.roles.indexOf('superadmin') !== -1
     ? 'superadmin'
-    : 'self';
+    : 'admin';
 
   await adminService.changePassword(req.params.id, req.body, role);
 

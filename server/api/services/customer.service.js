@@ -1,9 +1,9 @@
 const validate = require('~utils/validator');
+const imageService = require('~services/image.service');
 const { regexes } = require('~utils/constants');
 const { mongodb } = require('~database');
-const upload = require('~utils/upload');
 
-exports.model = mongodb.model('user');
+exports.model = mongodb.model('customer');
 
 exports.find = async function (query) {
 
@@ -23,7 +23,7 @@ exports.find = async function (query) {
     throw new ValidationException({ message: validation.errors });
   }
 
-  return await mongodb.model('user').paginate(validation.result);
+  return await mongodb.model('customer').paginate(validation.result);
 }
 
 exports.findById = async function (id, fields = null) {
@@ -36,16 +36,16 @@ exports.findById = async function (id, fields = null) {
 
   id = validation.result.id;
 
-  const user = await mongodb.model('user').findById(id, fields);
+  const customer = await mongodb.model('customer').findById(id, fields);
 
-  if (!user) {
-    throw new NotFoundException({ message: 'User ID not found' });
+  if (!customer) {
+    throw new NotFoundException({ message: 'Customer ID not found' });
   }
 
-  return user;
+  return customer;
 }
 
-exports.create = async function (user, provider = 'local') {
+exports.create = async function (customer, provider = 'local') {
 
   const rule = {
     'name': 'object',
@@ -87,33 +87,33 @@ exports.create = async function (user, provider = 'local') {
     }
   }
 
-  const validation = await validate(user, _.merge(rule, providerRules[provider]));
+  const validation = await validate(customer, _.merge(rule, providerRules[provider]));
 
   if (validation.errors) {
     throw new ValidationException({ message: validation.errors });
   }
 
-  user = validation.result;
+  customer = validation.result;
 
-  if (!user.avatar) {
-    return await mongodb.model('user').create(user);
+  if (!customer.avatar) {
+    return await mongodb.model('customer').create(customer);
   }
 
   return await mongodb.transaction(async function (session, _commit, _abort) {
     
-    const imageData = user.avatar;
-    _.unset(user, 'avatar');
+    const image = await mongodb.model('image').findById(customer.avatar);
 
-    let [newUser] = await mongodb.model('user')
-      .create([user], { session: session });
+    if (!image) {
+      throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+    }
 
-    const image = await upload.uploadImage(imageData, user.displayName + ' avatar');
+    customer.avatar = image;
 
-    newUser = await mongodb.model('user').findByIdAndUpdate(newUser.id, {
-      avatar: image
-    }, { new: true, session: session });
+    const [newCustomer] = await mongodb.model('customer').create([customer], { session: session });
 
-    return newUser;
+    await imageService.set(image._id, `customer/${newCustomer.id}/avatar`);
+
+    return newCustomer;
   });
 }
 
@@ -151,23 +151,38 @@ exports.partialUpdate = async function (id, data) {
 
   data = validation.result;
 
-  let user = await mongodb.model('user').findById(id);
+  let customer = await mongodb.model('customer').findById(id);
 
-  if (!user) {
-    throw new NotFoundException({ message: 'User ID not found' });
+  if (!customer) {
+    throw new NotFoundException({ message: 'Customer ID not found' });
   }
   
-  if (data.avatar) {
-    const newImage = await upload.uploadImage(data.avatar, user.displayName + ' avatar');
+  if (_.has(data, 'avatar')) {
 
-    const oldImage = user.avatar;
-    if (oldImage) upload.deleteImage(oldImage);
+    let newImage = null;
+
+    if (data.avatar) {
+      newImage = await mongodb.model('image').findById(data.avatar);
+
+      if (!newImage) {
+        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+      }
+    }
+
+    await imageService.set(newImage._id, `customer/${customer._id}/avatar`);
 
     data.avatar = newImage;
+
+    const oldImage = customer.avatar;
+
+    if (oldImage) {
+      await imageService.unset(oldImage._id, `customer/${customer._id}/avatar`);
+    }
   }
 
-  user = _.merge(user, data);
-  await user.save();
+  customer = _.merge(customer, data);
+
+  await customer.save();
 
   return true;
 }
@@ -175,15 +190,15 @@ exports.partialUpdate = async function (id, data) {
 /**
  * @param {string} id 
  * @param {object} data
- * @param {('self'|'admin')} role
+ * @param {('customer'|'admin')} role
  */
-exports.changePassword = async function (id, data, role = 'self') {
+exports.changePassword = async function (id, data, role = 'customer') {
 
   data.id = id;
 
   const rules = {
     'id': 'mongo_id',
-    'password': role === 'self' ? 'required|string|min:6|max:16' : 'unset',
+    'password': role === 'customer' ? 'required|string|min:6|max:16' : 'unset',
     'newPassword': 'required|string|min:6|max:16'
   };
 
@@ -195,31 +210,32 @@ exports.changePassword = async function (id, data, role = 'self') {
 
   id = validation.result.id;
 
-  let user = await mongodb.model('user').findById(id);
+  let customer = await mongodb.model('customer').findById(id);
 
-  if (!user) {
-    throw new NotFoundException({ message: 'User ID not found' });
+  if (!customer) {
+    throw new NotFoundException({ message: 'Customer ID not found' });
   }
 
-  if (!user.local) {
-    throw new BadRequestException({ message: 'User does not use local provider' });
+  if (!customer.local) {
+    throw new BadRequestException({ message: 'Customer does not use local provider' });
   }
 
   const match = role === 'admin' 
     ? true 
-    : await user.comparePassword(validation.result.password);
+    : await customer.comparePassword(validation.result.password);
 
   if (!match) {
     throw new AuthenticationException({ message: 'Password is incorrect' });
   }
 
   const update = { 
-    local: { password: validation.result.newPassword }, 
-    tokenVersion: moment().valueOf() 
+    "local": { "password": validation.result.newPassword }, 
+    "tokenVersion": moment().valueOf() 
   };
 
-  user = _.merge(user, update);
-  await user.save();
+  customer = _.merge(customer, update);
+
+  await customer.save();
 
   return true;
 }
@@ -234,14 +250,16 @@ exports.deleteById = async function (id) {
 
   id = validation.result.id;
 
-  const user = await mongodb.model('user').findByIdAndDelete(id).select('_id avatar');
+  const customer = await mongodb.model('customer').findByIdAndDelete(id).select('_id avatar');
 
-  if (!user) {
-    throw new NotFoundException({ message: 'User ID does not exist' });
+  if (!customer) {
+    throw new NotFoundException({ message: 'Customer ID does not exist' });
   }
 
-  if (user.avatar) {
-    await upload.deleteImage(user.avatar);
+  const image = customer.avatar;
+
+  if (image) {
+    await imageService.unset(image._id, `customer/${customer.id}/avatar`);
   }
 
   return true;
@@ -260,18 +278,18 @@ exports.deleteMany = async function (ids) {
 
   ids = validation.result.ids;
 
-  const docs = await mongodb.model('user').find({ _id: { "$in": ids } }).select('_id avatar');
+  const docs = await mongodb.model('customer').find({ _id: { "$in": ids } }).select('_id avatar');
 
   if (!docs.length) {
-    throw new NotFoundException({ message: 'User IDs does not exist' });
+    throw new NotFoundException({ message: 'Customer IDs does not exist' });
   }
 
-  const images = docs.map(doc => doc.avatar);
   const found = docs.map(doc => doc._id);
+  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
 
-  const result = await mongodb.model('user').deleteMany({ _id: { "$in": found } }); 
+  const result = await mongodb.model('customer').deleteMany({ "_id": { "$in": found } }); 
 
-  images.forEach(image => upload.deleteImage(image));
+  await imageService.unsetMany(images, found.map(id => `customer/${id}/avatar`));
   
   return {
     expected: ids.length,

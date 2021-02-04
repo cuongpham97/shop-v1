@@ -1,25 +1,38 @@
 const { Schema } = require('mongoose');
 const { regexes } = require('~utils/constants');
 const { hashPassword, comparePassword } = require('~utils/hashing');
-const _ = require('lodash');
 const Location = require('./location.schema');
-const Image = require('./image.schema');
 const moment = require('moment');
+
+const Avatar = new Schema({
+  name: String,
+  type: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  width: Number,
+  height: Number,
+  size: Number
+});
 
 async function uniqueEmail(email) {
   if (!this.isModified('email')) return true;
   
   const model = this.parent().constructor;
-  const user = await model.findOne({ 'local.email': email });
-  return !user;
+  const customer = await model.findOne({ 'local.email': email });
+  return !customer;
 }
 
 async function uniquePhone(phone) {
   if (!this.isModified('phone')) return true;
 
   const model = this.parent().constructor;
-  const user = await model.findOne({ 'local.phone': phone });
-  return !user;
+  const customer = await model.findOne({ 'local.phone': phone });
+  return !customer;
 }
 
 const LocalProvider = new Schema({
@@ -60,7 +73,7 @@ LocalProvider.pre('save', async function(next) {
   return next();
 });
 
-const UserSchema = new Schema({
+const CustomerSchema = new Schema({
   name: {
     first: {
       type: String,
@@ -103,7 +116,7 @@ const UserSchema = new Schema({
     default: []
   },
   avatar: {
-    type: Image,
+    type: Avatar,
     default: null
   },
   local: {
@@ -131,7 +144,7 @@ const UserSchema = new Schema({
   }
 });
 
-UserSchema.pre('validate', function (next) {
+CustomerSchema.pre('validate', function (next) {
   let providers = ['google', 'facebook', 'local'];
   let hasProvider = providers.some(provider => !_.isEmpty(this.get(provider)));
 
@@ -142,8 +155,8 @@ UserSchema.pre('validate', function (next) {
   return next();
 });
 
-UserSchema.methods.comparePassword = async function (password) {
+CustomerSchema.methods.comparePassword = async function (password) {
   return await comparePassword(password, this.get('local.password'));
 }
 
-module.exports = UserSchema;
+module.exports = CustomerSchema;

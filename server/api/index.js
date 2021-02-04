@@ -29,14 +29,14 @@ function createApp() {
   api.use(unflatten);
   
   // Define route
-  const user = require('~routes/user.routes');
+  const customer = require('~routes/customer.routes');
   const admin = require('~routes/admin.routes');
   const auth = require('~routes/auth.routes');
   const role = require('~routes/role.routes');
   const image = require('~routes/image.routes');
   const permission = require('~routes/permission.routes');
   
-  api.use(user);
+  api.use(customer);
   api.use(admin);
   api.use(auth);
   api.use(role);

@@ -8,7 +8,7 @@ module.exports = tools.applyRoutes(router, [
   ['GET', `/admins/:id`, adminCtrl.getAdminById],
   ['POST', '/admins', adminCtrl.registerNewAdminAccount],
   ['PATCH', '/admins/:id', adminCtrl.partialUpdateAdmin],
-  ['PUT', '/admins/password', adminCtrl.changeAdminPassword],
+  ['PUT', '/admins/:id/password', adminCtrl.changeAdminPassword],
   ['DELETE', `/admins/:id`, adminCtrl.deleteAdminById],
   ['DELETE', '/admins', adminCtrl.deleteManyAdmin]
 

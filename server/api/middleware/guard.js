@@ -1,10 +1,11 @@
 const chain = require('~utils/chain');
 const jwt = require('~utils/jwt');
-const userService = require('~services/user.service');
+const customerService = require('~services/customer.service');
 const adminService = require('~services/admin.service');
 const roleService = require('~services/role.service');
 
 function getTokenFromHeader(req) {
+
   let token = req.headers['authorization'] || req.headers['x-access-token'];
 
   if (!token) {
@@ -27,9 +28,9 @@ function decodeToken(token) {
   }
 }
 
-async function getProfile(accountType, id) {
+async function getProfile(account, id) {
 
-  const service = accountType === 'user' ? userService : adminService;
+  const service = account === 'customer' ? customerService : adminService;
 
   return await service.findById(id, ['_id', 'tokenVersion', 'roles']);
 }
@@ -52,26 +53,31 @@ function hasPermission(expect, permission) {
 
 module.exports = chain({
 
-  auth: async function (accountType) {
+  auth: async function (account) {
 
-    if (!['user', 'admin'].includes(accountType)) {
-      throw Error(`Auth middleware with wrong argument '${accountType}'`);
+    if (!['customer', 'admin'].includes(account)) {
+      throw Error(`Auth middleware with wrong argument '${account}'`);
     }
-
-    this.context.accountType = accountType;
 
     return async function (req, _res, next) {
       
       const token = getTokenFromHeader(req);
       const decodedToken = decodeToken(token);
-      const profile = await getProfile(accountType, decodedToken.id);
+
+      if (decodedToken.type !== account) return next(
+        new AuthenticationException({ message: 'Cannot use this token' })
+      );
+
+      const profile = await getProfile(account, decodedToken.id);
       const check = checkTokenVersion(profile, decodedToken.version);
 
       if (!check) return next(
         new AuthenticationException({ message: 'Cannot use this token' })
       );
 
-      req[accountType] = _.assign(req[accountType] || {}, _.pick(profile.toJSON(), ['_id', 'roles']));
+      req.user = _.assign(req.user || {}, _.pick(profile.toJSON(), ['_id', 'roles']));
+
+      req.user.type = account;
 
       return next();
     }
@@ -81,10 +87,10 @@ module.exports = chain({
     
     return function (req, _res, next) {
 
-      const reqId = _.get(req, from);
-      const authId = _.get(req, [this.context.accountType, '_id']);
+      const expectId = _.get(req, from);
+      const userId = _.get(req.user, '_id');
 
-      if (reqId !== authId) {
+      if (expectId !== userId) {
         return next(
           new AuthorizationException({ message: 'Don\'t have permission to access' })
         )
@@ -98,7 +104,7 @@ module.exports = chain({
 
     return function (req, _res, next) {
 
-      const { roles } = req[this.context.accountType];
+      const { roles } = req.user;
 
       for (const expect of expectedRoles) {
 
@@ -124,7 +130,7 @@ module.exports = chain({
 
     return async function (req, _res, next) {
       
-      const { roles } = req[this.context.accountType];
+      const { roles } = req.user;
 
       const permission = await roleService.cache.getAllPermission(...roles);
 
