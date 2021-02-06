@@ -151,15 +151,16 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
       if (!newImage) {
         throw new NotFoundException({ message: 'Avatar image ID does not exist' });
       }
-    }
 
-    await imageService.set(newImage._id, `admin/${admin._id}/avatar`);
+      await imageService.set(newImage._id, `admin/${admin._id}/avatar`);
+    }
 
     data.avatar = newImage;
 
     const oldImage = admin.avatar;
+    const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
 
-    if (oldImage) {
+    if (isChange) {
       await imageService.unset(oldImage._id, `admin/${admin._id}/avatar`);
     }
   }

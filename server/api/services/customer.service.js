@@ -56,6 +56,7 @@ exports.create = async function (customer, provider = 'local') {
     'birthday': 'date:YYYY/MM/DD',
     'phones': 'to:array',
     'phones.*': 'string|trim|phone',
+    'avatar': 'mongo_id',
     'addresses': 'array',
     'addresses.*': 'object',
     'addresses.*.block': 'required|trim|min:1|max:100',
@@ -131,6 +132,7 @@ exports.partialUpdate = async function (id, data) {
     'birthday': 'date:YYYY/MM/DD',
     'phones': 'to:array',
     'phones.*': 'string|trim|phone',
+    'avatar': 'mongo_id',
     'addresses': 'array',
     'addresses.*': 'object',
     'addresses.*.block': 'required|trim|min:1|max:100',
@@ -167,15 +169,16 @@ exports.partialUpdate = async function (id, data) {
       if (!newImage) {
         throw new NotFoundException({ message: 'Avatar image ID does not exist' });
       }
-    }
 
-    await imageService.set(newImage._id, `customer/${customer._id}/avatar`);
+      await imageService.set(newImage._id, `customer/${customer._id}/avatar`);
+    }
 
     data.avatar = newImage;
 
     const oldImage = customer.avatar;
+    const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
 
-    if (oldImage) {
+    if (isChange) {
       await imageService.unset(oldImage._id, `customer/${customer._id}/avatar`);
     }
   }

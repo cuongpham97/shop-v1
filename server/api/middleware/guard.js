@@ -93,7 +93,7 @@ module.exports = chain({
       if (expectId !== userId) {
         return next(
           new AuthorizationException({ message: 'Don\'t have permission to access' })
-        )
+        );
       }
       
       return next();
@@ -110,15 +110,15 @@ module.exports = chain({
 
         if (Array.isArray(expect)) {
 
-          if (!_.intersection(roles, expect).length) {
-            throw new AuthorizationException({ message: 'Must be one of "' + expect.join(', ') + '" to access' });
-          }
+          if (!_.intersection(roles, expect).length) return next(
+            new AuthorizationException({ message: 'Must be one of "' + expect.join(', ') + '" to access' })
+          );
 
         } else {
 
-          if (!roles.includes(expect)) {
-            throw new AuthorizationException({ message: 'Must be "' + expect + '" to access' });
-          }
+          if (!roles.includes(expect)) return next(
+            new AuthorizationException({ message: 'Must be "' + expect + '" to access' })
+          );
         }
       }
 
@@ -138,16 +138,15 @@ module.exports = chain({
 
         if (Array.isArray(expect)) {
 
-          if (!expect.find(e => hasPermission(e, permission))) {
-            throw new AuthorizationException({ message: 'Don\'t have permission to access' });
-          }
+          if (!expect.find(e => hasPermission(e, permission))) return next(
+            new AuthorizationException({ message: 'Don\'t have permission to access' })
+          );
 
         } else {
 
-          if (!hasPermission(expect, permission)) {
-            throw new AuthorizationException({ message: 'Don\'t have permission to access' });
-          }
-
+          if (!hasPermission(expect, permission)) return next(
+            new AuthorizationException({ message: 'Don\'t have permission to access' })
+          );
         }
       }
 

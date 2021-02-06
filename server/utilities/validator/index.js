@@ -1,6 +1,6 @@
 const Validator = require('validatorjs');
-const override = require('./override');
-const rules = require('./rules');
+require('./override');
+require('./rules');
 
 Validator.setMessages('en', require('./lang/en.json'));
 Validator.setAttributeFormatter(attribute => `"${attribute}"`);
@@ -14,7 +14,7 @@ module.exports = function (input, rules, customMessages, validator = Validator) 
     () => {        
       let errors = [];
         
-      for (const [field, error] of Object.entries(validation.errors.all())) {
+      for (const [, error] of Object.entries(validation.errors.all())) {
         errors.push(error[0]);
       }
 
