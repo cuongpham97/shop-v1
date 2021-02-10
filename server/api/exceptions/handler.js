@@ -2,7 +2,6 @@ const { Exception } = require('./classes');
 const ExceptionFilter = require('./filters/exception.filter');
 const ErrorFilter = require('./filters/error.filter');
 
-
 const registerFilters = new Map([
   // [ ValidationException, ValidateExceptionFilter ]
 ]);

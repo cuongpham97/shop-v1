@@ -34,6 +34,7 @@ function createApp() {
   const auth = require('~routes/auth.routes');
   const role = require('~routes/role.routes');
   const image = require('~routes/image.routes');
+  const category = require('~routes/category.routes');
   const permission = require('~routes/permission.routes');
   
   api.use(customer);
@@ -41,6 +42,7 @@ function createApp() {
   api.use(auth);
   api.use(role);
   api.use(image);
+  api.use(category);
   api.use(permission);
   
   api.use('*', () => { 

@@ -1,5 +1,6 @@
 const validate = require('~utils/validator');
 const imageService = require('~services/image.service');
+const { updateDocument } = require('~utils/tools');
 const { regexes } = require('~utils/constants');
 const { mongodb } = require('~database');
 
@@ -110,9 +111,9 @@ exports.create = async function (customer, provider = 'local') {
 
     customer.avatar = image;
 
-    const [newCustomer] = await mongodb.model('customer').create([customer], { session: session });
+    const [newCustomer] = await mongodb.model('customer').create([customer], { session });
 
-    await imageService.set(image._id, `customer/${newCustomer.id}/avatar`);
+    await imageService.set(image.id, `customer/${newCustomer.id}/avatar`);
 
     return newCustomer;
   });
@@ -170,24 +171,22 @@ exports.partialUpdate = async function (id, data) {
         throw new NotFoundException({ message: 'Avatar image ID does not exist' });
       }
 
-      await imageService.set(newImage._id, `customer/${customer._id}/avatar`);
+      await imageService.set(newImage.id, `customer/${customer.id}/avatar`);
     }
 
     data.avatar = newImage;
 
     const oldImage = customer.avatar;
-    const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
+    const isChange = oldImage && (!newImage || !oldImage.id.equals(newImage.id));
 
     if (isChange) {
-      await imageService.unset(oldImage._id, `customer/${customer._id}/avatar`);
+      await imageService.unset(oldImage.id, `customer/${customer.id}/avatar`);
     }
   }
 
-  customer = _.merge(customer, data);
+  await updateDocument(customer, data).save();
 
-  await customer.save();
-
-  return true;
+  return customer;
 }
 
 /**
@@ -236,9 +235,7 @@ exports.changePassword = async function (id, data, role = 'customer') {
     "tokenVersion": moment().valueOf() 
   };
 
-  customer = _.merge(customer, update);
-
-  await customer.save();
+  await updateDocument(customer, update).save();
 
   return true;
 }
@@ -265,7 +262,11 @@ exports.deleteById = async function (id) {
     await imageService.unset(image._id, `customer/${customer.id}/avatar`);
   }
 
-  return true;
+  return {
+    expected: 1,
+    found: [id],
+    deletedCount: 1
+  };
 }
 
 exports.deleteMany = async function (ids) {
@@ -287,8 +288,8 @@ exports.deleteMany = async function (ids) {
     throw new NotFoundException({ message: 'Customer IDs does not exist' });
   }
 
-  const found = docs.map(doc => doc._id);
-  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
+  const found = docs.map(doc => doc.id);
+  const images = docs.map(doc => doc.avatar && doc.avatar.id).filter(Boolean);
 
   const result = await mongodb.model('customer').deleteMany({ "_id": { "$in": found } }); 
 

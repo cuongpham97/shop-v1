@@ -20,9 +20,9 @@ exports.registerNewAdminAccount = async function (req, res) {
 };
 
 exports.partialUpdateAdmin = async function (req, res) {
-  await adminService.partialUpdate(req.params.id, req.body);
+  const admin = await adminService.partialUpdate(req.params.id, req.body);
 
-  return res.status(StatusCodes.NO_CONTENT).end();
+  return res.status(StatusCodes.OK).json(admin);
 }
 
 exports.changeAdminPassword = async function (req, res) {
@@ -43,9 +43,9 @@ exports.changeAdminPassword = async function (req, res) {
 }
 
 exports.deleteAdminById = async function (req, res) {
-  await adminService.deleteById(req.params.id);
+  const result = await adminService.deleteById(req.params.id);
 
-  return res.status(StatusCodes.NO_CONTENT).end();
+  return res.status(StatusCodes.OK).json(result);
 }
 
 exports.deleteManyAdmin = async function (req, res) {

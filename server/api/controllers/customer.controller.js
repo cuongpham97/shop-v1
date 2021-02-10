@@ -14,9 +14,9 @@ exports.registerNewCustomerAccount = async function (req, res) {
 }
 
 exports.partialUpdateCustomer = async function (req, res) {
-  await customerService.partialUpdate(req.params.id, req.body);
+  const customer = await customerService.partialUpdate(req.params.id, req.body);
 
-  return res.status(StatusCodes.NO_CONTENT).end();
+  return res.status(StatusCodes.OK).json(customer);
 }
 
 exports.changeCustomerPassword = async function (req, res) {
@@ -39,9 +39,9 @@ exports.getManyCustomer = async function (req, res) {
 }
 
 exports.deleteCustomerById = async function (req, res) {
-  await customerService.deleteById(req.params.id);
+  const result = await customerService.deleteById(req.params.id);
 
-  return res.status(StatusCodes.NO_CONTENT).end();
+  return res.status(StatusCodes.OK).json(result);
 }
 
 exports.deleteManyCustomer = async function (req, res) {

@@ -1,7 +1,8 @@
 const validate = require('~utils/validator');
 const imageService = require('~services/image.service');
-const { mongodb } = require('~database');
+const { updateDocument } = require('~utils/tools');
 const { regexes } = require('~utils/constants');
+const { mongodb } = require('~database');
 const moment = require('moment');
 
 exports.model = mongodb.model('admin');
@@ -88,9 +89,9 @@ exports.create = async function (admin) {
   
     admin.avatar = image;
 
-    const [newAdmin] = await mongodb.model('admin').create([admin], { session: session });
+    const [newAdmin] = await mongodb.model('admin').create([admin], { session });
 
-    await imageService.set(image._id, `admin/${newAdmin.id}/avatar`);
+    await imageService.set(image.id, `admin/${newAdmin.id}/avatar`);
 
     return newAdmin;
   });
@@ -152,23 +153,22 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
         throw new NotFoundException({ message: 'Avatar image ID does not exist' });
       }
 
-      await imageService.set(newImage._id, `admin/${admin._id}/avatar`);
+      await imageService.set(newImage.id, `admin/${admin.id}/avatar`);
     }
 
     data.avatar = newImage;
 
     const oldImage = admin.avatar;
-    const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
+    const isChange = oldImage && (!newImage || !oldImage.id.equals(newImage.id));
 
     if (isChange) {
-      await imageService.unset(oldImage._id, `admin/${admin._id}/avatar`);
+      await imageService.unset(oldImage.id, `admin/${admin.id}/avatar`);
     }
   }
 
-  admin = _.merge(admin, data);
-  await admin.save();
+  await updateDocument(admin, data).save();
 
-  return true;
+  return admin;
 }
 
 /**
@@ -213,9 +213,7 @@ exports.changePassword = async function (id, data, role = 'admin') {
     "tokenVersion": moment().valueOf()
   };
 
-  admin = _.merge(admin, update);
-
-  await admin.save();
+  await updateDocument(admin, update).save();
   
   return true;
 }
@@ -239,10 +237,14 @@ exports.deleteById = async function (id) {
   const image = admin.avatar;
 
   if (image) {
-    await imageService.unset(image._id, `admin/${admin.id}/avatar`);
+    await imageService.unset(image.id, `admin/${admin.id}/avatar`);
   }
 
-  return true;
+  return {
+    expected: 1,
+    found: [id],
+    deletedCount: 1
+  };
 }
 
 exports.deleteMany = async function (ids) {
@@ -264,8 +266,8 @@ exports.deleteMany = async function (ids) {
     throw new NotFoundException({ message: 'Admin IDs does not exist' });
   }
 
-  const found = docs.map(doc => doc._id);
-  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
+  const found = docs.map(doc => doc.id);
+  const images = docs.map(doc => doc.avatar && doc.avatar.id).filter(Boolean);
 
   const result = await mongodb.model('admin').deleteMany({ "_id": { "$in": found } }); 
 

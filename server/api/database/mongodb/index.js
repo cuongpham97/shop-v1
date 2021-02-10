@@ -8,32 +8,41 @@ const customerModel = require('./models/customer.model');
 const adminModel = require('./models/admin.model');
 const roleModel = require('./models/role.model');
 const imageModel = require('./models/image.model');
+const categoryModel = require('./models/category.model');
 
 // Plugins
 const pagination = require('./plugins/pagination');
 const timestamp = require('./plugins/timestamp');
 const formatValidateError = require('./plugins/format-validate-error');
 
-const models = [customerModel, adminModel, roleModel, imageModel];
-const plugins = [timestamp, pagination, formatValidateError];
+const models = [
+  customerModel, 
+  adminModel, 
+  roleModel, 
+  imageModel, 
+  categoryModel
+];
 
-function init() {
+const plugins = [
+  timestamp, 
+  pagination, 
+  formatValidateError
+];
 
-  return new Promise(function (resolve, _reject) {
+async function init() {
 
-    // Connect to database, convert calback to async
-    connect(mongoose, () => resolve());
+  // Connect to database, convert calback to async
+  await new Promise(resolve => connect(mongoose, resolve));
 
-    // Use plugins
-    models.forEach(model => {
-      plugins.forEach(plugin => model.schema && model.schema.plugin(plugin));
-    });
-  
-    // Use models
-    models.forEach(model => model.apply(mongoose));
-  
-    return mongoose;
+   // Use plugins
+   models.forEach(model => {
+    plugins.forEach(plugin => model.schema && model.schema.plugin(plugin));
   });
+
+  // Use models
+  models.forEach(model => model.apply(mongoose));
+
+  return mongoose;
 }
 
 module.exports = new Proxy(mongoose, { 

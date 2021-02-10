@@ -1,5 +1,4 @@
 const validate = require('~utils/validator');
-const _ = require('lodash');
 
 async function validateOptions(options) {
 
@@ -22,7 +21,7 @@ async function validateOptions(options) {
 
 const makeQuery = {
   search: function(text) {
-    return text ? [{ "$match": { "$text": { "$search": text } } }] : [];
+    return text ? { "$match": { "$text": { "$search": text } } } : [];
   },
 
   regexes: function(regexes) {
@@ -30,19 +29,19 @@ const makeQuery = {
 
     _.forEach(regexes, (value, key) => fields[key] = { "$regex": value, "$options": "im" });
 
-    return !_.isEmpty(fields) ? [{ "$match": fields }] : [];
+    return !_.isEmpty(fields) ? { "$match": fields } : [];
   },
 
   query: function(filters) {
-    return filters ? [{ "$match": filters }] : [];
+    return filters ? { "$match": filters } : [];
   },
 
   skip: function(page, pageSize) {
-    return [{ "$skip": (page - 1) * pageSize || 0 }];
+    return { "$skip": (page - 1) * pageSize || 0 };
   },
 
   limit: function(pageSize) {
-    return [{ "$limit": pageSize || 80 }];
+    return { "$limit": pageSize || 80 };
   },
 
   sort: function(fields) {
@@ -52,7 +51,7 @@ const makeQuery = {
 
     fields.forEach(field => field.startsWith('-') ? orders[field.substring(1)] = -1 : orders[field] = 1);
 
-    return [{ "$sort": orders }];
+    return { "$sort": orders };
   },
 
   project: function(fields) {
@@ -66,7 +65,7 @@ const makeQuery = {
 
     fields.forEach(field => field.startsWith('-') ? project[field.substring(1)] = 0 : project[field] = 1);
 
-    return [{ "$project": project }];
+    return { "$project": project };
   }
 }
 

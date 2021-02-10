@@ -281,27 +281,6 @@
 // }
 
 
-// function flatten(o) {
-//   let result = {};
-
-//   function recursive(o, path) {
-//     for (const [key, value] of Object.entries(o)) {
-      
-//       let currentPath = path ? `${path}.${key}` : key;
-  
-//       if (typeof value === 'object' && value !== null) {
-//         recursive(value, currentPath);
-//       }
-//       else {
-//         result[currentPath] = value;
-//       }
-//     }
-//   }
-
-//   recursive(o, null);
-
-//   return result;
-// }
 
 
 
@@ -710,6 +689,8 @@
 
 // })();
 
-const _ = require('lodash');
+const ObjectId = require('mongoose').Types.ObjectId;
 
-console.log(_.has({ a: null }, 'a'));
+let c = ObjectId("012345678901234567890123")
+
+console.log(c instanceof ObjectId);

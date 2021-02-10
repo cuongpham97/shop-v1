@@ -1,5 +1,6 @@
 const validate = require('~utils/validator');
 const permissionService = require('./permission.service');
+const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
 
 const SUPERADMIN_ROLE_LEVEL = 0;
@@ -203,8 +204,7 @@ exports.partialUpdate = async function (id, data, updatorId = null) {
     data.creator.name = admin.displayName;
   }
 
-  role = _.merge(role, data);
-  await role.save();
+  await updateDocument(role, data).save();
 
   return true;
 }
@@ -229,9 +229,13 @@ exports.deleteById = async function (id) {
     throw new BadRequestException({ message: 'Cannot delete "superadmin" role' });
   }
   
-  await mongodb.model('role').deleteOne({ _id: id });
+  const state = await mongodb.model('role').deleteOne({ _id: id });
 
-  return true;
+  return {
+    expected: 1,
+    found: [id],
+    deletedCount: state.deletedCount
+  };
 }
 
 exports.deleteMany = async function (ids) {

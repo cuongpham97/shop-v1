@@ -8,7 +8,6 @@ exports.getManyRole = async function (req, res) {
 }
 
 exports.getRoleById = async function (req, res) {
-
   const role = await roleService.findById(req.params.id);
 
   return res.status(StatusCodes.OK).json(role);
@@ -21,15 +20,15 @@ exports.createNewRole = async function (req, res) {
 }
 
 exports.partialUpdateRole = async function (req, res) {
-  await roleService.partialUpdate(req.params.id, req.body);
+  const role = await roleService.partialUpdate(req.params.id, req.body);
 
-  return res.status(StatusCodes.NO_CONTENT).end();
+  return res.status(StatusCodes.OK).json(role);
 }
 
 exports.deleteRoleById = async function (req, res) {
-  await roleService.deleteById(req.params.id);
+  const result = await roleService.deleteById(req.params.id);
 
-  return res.status(StatusCodes.NO_CONTENT).end();
+  return res.status(StatusCodes.OK).json(result);
 }
 
 exports.deleteManyRole = async function (req, res) {

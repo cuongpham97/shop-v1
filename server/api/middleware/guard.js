@@ -53,7 +53,7 @@ function hasPermission(expect, permission) {
 
 module.exports = chain({
 
-  auth: async function (account) {
+  auth: function (account) {
 
     if (!['customer', 'admin'].includes(account)) {
       throw Error(`Auth middleware with wrong argument '${account}'`);
