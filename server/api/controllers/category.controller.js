@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 const categoryService = require('~services/category.service');
 
+exports.getCategoryTree = async function (_req, res) {
+  const categoryTree = await categoryService.cache.getCategoryTree();
+
+  return res.status(StatusCodes.OK).json({ categories: categoryTree });
+}
+
 exports.getManyCategory = async function (req, res) {
   const categories = await categoryService.find(req.query);
 

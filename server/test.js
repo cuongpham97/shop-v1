@@ -1,3 +1,54 @@
+// module.exports = function (mongoose) {
+//   return async function (func) {
+
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+
+//     let isCommitted = false;
+//     let isAborted = false;
+
+//     let commit = async () => { 
+//       if (isCommitted || isAborted) {
+//         throw new Error('Transaction has been committed/aborted')
+//       }
+
+//       isCommitted = true;
+//       return await session.commitTransaction();
+//     };
+
+//     let abort = async () => {
+//       if (isCommitted || isAborted) {
+//         throw new Error('Transaction has been committed/aborted')
+//       }
+
+//       isAborted = true;
+//       return await session.abortTransaction(); 
+//     };
+
+//     try {
+//       await func(session, commit, abort);
+
+//       if (!isCommitted && !isAborted) {
+//         isCommitted = true;
+//         await session.commitTransaction();
+//       }
+
+//     } catch (e) {
+
+//       if (!isCommitted && !isAborted) {
+//         isAborted = true;
+//         await session.abortTransaction();
+//       }
+
+//       throw e;
+
+//     } finally {
+//       session.endSession();
+//     }
+
+//   }
+// }
+
 //  const mongodb = require('./api/database/mongodb');
 // const _ = require('lodash');
 // const query = require('./api/middleware/querystring')
@@ -689,8 +740,58 @@
 
 // })();
 
-const ObjectId = require('mongoose').Types.ObjectId;
+function transaction(mongoose) {
+  return async function (func) {
 
-let c = ObjectId("012345678901234567890123")
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-console.log(c instanceof ObjectId);
+    let promise = Promise.resolve([false, undefined]);
+
+    function commit() {
+
+      promise = promise.then(async function (result) {
+        const [isDone, value] = result;
+
+        if (isDone) {
+          throw new Error('Transaction has been committed/aborted');
+        }
+
+        await session.commitTransaction();
+        return [true, value];
+      });
+    }
+
+    function abort() {
+      
+      promise = promise.then(async function (result) {
+        const [isDone, value] = result;
+
+        if (isDone) {
+          throw new Error('Transaction has been committed/aborted');
+        }
+
+        await session.abortTransaction();
+        return [true, value];
+      });
+    }
+
+    try {
+      const fnExeccute = await fn(session, commit, abort);
+
+      promise = promise.then(async function (result) {
+        const [isDone, value] = result;
+        
+        if (!isDone) {
+          await session.commitTransaction();
+        }
+
+        return [true, ];
+      });
+    } catch(e) {
+
+    } finally {
+      promise.then(() => session.endSession()); 
+    }
+  }
+}

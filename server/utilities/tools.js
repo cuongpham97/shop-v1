@@ -1,6 +1,5 @@
 const wrap = require('async-middleware').wrap;
 const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
 
 function flatten(o, skipTrace = []) {
   let result = {};
@@ -26,7 +25,7 @@ function flatten(o, skipTrace = []) {
 
 exports.updateDocument = function (document, data) {
   
-  const skip = [Array.isArray, v => v instanceof ObjectId];
+  const skip = [Array.isArray, v => v instanceof ObjectId || v instanceof mongoose.Model];
 
   for (const [key, value] of Object.entries(flatten(data, skip))) {
     document.set(key, value);

@@ -18,10 +18,11 @@ const cache = {
   findByNames: async function (...names) {
     await this.ensureCached();
   
-    return this.roles.filter(role => names.includes(role.name)  );
+    const roles = this.roles.filter(role => names.includes(role.name));
+    return _.cloneDeep(roles);
   },
 
-  getAllPermission: async function (...roleNames) {
+  getPermissionByRoleNames: async function (...roleNames) {
     const roles = await this.findByNames(...roleNames);
 
     const merge = function (o1, o2) {

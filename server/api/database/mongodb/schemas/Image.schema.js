@@ -17,7 +17,7 @@ const Image = new Schema({
     id: String,
     deleteHash: String
   },
-  usedFor: {
+  related: {
     type: [String],
     default: []
   },

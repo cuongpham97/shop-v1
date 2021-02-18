@@ -8,6 +8,7 @@ const customerModel = require('./models/customer.model');
 const adminModel = require('./models/admin.model');
 const roleModel = require('./models/role.model');
 const imageModel = require('./models/image.model');
+const productModel = require('./models/product.model');
 const categoryModel = require('./models/category.model');
 
 // Plugins
@@ -20,6 +21,7 @@ const models = [
   adminModel, 
   roleModel, 
   imageModel, 
+  productModel,
   categoryModel
 ];
 

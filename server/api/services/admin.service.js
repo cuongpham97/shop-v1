@@ -62,7 +62,7 @@ exports.create = async function (admin) {
     'address.block': 'required_with:address|string|trim|min:1|max:100',
     'address.district': 'required_with:address|string|trim|min:1|max:100',
     'address.province': 'required_with:address|string|trim|min:1|max:100',
-    'username': 'required|string|trim|min:6|max:16|regex:/^\\w[\\w\\_\\.]+$/',
+    'username': 'required|string|trim|min:6|max:16|lowercase|regex:/^\\w[\\w\\_\\.]+$/',
     'password': 'required|string|min:6|max:16',
     'roles': 'array',
     'roles.*': 'string',
@@ -75,23 +75,23 @@ exports.create = async function (admin) {
 
   admin = validation.result;
 
-  if (!admin.avatar) {
-    return await mongodb.model('admin').create(admin);
-  }
-
   return await mongodb.transaction(async function (session, _commit, _abort) {
     
-    const image = await mongodb.model('image').findById(admin.avatar);
+    admin._id = ObjectId();
 
-    if (!image) {
-      throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+    if (admin.avatar) {
+      const image = await mongodb.model('image').findById(admin.avatar);
+
+      if (!image) {
+        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+      }
+    
+      admin.avatar = image;
+
+      await imageService.set(image._id, `admin:${admin._id}/avatar`, session);
     }
-  
-    admin.avatar = image;
-
+   
     const [newAdmin] = await mongodb.model('admin').create([admin], { session });
-
-    await imageService.set(image.id, `admin/${newAdmin.id}/avatar`);
 
     return newAdmin;
   });
@@ -136,39 +136,42 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
 
   data = validation.result;
 
-  let admin = await mongodb.model('admin').findById(id);
+  return await mongodb.transaction(async function (session, _commit, _abort) {
 
-  if (!admin) {
-    throw new NotFoundException({ message: 'Admin ID not found' });
-  }
+    let admin = await mongodb.model('admin').findById(id);
 
-  if (_.has(data, 'avatar')) {
+    if (!admin) {
+      throw new NotFoundException({ message: 'Admin ID not found' });
+    }
 
-    let newImage = null;
+    if (_.has(data, 'avatar')) {
 
-    if (data.avatar) {
-      newImage = await mongodb.model('image').findById(data.avatar);
-
-      if (!newImage) {
-        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+      let newImage = null;
+  
+      if (data.avatar) {
+        newImage = await mongodb.model('image').findById(data.avatar);
+  
+        if (!newImage) {
+          throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+        }
+  
+        await imageService.set(newImage._id, `admin:${admin._id}/avatar`, session);
       }
-
-      await imageService.set(newImage.id, `admin/${admin.id}/avatar`);
+  
+      data.avatar = newImage;
+  
+      const oldImage = admin.avatar;
+      const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
+  
+      if (isChange) {
+        await imageService.unset(oldImage._id, `admin:${admin._id}/avatar`, session);
+      }
     }
 
-    data.avatar = newImage;
-
-    const oldImage = admin.avatar;
-    const isChange = oldImage && (!newImage || !oldImage.id.equals(newImage.id));
-
-    if (isChange) {
-      await imageService.unset(oldImage.id, `admin/${admin.id}/avatar`);
-    }
-  }
-
-  await updateDocument(admin, data).save();
-
-  return admin;
+    await updateDocument(admin, data).save({ session });
+  
+    return admin;
+  });
 }
 
 /**
@@ -237,7 +240,7 @@ exports.deleteById = async function (id) {
   const image = admin.avatar;
 
   if (image) {
-    await imageService.unset(image.id, `admin/${admin.id}/avatar`);
+    await imageService.unset(image._id, `admin:${admin._id}/avatar`);
   }
 
   return {
@@ -266,12 +269,12 @@ exports.deleteMany = async function (ids) {
     throw new NotFoundException({ message: 'Admin IDs does not exist' });
   }
 
-  const found = docs.map(doc => doc.id);
-  const images = docs.map(doc => doc.avatar && doc.avatar.id).filter(Boolean);
+  const found = docs.map(doc => doc._id);
+  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
 
   const result = await mongodb.model('admin').deleteMany({ "_id": { "$in": found } }); 
 
-  await imageService.unsetMany(images, found.map(id => `admin/${id}/avatar`));
+  await imageService.unsetMany(images, found.map(id => `admin:${id}/avatar`));
   
   return {
     expected: ids.length,

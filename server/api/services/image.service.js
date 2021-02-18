@@ -47,39 +47,53 @@ exports.deleteById = async function (id, isSync = true) {
   return true;
 }
 
-exports.set = async function (id, usedFor) {
+exports.set = async function (id, usedFor, session = null) {
 
   const result = await mongodb.model('image').updateOne(
     { "_id": id }, 
-    { "$addToSet": { "usedFor": usedFor } }
+    { "$addToSet": { "related": usedFor } },
+    { session }
   );
 
   if (!result.n) {
-    throw new NotFoundException({ message: 'Image ID does not exist' });
+    report.error(new Error(`Trying to set "${usedFor}" with a not found image "${id}"`));
   }
 
-  return result.nModified;
+  return result;
 }
 
-exports.unset = async function (id, unusedFor) {
+exports.unset = async function (id, unusedFor, session = null) {
 
   const result = await mongodb.model('image').updateOne(
     { "_id": id },
-    { "$pull": { "usedFor": unusedFor } }
+    { "$pull": { "related": unusedFor } },
+    { session }
   );
 
   if (!result.n) {
-    throw new NotFoundException({ message: 'Image ID does not exist' });
+    report.error(new Error(`Trying to unset "${unusedFor}" with a not found image "${id}"`));
   }
-  
-  return result.nModified;
+
+  return result;
 }
 
-exports.unsetMany = async function (ids, matches) {
+exports.setMany = async function (ids, usedFor, session = null) {
 
   const result = await mongodb.model('image').updateMany(
     { "_id": { "$in": ids } },
-    { "$pull": { "usedFor": { "$in": matches } } }
+    { "$addToSet": { "related": usedFor } },
+    { session }
+  );
+
+  return result.nModified;
+}
+
+exports.unsetMany = async function (ids, matches, session = null) {
+
+  const result = await mongodb.model('image').updateMany(
+    { "_id": { "$in": ids } },
+    { "$pull": { "related": { "$in": matches } } },
+    { session }
   );
 
   return result.nModified;

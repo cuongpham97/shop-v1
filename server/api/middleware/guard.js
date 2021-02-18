@@ -132,7 +132,7 @@ module.exports = chain({
       
       const { roles } = req.user;
 
-      const permission = await roleService.cache.getAllPermission(...roles);
+      const permission = await roleService.cache.getPermissionByRoleNames(...roles);
 
       for (const expect of actions) {
 

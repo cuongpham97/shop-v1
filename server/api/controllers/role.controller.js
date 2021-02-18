@@ -1,6 +1,8 @@
 const { StatusCodes } = require('http-status-codes');
 const roleService  = require('~services/role.service');
 
+// TODO: add creatorId and updatorId when create and update role
+
 exports.getManyRole = async function (req, res) {
   const roles = await roleService.find(req.query);
 

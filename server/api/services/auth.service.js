@@ -20,7 +20,7 @@ exports.getToken = async function (credentials, account = 'customer') {
   const [username, password] = buffer.toString('ascii').split(':');
   
   const validation = await validate({ username, password }, {
-    'username': 'required|string|min:6|max:16',
+    'username': 'required|string|min:6|max:16|lowercase',
     'password': 'required|string|min:6|max:16'
   });
 
@@ -86,7 +86,7 @@ exports.getToken = async function (credentials, account = 'customer') {
         version: admin.tokenVersion
       }),
 
-      scopes: await roleService.cache.getAllPermission(...admin.roles),
+      scopes: await roleService.cache.getPermissionByRoleNames(...admin.roles),
 
       expiresIn: config.jwt.ACCESS_TOKEN_LIFE
     };

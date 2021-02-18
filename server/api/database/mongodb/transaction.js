@@ -1,31 +1,61 @@
-module.exports = function (mongoose) {
+module.exports = function transaction(mongoose) {
   return async function (func) {
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
-    let isCommit = false;
-    let isAbort = false;
+    let promise = Promise.resolve(false);
 
-    let commit = async () => { isCommit = true; return await session.commitTransaction(); };
-    let abort = async () => { isAbort = true; return await session.abortTransaction(); };
+    function commit() {
+      promise = promise.then(async function (isDone) {
+        
+        if (isDone) {
+          throw new Error('Transaction has been committed/aborted');
+        }
+
+        await session.commitTransaction();
+        return true;
+      });
+    }
+
+    function abort() {
+      promise = promise.then(async function (isDone) {
+        
+        if (isDone) {
+          throw new Error('Transaction has been committed/aborted');
+        }
+
+        await session.abortTransaction();
+        return true;
+      });
+    }
 
     try {
-      return await func(session, commit, abort);
+      
+      const fnExecute = await func(session, commit, abort);
 
-    } catch (e) {
-      if (!isAbort && !isCommit) {
-        isAbort = true;
-        await session.abortTransaction();
-      }
+      promise = promise.then(async function (isDone) {
+        if (!isDone) {
+          await session.commitTransaction();
+        }
+
+        return fnExecute;
+      });
+
+      return promise;
+
+    } catch(e) {
+
+      promise = promise.then(async function (isDone) {
+        if (!isDone) {
+          await session.abortTransaction();
+        }
+      });
+
       throw e;
 
     } finally {
-      if (!isAbort && !isCommit) {
-        await session.commitTransaction();
-      }
-      session.endSession();
+      promise.then(() => session.endSession()); 
     }
-
   }
 }

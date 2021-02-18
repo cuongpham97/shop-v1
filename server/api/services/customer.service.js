@@ -97,23 +97,24 @@ exports.create = async function (customer, provider = 'local') {
 
   customer = validation.result;
 
-  if (!customer.avatar) {
-    return await mongodb.model('customer').create(customer);
-  }
-
   return await mongodb.transaction(async function (session, _commit, _abort) {
     
-    const image = await mongodb.model('image').findById(customer.avatar);
+    customer._id = ObjectId();
 
-    if (!image) {
-      throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+    if (customer.avatar) {
+
+      const image = await mongodb.model('image').findById(customer.avatar);
+
+      if (!image) {
+        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+      }
+
+      await imageService.set(image._id, `customer:${customer._id}/avatar`, session);
+
+      customer.avatar = image;
     }
 
-    customer.avatar = image;
-
     const [newCustomer] = await mongodb.model('customer').create([customer], { session });
-
-    await imageService.set(image.id, `customer/${newCustomer.id}/avatar`);
 
     return newCustomer;
   });
@@ -154,39 +155,42 @@ exports.partialUpdate = async function (id, data) {
 
   data = validation.result;
 
-  let customer = await mongodb.model('customer').findById(id);
+  return await mongodb.transaction(async function (session, _commit, _abort) {
 
-  if (!customer) {
-    throw new NotFoundException({ message: 'Customer ID not found' });
-  }
+    let customer = await mongodb.model('customer').findById(id);
+
+    if (!customer) {
+      throw new NotFoundException({ message: 'Customer ID not found' });
+    }
+    
+    if (_.has(data, 'avatar')) {
+
+      let newImage = null;
   
-  if (_.has(data, 'avatar')) {
-
-    let newImage = null;
-
-    if (data.avatar) {
-      newImage = await mongodb.model('image').findById(data.avatar);
-
-      if (!newImage) {
-        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+      if (data.avatar) {
+        newImage = await mongodb.model('image').findById(data.avatar);
+  
+        if (!newImage) {
+          throw new NotFoundException({ message: 'Avatar image ID does not exist' });
+        }
+  
+        await imageService.set(newImage._id, `customer:${customer._id}/avatar`, session);
       }
-
-      await imageService.set(newImage.id, `customer/${customer.id}/avatar`);
+  
+      data.avatar = newImage;
+  
+      const oldImage = customer.avatar;
+      const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
+  
+      if (isChange) {
+        await imageService.unset(oldImage._id, `customer:${customer._id}/avatar`, session);
+      }
     }
-
-    data.avatar = newImage;
-
-    const oldImage = customer.avatar;
-    const isChange = oldImage && (!newImage || !oldImage.id.equals(newImage.id));
-
-    if (isChange) {
-      await imageService.unset(oldImage.id, `customer/${customer.id}/avatar`);
-    }
-  }
-
-  await updateDocument(customer, data).save();
-
-  return customer;
+  
+    await updateDocument(customer, data).save({ session });
+  
+    return customer;
+  });
 }
 
 /**
@@ -259,7 +263,7 @@ exports.deleteById = async function (id) {
   const image = customer.avatar;
 
   if (image) {
-    await imageService.unset(image._id, `customer/${customer.id}/avatar`);
+    await imageService.unset(image._id, `customer:${customer._id}/avatar`);
   }
 
   return {
@@ -288,12 +292,12 @@ exports.deleteMany = async function (ids) {
     throw new NotFoundException({ message: 'Customer IDs does not exist' });
   }
 
-  const found = docs.map(doc => doc.id);
-  const images = docs.map(doc => doc.avatar && doc.avatar.id).filter(Boolean);
+  const found = docs.map(doc => doc._id);
+  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
 
   const result = await mongodb.model('customer').deleteMany({ "_id": { "$in": found } }); 
 
-  await imageService.unsetMany(images, found.map(id => `customer/${id}/avatar`));
+  await imageService.unsetMany(images, found.map(id => `customer:${id}/avatar`));
   
   return {
     expected: ids.length,

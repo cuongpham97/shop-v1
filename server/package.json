@@ -39,7 +39,9 @@
     "moment": "^2.29.1",
     "mongoose": "^5.11.6",
     "morgan": "^1.10.0",
+    "nanoid": "^3.1.20",
     "open": "^7.3.1",
+    "shortid": "^2.2.16",
     "validatorjs": "^3.22.1"
   },
   "devDependencies": {

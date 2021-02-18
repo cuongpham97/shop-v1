@@ -2,6 +2,67 @@ const validate = require('~utils/validator');
 const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
 
+const cache = {
+  
+  categories: [],
+  categoryTree: [],
+
+  ensureCached: async function () {
+
+    if (!cache.categories.length) {
+      cache.categories = await mongodb.model('category').find();
+    };
+
+    if (cache.categories.length && !cache.categoryTree.length) {
+      cache.categoryTree = cache.buildCategoryTree(cache.categories);
+    }
+  },
+
+  buildCategoryTree: function (categories) {
+
+    const groupByParent = _.groupBy(categories, item => _.last(item.ancestors));
+
+    function getChildren(parent) {
+      if (!groupByParent[parent]) return [];
+
+      return groupByParent[parent].map(item => {
+        return {
+          _id: item._id,
+          name: item.name,
+          children: getChildren(item._id)
+        };
+      });
+    }
+
+    return getChildren();
+  },
+
+  getByIds: async function (ids) {
+    await this.ensureCached();
+
+    const categories = ids.map(id => cache.categories.find(item => item._id.equals(id)));
+    return _.cloneDeep(categories);
+  },
+
+  getAll: async function () {
+    await this.ensureCached();
+    
+    return _.cloneDeep(this.categories);
+  },
+
+  getCategoryTree: async function () {
+    await this.ensureCached();
+
+    return _.cloneDeep(this.categoryTree);
+  }
+};
+
+(async function () {
+  mongodb.model('category').watch().on('change', cache.ensureCached);
+})();
+
+exports.cache = cache;
+
 exports.model = mongodb.model('category');
 
 exports.find = async function (query) {

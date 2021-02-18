@@ -3,7 +3,22 @@ const ObjectId = mongoose.Types.ObjectId;
 const Validator = require('validatorjs');
 const moment = require('moment');
 const { deepMap } = require('~utils/tools');
-const _ = require('lodash');
+
+function isAcceptable(value) {
+
+  switch (true) {
+
+    case ['', null, undefined, NaN].includes(value):
+      return false;
+    
+    case typeof value === 'object' && _.isEmpty(value):
+      return false;
+
+    default:
+      return true;
+  
+  }
+}
 
 Validator.registerAsync('unique', function (field, value, args, done) {
 
@@ -11,24 +26,31 @@ Validator.registerAsync('unique', function (field, value, args, done) {
 
   _.set(this.input, field, [...new Set(value)]);
 
-  return done(true);
+  return done();
+});
+
+Validator.registerAsync('enum', function (field, value, args, done) {
+
+  return args.split(',').includes(value)
+    ? done()
+    : done(false, null, { enum: args });
 });
 
 Validator.registerAsync('boolean', function (field, value, args, done) {
   
   return typeof value === 'boolean'
-    ? done(true)
+    ? done()
     : done(false);
 });
 
 Validator.registerAsync('any', function (field, value, args, done) {
-  return done(true);
+  return done();
 });
 
 Validator.registerAsync('in', function (field, value, args, done) {
 
   return args.split(',').includes(value)
-    ? done(true)
+    ? done()
     : done(false, null, { includes: args });
 });
 
@@ -38,7 +60,7 @@ Validator.registerAsync('in', function (field, value, args, done) {
 Validator.registerAsync('confirmed', function (field, value, args, done) {
 
   return value === _.get(this.input, field + 'Confirm')
-    ? done(true)
+    ? done()
     : done(false);
 });
 
@@ -47,11 +69,29 @@ Validator.registerAsync('confirmed', function (field, value, args, done) {
  */
 Validator.registerAsync('only_one_of', function (field, value, args, done) {
 
-  let count = args.split(',').filter(key => _.has(this.input, key)).length;
+  let count = args.split(',').filter(key => isAcceptable(_.get(this.input, key))).length;
 
   return count === 1 
-    ? done(true)
+    ? done()
     : done(false, null, { field: args });
+});
+
+Validator.registerAsync('present', function (field, value, args, done) {
+  
+  return _.has(this.input, field)
+    ? done()
+    : done(false);
+});
+
+Validator.registerAsync('required_if', function (field, value, args, done) {
+  
+  const [otherField, otherValue] = args.split(',');
+
+  if (_.get(this.input, otherField) == otherValue && !isAcceptable(value)) {
+    return done(false, null, { or: otherField, value: otherValue });   
+  }
+  
+  return done();
 });
 
 /**
@@ -61,9 +101,9 @@ Validator.registerAsync('required_with', function (field, value, args, done) {
   
   const present = args.split(',').filter(key => _.has(this.input, key)).length;
 
-  return (present && _.isEmpty(value))
+  return (present && !isAcceptable(value))
     ? done(false, null, { is: args })
-    : done(true);
+    : done();
 });
 
 /**
@@ -71,7 +111,7 @@ Validator.registerAsync('required_with', function (field, value, args, done) {
  */
 Validator.registerAsync('required_without', function (field, value, args, done) {
 
-  if (!_.isEmpty(value)) return done(); 
+  if (_.has(this.input, field)) return done(); 
 
   const without = args.split(',').find(i => !_.has(this.input, i));
 
@@ -117,12 +157,12 @@ Validator.registerAsync('max', function(field, value, args, done) {
 
   if (typeof value === 'number') {
     return max >= value 
-      ? done(true)
+      ? done()
       : done(false, null, { max: max });
   }
 
   return max > value.length
-    ? done(true)
+    ? done()
     : done(false, null, { max: max });
 });
 
@@ -135,12 +175,12 @@ Validator.registerAsync('min', function(field, value, args, done) {
 
   if (typeof value === 'number') {
     return value >= min
-      ? done(true)
+      ? done()
       : done(false, null, { min: min });
   }
 
   return value.length >= min
-    ? done(true)
+    ? done()
     : done(false, null, { min: min });
 });
 
@@ -152,7 +192,7 @@ Validator.registerAsync('unset', function(field, value, args, done) {
 
   _.unset(input, field);
 
-  return done(true);
+  return done();
 });
 
 // /**
@@ -161,7 +201,7 @@ Validator.registerAsync('unset', function(field, value, args, done) {
 Validator.registerAsync('phone', function(field, value, args, done) {
 
   return /^[+0-9]{8,12}$/.test(value) 
-    ? done(true)
+    ? done()
     : done(false);
 });
 
@@ -178,7 +218,7 @@ Validator.registerAsync('email', function(field, value, args, done) {
   }
 
   return regex.test(value) 
-    ? done(true)
+    ? done()
     : done(false);
 });
 
@@ -187,6 +227,15 @@ Validator.registerAsync('email', function(field, value, args, done) {
 //  */
 Validator.registerAsync('not_allow', function(field, value, args, done) {
   return done(false);
+});
+
+Validator.registerAsync('not_allow_if', function(field, value, args, done) {
+  
+  const [otherField, otherValue] = args.split(',');
+
+  return _.get(this.input, otherField) == otherValue && _.has(this.input, field)
+    ? done(false, null, { or: otherField, value: otherValue })
+    : done();
 });
 
 // /**
@@ -200,12 +249,12 @@ Validator.registerAsync('to', function(field, value, args, done) {
   switch (type) {
     case 'array': 
       _.set(this.input, field, [].concat(value));
-      return done(true);
+      return done();
     
     case 'date':
       const format = args[1] || '';
       _.set(this.input, field, moment(value, format).toDate());
-      return done(true);
+      return done();
 
     default: return done(false);
   }
@@ -217,7 +266,7 @@ Validator.registerAsync('to', function(field, value, args, done) {
 Validator.registerAsync('object', function(field, value, args, done) {
 
   return (typeof value === 'object' && value !== null) 
-    ? done(true)
+    ? done()
     : done(false);
 });
 
@@ -232,7 +281,7 @@ Validator.registerAsync('mongo_id', function(field, value, args, done) {
 
   _.set(this.input, field, ObjectId(value));
 
-  return done(true);
+  return done();
 });
 
 // /**
@@ -273,7 +322,20 @@ Validator.registerAsync('string', function(field, value, args, done) {
 
   _.set(this.input, field, '' + value);
 
-  return done(true);
+  return done();
+});
+
+Validator.registerAsync('numeric', function (field, value, args, done) {
+
+  const num = Number(value);
+
+  const check = typeof num === "number" && !isNaN(num) && typeof val !== "boolean";
+ 
+  if (!check) return done(false);
+
+  _.set(this.input, field, num);
+
+  return done();
 });
 
 // /**
@@ -287,7 +349,7 @@ Validator.registerAsync('integer', function(field, value, args, done) {
 
   _.set(this.input, field, parseInt(value));
 
-  return done(true);
+  return done();
 });
 
 // /**
@@ -332,7 +394,7 @@ Validator.registerAsync('uppercase', function(field, value, args, done) {
 
   _.set(this.input, field, value.toUpperCase());
 
-  return done(true);
+  return done();
 });
 
 Validator.registerAsync('lowercase', function(field, value, args, done) {
@@ -341,7 +403,7 @@ Validator.registerAsync('lowercase', function(field, value, args, done) {
 
   _.set(this.input, field, value.toLowerCase());
 
-  return done(true);
+  return done();
 });
 
 Validator.registerAsync('trim', function(field, value, args, done) {
@@ -350,7 +412,7 @@ Validator.registerAsync('trim', function(field, value, args, done) {
 
   _.set(this.input, field, value.trim());
 
-  return done(true);
+  return done();
 });
 
 Validator.registerAsync('title', function(field, value, args, done) {
@@ -359,5 +421,5 @@ Validator.registerAsync('title', function(field, value, args, done) {
 
   _.set(this.input, field, _.startCase(_.toLower(value)));
 
-  return done(true);
+  return done();
 });
