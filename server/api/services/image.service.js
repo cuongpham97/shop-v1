@@ -56,7 +56,7 @@ exports.set = async function (id, usedFor, session = null) {
   );
 
   if (!result.n) {
-    report.error(new Error(`Trying to set "${usedFor}" with a not found image "${id}"`));
+    report.error(new Error(`Trying to set "${usedFor}", image "${id}" not found`));
   }
 
   return result;
@@ -71,7 +71,7 @@ exports.unset = async function (id, unusedFor, session = null) {
   );
 
   if (!result.n) {
-    report.error(new Error(`Trying to unset "${unusedFor}" with a not found image "${id}"`));
+    report.error(new Error(`Trying to unset "${unusedFor}", image "${id}" not found`));
   }
 
   return result;
@@ -85,7 +85,11 @@ exports.setMany = async function (ids, usedFor, session = null) {
     { session }
   );
 
-  return result.nModified;
+  if (ids.length !== result.n) {
+    report.error(new Error(`Trying to set "${usedFor}", number of images "${ids}" is not matches`));
+  }
+
+  return result;
 }
 
 exports.unsetMany = async function (ids, matches, session = null) {
@@ -96,5 +100,9 @@ exports.unsetMany = async function (ids, matches, session = null) {
     { session }
   );
 
-  return result.nModified;
+  if (ids.length !== result.n) {
+    report.error(new Error(`Trying to unset "${matches}", number of images "${ids}" is not matches`));
+  }
+
+  return result;
 }

@@ -12,3 +12,9 @@ exports.createNewProduct = async function (req, res) {
 
   return res.status(StatusCodes.OK).json(newProduct);
 }
+
+exports.partialUpdateProduct = async function (req, res) {
+  const product = await productService.partialUpdate(req.params.id, req.body);
+
+  return res.status(StatusCodes.OK).json(product);
+}

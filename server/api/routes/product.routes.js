@@ -5,6 +5,7 @@ const tools = require('~utils/tools');
 module.exports = tools.applyRoutes(router, [
 
   ['GET', '/admin/products', productCtrl.getManyProduct],
-  ['POST', '/admin/products', productCtrl.createNewProduct]
+  ['POST', '/admin/products', productCtrl.createNewProduct],
+  ['PATCH', '/admin/products/:id', productCtrl.partialUpdateProduct]
   
 ]);
