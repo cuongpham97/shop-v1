@@ -6,6 +6,8 @@ module.exports = tools.applyRoutes(router, [
 
   ['GET', '/admin/products', productCtrl.getManyProduct],
   ['POST', '/admin/products', productCtrl.createNewProduct],
-  ['PATCH', '/admin/products/:id', productCtrl.partialUpdateProduct]
-  
+  ['PATCH', '/admin/products/:id', productCtrl.partialUpdateProduct],
+  ['DELETE', '/admin/products/:id', productCtrl.deleteProductById],
+  ['DELETE', '/admin/products', productCtrl.deleteManyProduct]
+
 ]);

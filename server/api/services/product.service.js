@@ -335,7 +335,7 @@ exports.partialUpdate = async function (id, data) {
 
     if (data.skus) {
 
-      //Remove image from old skus
+      //Remove images from old skus
       for (const sku of product.skus) {
 
         const imageIds = sku.images.map(image => image._id);
@@ -355,7 +355,7 @@ exports.partialUpdate = async function (id, data) {
           throw new NotFoundException({ message: `skus.${index}.images IDs does not exist` });
         }
   
-        let imageIds = sku.images.map(image => image._id);
+        const imageIds = sku.images.map(image => image._id);
   
         await imageService.setMany(imageIds, `product:${product._id}/sku:${sku._id}/images`, session);
       }
@@ -367,4 +367,71 @@ exports.partialUpdate = async function (id, data) {
 
     return product;
   });
+}
+
+exports.deleteById = async function (id) {
+
+  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  id = validation.result.id;
+
+  const product = await mongodb.model('product').findByIdAndDelete(id).select('_id skus');
+
+  if (!product) {
+    throw new NotFoundException({ message: 'Product ID does not exist'});
+  }
+
+  for (sku of product.skus) {
+    const imageIds = sku.images.map(image => image._id);
+
+    await imageService.unsetMany(imageIds, [`product:${product._id}/sku:${sku._id}/images`]);
+  }
+
+  return {
+    expected: 1,
+    found: [id],
+    deletedCount: 1
+  };
+}
+
+exports.deleteMany = async function (ids) {
+
+  const validation = await validate({ 'ids': ids }, {
+    'ids': 'to:array|unique',
+    'ids.*': 'mongo_id'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ message: validation.errors });
+  }
+
+  ids = validation.result.ids;
+
+  const docs = await mongodb.model('product').find({ "_id": { "$in": ids } }).select('_id skus');
+
+  if (!docs.length) {
+    throw new NotFoundException({ message: 'Product IDs does not exist' });
+  }
+
+  const found = docs.map(doc => doc._id);
+ 
+  const result = await mongodb.model('product').deleteMany({ "_id": { "$in": found } }); 
+
+  for (const product of docs) {
+    for (const sku of product.skus) {
+
+      const imageIds = sku.images.map(image => image._id);
+      await imageService.unsetMany(imageIds, [`product:${product._id}/sku:${sku._id}/images`]);
+    }
+  }
+
+  return {
+    expected: ids.length,
+    found: found,
+    deletedCount: result.deletedCount
+  };
 }

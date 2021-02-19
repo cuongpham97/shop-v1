@@ -18,3 +18,15 @@ exports.partialUpdateProduct = async function (req, res) {
 
   return res.status(StatusCodes.OK).json(product);
 }
+
+exports.deleteProductById = async function (req, res) {
+  const result = await productService.deleteById(req.params.id);
+
+  return res.status(StatusCodes.OK).json(result);
+}
+
+exports.deleteManyProduct = async function (req, res) {
+  const result = await productService.deleteMany(req.query.ids);
+
+  return res.status(StatusCodes.OK).json(result);
+}

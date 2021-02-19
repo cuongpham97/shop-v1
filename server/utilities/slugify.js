@@ -1,4 +1,4 @@
-module.exports = function (str, separator) {
+module.exports = function (str) {
 
   str = str.toLowerCase();
   str = str.replace(/á|à|ả|ạ|ã|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ/gi, 'a');

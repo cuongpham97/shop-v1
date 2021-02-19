@@ -55,7 +55,7 @@ module.exports = new Proxy(mongoose, {
       case 'init': 
         return init;
 
-      case 'instace':
+      case 'instance':
         return mongoose;
 
       case 'transaction': 
