@@ -22,7 +22,7 @@ const Avatar = new Schema({
 async function uniqueUsername(username) {
   if (!this.isModified('username')) return true;
  
-  const admin = await this.constructor.findOne({ 'username': username });
+  const admin = await this.constructor.findOne({ "username": username }, '_id');
   return !admin;
 }
 

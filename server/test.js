@@ -740,58 +740,150 @@
 
 // })();
 
-function transaction(mongoose) {
-  return async function (func) {
+// function transaction(mongoose) {
+//   return async function (func) {
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
 
-    let promise = Promise.resolve([false, undefined]);
+//     let promise = Promise.resolve([false, undefined]);
 
-    function commit() {
+//     function commit() {
 
-      promise = promise.then(async function (result) {
-        const [isDone, value] = result;
+//       promise = promise.then(async function (result) {
+//         const [isDone, value] = result;
 
-        if (isDone) {
-          throw new Error('Transaction has been committed/aborted');
-        }
+//         if (isDone) {
+//           throw new Error('Transaction has been committed/aborted');
+//         }
 
-        await session.commitTransaction();
-        return [true, value];
-      });
-    }
+//         await session.commitTransaction();
+//         return [true, value];
+//       });
+//     }
 
-    function abort() {
+//     function abort() {
       
-      promise = promise.then(async function (result) {
-        const [isDone, value] = result;
+//       promise = promise.then(async function (result) {
+//         const [isDone, value] = result;
 
-        if (isDone) {
-          throw new Error('Transaction has been committed/aborted');
-        }
+//         if (isDone) {
+//           throw new Error('Transaction has been committed/aborted');
+//         }
 
-        await session.abortTransaction();
-        return [true, value];
-      });
-    }
+//         await session.abortTransaction();
+//         return [true, value];
+//       });
+//     }
 
-    try {
-      const fnExeccute = await fn(session, commit, abort);
+//     try {
+//       const fnExeccute = await fn(session, commit, abort);
 
-      promise = promise.then(async function (result) {
-        const [isDone, value] = result;
+//       promise = promise.then(async function (result) {
+//         const [isDone, value] = result;
         
-        if (!isDone) {
-          await session.commitTransaction();
-        }
+//         if (!isDone) {
+//           await session.commitTransaction();
+//         }
 
-        return [true, ];
-      });
-    } catch(e) {
+//         return [true, ];
+//       });
+//     } catch(e) {
 
-    } finally {
-      promise.then(() => session.endSession()); 
-    }
+//     } finally {
+//       promise.then(() => session.endSession()); 
+//     }
+//   }
+// }
+
+//const config = require('./config');
+
+// Validator: value, rules, errorObject, message 
+
+//['required', ['custome', checkNumber]] 
+
+// const rules = {
+//   'groups': ['array', function () { return 6 }],
+//   'groups[1].name': 'string|min:1|max:200',
+//   'groups.2.name': 'string|min:1|max:200',
+//   'groups.*.description': 'string|max:2000' 
+// }
+
+// // const value = {
+// //   name: {
+// //     first: 'Phạm',
+// //     last: 'Cường'
+// //   },
+// //   ages: [1,4,5,6]
+// // }
+
+// function flatten(o) {
+//   const result = {};
+
+//   function recursive(o, path) {
+//     for (const [key, value] of Object.entries(o)) {
+      
+//       const currentPath = path ? `${path}.${key}` : key;
+
+//       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+//         recursive(value, currentPath); 
+//       }
+//       else {
+//         result[currentPath] = value;
+//       }
+//     }
+//   }
+
+//   recursive(o);
+
+//   return result;
+// }
+
+// console.log(flatten(rules));
+
+
+// const Validator = require('validatorjs');
+
+// Validator.registerAsyncImplicit('required', function(username, args, attribute, passes) {
+//    console.log(this.validator);
+
+//    passes();
+// });
+
+// let validator = new Validator({
+//   a: null
+// }, {
+//   'a': 'required:56'
+// })
+
+// function passes() {
+//   // Validation passed
+// }
+
+// function fails() {
+//   console.log(validator.errors)
+// }
+
+// validator.checkAsync(passes, fails);
+const config = require('./config');
+const validate = require('~utils/validator');
+
+(async function () {
+
+  const value = {
+    name: null,
+    age: null
   }
-}
+  
+  const validation = await validate(value, {
+    'age': 'numeric'
+  });
+  
+  if (validation.errors) {
+    console.log(validation.errors);
+  }
+  
+  console.log(validation.result);
+
+})();
+

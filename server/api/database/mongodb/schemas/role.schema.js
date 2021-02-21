@@ -3,7 +3,7 @@ const { Schema } = require('mongoose');
 async function uniqueRoleName(name) {
   if (!this.isModified('name')) return true;
 
-  const role = await this.constructor.findOne({ name: name }).select('_id');
+  const role = await this.constructor.findOne({ "name": name }, '_id');
   return !role;
 }
 

@@ -3,7 +3,7 @@ const { Schema } = require('mongoose');
 async function uniqueCategoryName(name) {
   if (!this.isModified('name')) return true;
  
-  const category = await this.constructor.findOne({ 'name': name });
+  const category = await this.constructor.findOne({ "name": name }, '_id');
   return !category;
 }
 

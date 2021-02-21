@@ -144,26 +144,23 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
       throw new NotFoundException({ message: 'Admin ID not found' });
     }
 
-    if (_.has(data, 'avatar')) {
+    if ('avatar' in data) {
 
-      let newImage = null;
-  
-      if (data.avatar) {
-        newImage = await mongodb.model('image').findById(data.avatar);
-  
-        if (!newImage) {
+      const oldImage = admin.avatar && admin.avatar._id;
+      const newImage = data.avatar;
+      const isChange = !ObjectId(oldImage).equals(newImage);
+
+      if (isChange && newImage) {
+        data.avatar = await mongodb.model('image').findById(newImage);
+
+        if (!data.avatar) {
           throw new NotFoundException({ message: 'Avatar image ID does not exist' });
         }
-  
+
         await imageService.set(newImage._id, `admin:${admin._id}/avatar`, session);
       }
-  
-      data.avatar = newImage;
-  
-      const oldImage = admin.avatar;
-      const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
-  
-      if (isChange) {
+      
+      if (isChange && oldImage) {
         await imageService.unset(oldImage._id, `admin:${admin._id}/avatar`, session);
       }
     }
@@ -200,7 +197,7 @@ exports.changePassword = async function (id, data, role = 'admin') {
   let admin = await mongodb.model('admin').findById(id);
 
   if (!admin) {
-    throw new NotFoundException({ message: 'Admin ID not found' });
+    throw new NotFoundException({ message: 'Admin ID does not exist' });
   }
 
   const match = role === 'superadmin' 
@@ -208,7 +205,7 @@ exports.changePassword = async function (id, data, role = 'admin') {
     : await admin.comparePassword(validation.result.password);
   
   if (!match) {
-    throw new AuthenticationException({ message: 'Password is incorrect' })
+    throw new AuthenticationException({ message: 'Password is incorrect' });
   }
 
   const update = { 

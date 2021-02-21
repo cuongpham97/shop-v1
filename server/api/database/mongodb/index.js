@@ -4,9 +4,11 @@ const { Mongoose } = require('mongoose');
 const mongoose = new Mongoose;
 
 // Models
+const customerGroupModel = require('./models/customer-group.model');
 const customerModel = require('./models/customer.model');
 const adminModel = require('./models/admin.model');
 const roleModel = require('./models/role.model');
+const cartModel = require('./models/cart.model');
 const imageModel = require('./models/image.model');
 const productModel = require('./models/product.model');
 const categoryModel = require('./models/category.model');
@@ -17,9 +19,11 @@ const timestamp = require('./plugins/timestamp');
 const formatValidateError = require('./plugins/format-validate-error');
 
 const models = [
+  customerGroupModel,
   customerModel, 
   adminModel, 
-  roleModel, 
+  roleModel,
+  cartModel,
   imageModel, 
   productModel,
   categoryModel

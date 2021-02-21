@@ -29,6 +29,7 @@ function createApp() {
   api.use(unflatten);
   
   // Define route
+  const customerGroup = require('~routes/customer-group.routes');
   const customer = require('~routes/customer.routes');
   const admin = require('~routes/admin.routes');
   const auth = require('~routes/auth.routes');
@@ -38,6 +39,7 @@ function createApp() {
   const category = require('~routes/category.routes');
   const permission = require('~routes/permission.routes');
   
+  api.use(customerGroup);
   api.use(customer);
   api.use(admin);
   api.use(auth);

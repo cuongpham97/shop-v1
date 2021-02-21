@@ -156,29 +156,29 @@ exports.partialUpdate = async function (id, data) {
 
   data = validation.result;
 
-  let category = await mongodb.model('category').findById(id);
-
-  if (!category) {
-    throw new NotFoundException({ message: 'Category ID does not exist' });
-  }
-
-  if (_.has(data, 'parent')) {
-
-    let parent = null;
-    data.ancestors = [];
-
-    if (data.parent) {
-      parent = await mongodb.model('category').findById(data.parent);
-
-      if (!parent) {
-        throw new NotFoundException({ message: 'Category parent ID does not exist' });
-      }
-
-      data.ancestors = parent.ancestors.concat(parent.id);
-    }
-  }
-
   return await mongodb.transaction(async function (session, _commit, _abort) {
+
+    const category = await mongodb.model('category').findById(id);
+
+    if (!category) {
+      throw new NotFoundException({ message: 'Category ID does not exist' });
+    }
+  
+    if ('parent' in data) {
+  
+      let parent = null;
+      data.ancestors = [];
+  
+      if (data.parent) {
+        parent = await mongodb.model('category').findById(data.parent);
+  
+        if (!parent) {
+          throw new NotFoundException({ message: 'Category parent ID does not exist' });
+        }
+  
+        data.ancestors = parent.ancestors.concat(parent.id);
+      }
+    }
 
     await updateDocument(category, data).save({ session });
 
@@ -204,7 +204,7 @@ exports.partialUpdate = async function (id, data) {
       }
     ], { session });
 
-    return true;
+    return category;
   });
 }
 
@@ -285,14 +285,14 @@ exports.deleteMany = async function (ids) {
 
     children = _.filter(children || [], child => found.every(id => !id.equals(child)));
   
-    const state = await mongodb.model('category')
+    const result = await mongodb.model('category')
       .deleteMany({ "_id": { "$in": found.concat(children) } }, { session });
 
     return {
       expected: ids.length,
       found: found,
       dependent: children,
-      deletedCount: state.deletedCount
+      deletedCount: result.deletedCount
     };
   });
 }

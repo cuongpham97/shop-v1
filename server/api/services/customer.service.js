@@ -40,7 +40,7 @@ exports.findById = async function (id, fields = null) {
   const customer = await mongodb.model('customer').findById(id, fields);
 
   if (!customer) {
-    throw new NotFoundException({ message: 'Customer ID not found' });
+    throw new NotFoundException({ message: 'Customer ID does not exist' });
   }
 
   return customer;
@@ -55,7 +55,7 @@ exports.create = async function (customer, provider = 'local') {
     'displayName': 'required|string|trim|min:2|max:100',
     'gender': ['required', 'lowercase', 'regex:' + regexes.GENDER],
     'birthday': 'date:YYYY/MM/DD',
-    'phones': 'to:array',
+    'phones': 'array',
     'phones.*': 'string|trim|phone',
     'avatar': 'mongo_id',
     'addresses': 'array',
@@ -63,6 +63,8 @@ exports.create = async function (customer, provider = 'local') {
     'addresses.*.block': 'required|trim|min:1|max:100',
     'addresses.*.district': 'required|trim|min:1|max:100',
     'addresses.*.province': 'required|trim|min:1|max:100',
+    'groups': 'array|unique',
+    'groups.*': 'mongo_id',
     'active': 'not_allow'
   };
 
@@ -114,6 +116,14 @@ exports.create = async function (customer, provider = 'local') {
       customer.avatar = image;
     }
 
+    if (customer.groups.length) {
+      await mongodb.model('customer-group').updateMany(
+        { "_id": { "$in": customer.groups } },
+        { "$inc": { "nCustomer": 1 } },
+        { session }
+      );
+    }
+
     const [newCustomer] = await mongodb.model('customer').create([customer], { session });
 
     return newCustomer;
@@ -132,7 +142,7 @@ exports.partialUpdate = async function (id, data) {
     'displayName': 'string|trim|min:2|max:100',
     'gender': ['lowercase', 'regex:' + regexes.GENDER],
     'birthday': 'date:YYYY/MM/DD',
-    'phones': 'to:array',
+    'phones': 'array',
     'phones.*': 'string|trim|phone',
     'avatar': 'mongo_id',
     'addresses': 'array',
@@ -140,6 +150,8 @@ exports.partialUpdate = async function (id, data) {
     'addresses.*.block': 'required|trim|min:1|max:100',
     'addresses.*.district': 'required|trim|min:1|max:100',
     'addresses.*.province': 'required|trim|min:1|max:100',
+    'groups': 'array|unique',
+    'groups.*': 'mongo_id',
     'active': 'not_allow',
     'local': 'not_allow',
     'google': 'not_allow',
@@ -163,30 +175,50 @@ exports.partialUpdate = async function (id, data) {
       throw new NotFoundException({ message: 'Customer ID not found' });
     }
     
-    if (_.has(data, 'avatar')) {
+    if ('avatar' in data) {
 
-      let newImage = null;
-  
-      if (data.avatar) {
-        newImage = await mongodb.model('image').findById(data.avatar);
-  
-        if (!newImage) {
+      const oldImage = customer.avatar && customer.avatar._id;
+      const newImage = data.avatar;
+      const isChange = !ObjectId(oldImage).equals(newImage);
+
+      if (isChange && newImage) {
+        data.avatar = await mongodb.model('image').findById(newImage);
+
+        if (!data.avatar) {
           throw new NotFoundException({ message: 'Avatar image ID does not exist' });
         }
-  
+
         await imageService.set(newImage._id, `customer:${customer._id}/avatar`, session);
       }
-  
-      data.avatar = newImage;
-  
-      const oldImage = customer.avatar;
-      const isChange = oldImage && (!newImage || !oldImage._id.equals(newImage._id));
-  
-      if (isChange) {
+      
+      if (isChange && oldImage) {
         await imageService.unset(oldImage._id, `customer:${customer._id}/avatar`, session);
       }
     }
-  
+
+    if ('groups' in data) {
+      
+      const oldGroups = customer.groups;
+      const newGroups = data.groups;
+      const isChange = _.differenceWith(oldGroups, newGroups, (a, b) => a.equals(b)).length;
+
+      if (isChange && oldGroups.length) {
+        await mongodb.model('customer-group').updateMany(
+          { "_id": { "$in": oldGroups } },
+          { "$inc": { "nCustomer": -1 } },
+          { session }
+        );
+      }
+
+      if (isChange && newGroups.length) {
+        await mongodb.model('customer-group').updateMany(
+          { "_id": { "$in": newGroups } },
+          { "$inc": { "nCustomer": 1 } },
+          { session }
+        );
+      }
+    }
+
     await updateDocument(customer, data).save({ session });
   
     return customer;
@@ -223,7 +255,10 @@ exports.changePassword = async function (id, data, role = 'customer') {
   }
 
   if (!customer.local) {
-    throw new BadRequestException({ message: 'Customer does not use local provider' });
+    throw new BadRequestException({ 
+      code: 'CANNOT_BE_CHANGED',
+      message: 'Customer does not use local provider' 
+    });
   }
 
   const match = role === 'admin' 
@@ -254,7 +289,7 @@ exports.deleteById = async function (id) {
 
   id = validation.result.id;
 
-  const customer = await mongodb.model('customer').findByIdAndDelete(id).select('_id avatar');
+  const customer = await mongodb.model('customer').findByIdAndDelete(id).select('_id avatar groups');
 
   if (!customer) {
     throw new NotFoundException({ message: 'Customer ID does not exist' });
@@ -264,6 +299,15 @@ exports.deleteById = async function (id) {
 
   if (image) {
     await imageService.unset(image._id, `customer:${customer._id}/avatar`);
+  }
+
+  const groups = customer.groups;
+
+  if (groups.length) {
+    await mongodb.model('customer-group').updateMany(
+      { "_id": { "$in": groups } },
+      { "$inc": { "nCustomer": -1 } }
+    );
   }
 
   return {
@@ -286,19 +330,31 @@ exports.deleteMany = async function (ids) {
 
   ids = validation.result.ids;
 
-  const docs = await mongodb.model('customer').find({ _id: { "$in": ids } }).select('_id avatar');
+  const docs = await mongodb.model('customer').find({ _id: { "$in": ids } }).select('_id avatar groups');
 
   if (!docs.length) {
     throw new NotFoundException({ message: 'Customer IDs does not exist' });
   }
 
+  // Delete customers
   const found = docs.map(doc => doc._id);
-  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
-
   const result = await mongodb.model('customer').deleteMany({ "_id": { "$in": found } }); 
 
+  // Unset avatar images
+  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
   await imageService.unsetMany(images, found.map(id => `customer:${id}/avatar`));
   
+  // Subtract nCustomer of customer groups
+  for (const groups of docs.map(doc => doc.groups)) {
+    
+    if (groups.length) {
+      await mongodb.model('customer-group').updateMany(
+        { "_id": { "$in": groups } },
+        { "$inc": { "nCustomer": -1 } }
+      );
+    }
+  }
+
   return {
     expected: ids.length,
     found: found,

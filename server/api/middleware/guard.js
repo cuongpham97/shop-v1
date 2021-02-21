@@ -28,11 +28,11 @@ function decodeToken(token) {
   }
 }
 
-async function getProfile(account, id) {
+async function getProfile(account, id, fields) {
 
   const service = account === 'customer' ? customerService : adminService;
-
-  return await service.findById(id, ['_id', 'tokenVersion', 'roles']);
+  
+  return await service.findById(id, ['_id', 'tokenVersion', 'roles'].concat(fields));
 }
 
 function checkTokenVersion(profile, tokenVersion) {
@@ -59,6 +59,8 @@ module.exports = chain({
       throw Error(`Auth middleware with wrong argument '${account}'`);
     }
 
+    this.context.getFields = [];
+
     return async function (req, _res, next) {
       
       const token = getTokenFromHeader(req);
@@ -68,17 +70,30 @@ module.exports = chain({
         new AuthenticationException({ message: 'Cannot use this token' })
       );
 
-      const profile = await getProfile(account, decodedToken.id);
+      const fields = this.context.getFields;
+      const profile = await getProfile(account, decodedToken.id, fields);
+      
       const check = checkTokenVersion(profile, decodedToken.version);
 
       if (!check) return next(
-        new AuthenticationException({ message: 'Cannot use this token' })
+        new AuthenticationException({ 
+          code: 'CREDENTIALS_HAVE_CHANGED',
+          message: 'Cannot use this token' 
+        })
       );
 
-      req.user = _.assign(req.user || {}, _.pick(profile.toJSON(), ['_id', 'roles']));
-
+      req.user = _.assign(req.user || {}, _.pick(profile.toJSON(), ['_id', 'roles'].concat(fields)));
       req.user.type = account;
 
+      return next();
+    }
+  },
+
+  get: function (...fields) {
+    
+    this.context.getFields = this.context.getFields.concat(fields);
+
+    return function (_req, _res, next) {
       return next();
     }
   },

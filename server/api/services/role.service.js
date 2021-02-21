@@ -192,7 +192,10 @@ exports.partialUpdate = async function (id, data, updatorId = null) {
   }
 
   if (role.name === 'superadmin') {
-    throw new BadRequestException({ message: 'Cannot update "superadmin" role' });
+    throw new BadRequestException({ 
+      code: 'CANNOT_BE_CHANGED',
+      message: 'Cannot update "superadmin" role' 
+    });
   }
 
   if (data.updator.id) {
@@ -227,7 +230,10 @@ exports.deleteById = async function (id) {
   }
 
   if (role.name === 'superadmin') {
-    throw new BadRequestException({ message: 'Cannot delete "superadmin" role' });
+    throw new BadRequestException({
+      code: 'CANNOT_BE_DELETED',
+      message: 'Cannot delete "superadmin" role' 
+    });
   }
   
   const state = await mongodb.model('role').deleteOne({ _id: id });
@@ -260,7 +266,10 @@ exports.deleteMany = async function (ids) {
 
   docs.forEach(doc => {
     if (doc.name === 'superadmin') {
-      throw new BadRequestException({ message: 'Cannot delete "superadmin" role' });
+      throw new BadRequestException({ 
+        code: 'CANNOT_BE_DELETED',
+        message: 'Cannot delete "superadmin" role' 
+      });
     }  
   });
 

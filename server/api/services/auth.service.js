@@ -8,7 +8,10 @@ const jwt = require('~utils/jwt');
 exports.getToken = async function (credentials, account = 'customer') {
 
   if (!credentials) {
-    throw new AuthenticationException({ message: 'Invalid credentials' });
+    throw new AuthenticationException({ 
+      code: 'INVALID_CREDENTIALS',
+      message: 'username or password is incorrect' 
+    });
   }
 
   if (credentials.startsWith('Basic ')) {
@@ -25,7 +28,10 @@ exports.getToken = async function (credentials, account = 'customer') {
   });
 
   if (validation.errors) {
-    throw new AuthenticationException({ message: 'Invalid credentials' });
+    throw new AuthenticationException({
+      code: 'INVALID_CREDENTIALS',
+      message: 'username or password is incorrect' 
+    });
   }
 
   if (account === 'customer') {
@@ -33,11 +39,21 @@ exports.getToken = async function (credentials, account = 'customer') {
     const phoneOrEmail = regexes.PHONE_NUMBER.test(username) ? 'phone' : 'email';
 
     const customer = await mongodb.model('customer').findOne({ 
-      [`local.${phoneOrEmail}`]: username 
+      [`local.${phoneOrEmail}`]: username
     });
 
     if (!customer || !await customer.comparePassword(password)) {
-      throw new AuthenticationException({ message: 'Invalid credentials' });
+      throw new AuthenticationException({ 
+        code: 'INVALID_CREDENTIALS',
+        message: 'username or password is incorrect' 
+      });
+    }
+
+    if (!customer.active) {
+      throw new AuthenticationException({
+        code: 'ACCOUNT_UNAVAILABLE',
+        message: 'This account has been deactivated'
+      });
     }
 
     return {
@@ -67,8 +83,18 @@ exports.getToken = async function (credentials, account = 'customer') {
     });
 
     if (!admin || !await admin.comparePassword(password)) {
-      throw new AuthenticationException({ message: 'Invalid credentials' });
+      throw new AuthenticationException({ 
+        code: 'INVALID_CREDENTIALS',
+        message: 'username or password is incorrect' 
+      });
     }
+
+    if (!admin.active) {
+      throw new AuthenticationException({
+        code: 'ACCOUNT_UNAVAILABLE',
+        message: 'This account has been deactived'
+      });
+    } 
 
     return {
       name: admin.displayName,
@@ -117,11 +143,24 @@ exports.refreshToken = async function (data, account = 'customer') {
     const customer = await mongodb.model('customer').findById(id);
 
     if (!customer) {
-      throw new AuthenticationException({ message: 'Customer ID does not exist' });
+      throw new AuthenticationException({ 
+        code: 'ACCOUNT_UNAVAILABLE',
+        message: 'This account has been deleted' 
+      });
+    }
+
+    if (!customer.active) {
+      throw new AuthenticationException({ 
+        code: 'ACCOUNT_UNAVAILABLE',
+        message: 'This account has been deactived' 
+      });
     }
 
     if (customer.tokenVersion != version) {
-      throw new AuthenticationException({ message: 'Cannot use this token' });
+      throw new AuthenticationException({ 
+        code: 'CREDENTIALS_HAVE_CHANGED',
+        message: 'Cannot use this token' 
+      });
     }
 
     return {
@@ -146,11 +185,24 @@ exports.refreshToken = async function (data, account = 'customer') {
     const admin = await mongodb.model('admin').findById(id);
 
     if (!admin) {
-      throw new AuthenticationException({ message: 'Admin ID does not exist' });
+      throw new AuthenticationException({ 
+        code: 'ACCOUNT_UNAVAILABLE',
+        message: 'This account has been deleted' 
+      });
+    }
+
+    if (!admin.active) {
+      throw new AuthenticationException({ 
+        code: 'ACCOUNT_UNAVAILABLE',
+        message: 'This account has been deactived' 
+      });
     }
 
     if (admin.tokenVersion != version) {
-      throw new AuthenticationException({ message: 'Cannot use this token' });
+      throw new AuthenticationException({
+        code: 'CREDENTIALS_HAVE_CHANGED',
+        message: 'Cannot use this token' 
+      });
     }
 
     return {

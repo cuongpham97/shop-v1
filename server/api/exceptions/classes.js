@@ -6,9 +6,10 @@ exports.Exception = class extends Error {
     super();
     Error.captureStackTrace(this, this.constructor);
     
-    this.message = args.message;
-    this.name = args.name;
     this.httpStatus = args.httpStatus;
+    this.name = args.name;
+    this.code = args.code;
+    this.message = args.message;
     this.timestamp = moment().format('HH:mm:ss DD-MM-yyyy');
   }
 }
@@ -17,8 +18,9 @@ exports.NotFoundException = class extends this.Exception {
   constructor(args) {
     super(
       Object.assign({
+        httpStatus: StatusCodes.NOT_FOUND,
         name: 'NotFoundException',
-        httpStatus: StatusCodes.NOT_FOUND
+        code: 'RESOURCE_NOT_FOUND'
       }, args)
     );
   }
@@ -28,8 +30,9 @@ exports.ValidationException = class extends this.Exception {
   constructor(args) {
     super(
       Object.assign({
+        httpStatus: StatusCodes.UNPROCESSABLE_ENTITY,
         name: 'ValidationException',
-        httpStatus: StatusCodes.UNPROCESSABLE_ENTITY
+        code: 'WRONG_INPUT'
       }, args)
     );
   }
@@ -39,8 +42,9 @@ exports.AuthenticationException = class extends this.Exception {
   constructor(args) {
     super(
       Object.assign({
+        httpStatus: StatusCodes.UNAUTHORIZED,
         name: 'AuthenticationException',
-        httpStatus: StatusCodes.UNAUTHORIZED
+        code: 'UNAUTHENTICATED'
       }, args)
     );
   }
@@ -50,8 +54,9 @@ exports.AuthorizationException = class extends this.Exception {
   constructor(args) {
     super(
       Object.assign({
+        httpStatus: StatusCodes.UNAUTHORIZED,
         name: 'AuthorizationException',
-        httpStatus: StatusCodes.UNAUTHORIZED
+        code: 'UNAUTHORIZED'
       }, args)
     );
   }
@@ -61,8 +66,9 @@ exports.BadRequestException = class extends this.Exception {
   constructor(args) {
     super(
       Object.assign({
+        httpStatus: StatusCodes.BAD_REQUEST,
         name: 'BadRequestException',
-        httpStatus: StatusCodes.BAD_REQUEST
+        code: 'UNACCEPTED_REQUEST'
       }, args)
     );
   }

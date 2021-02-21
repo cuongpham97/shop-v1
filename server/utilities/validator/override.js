@@ -1,61 +1,50 @@
 const Validator = require('validatorjs');
-const _ = require('lodash');
 const registerAsync = Validator.registerAsync;
+const registerAsyncImplicit = Validator.registerAsyncImplicit;
 
-/**
- * Override Validator.registerAsync
- */
-Validator.registerAsync = function (name, fn, msg) {
-  return registerAsync(name, wrap(fn), msg);
-}
+function enhance(validateFunc) {
 
-function wrap(fn) {
-  return function(originValue, args, attribute, pass) {
+  return function (_value, args, attribute, passes) {
 
-    const name = this.name;
+    const ruleName = this.name;
     const input = this.validator.input;
     const value = _.get(input, attribute);
     const messages = this.validator.messages;
-    const formatter = this.validator.messages.attributeFormatter;
 
-    const message = messages.customMessages[name] 
-      || messages.messages[name] 
+    const message = messages.customMessages[ruleName] 
+      || messages.messages[ruleName] 
       || messages.customMessages['def'] 
       || messages.messages['def'];
 
-    const moreInfo = {
-      name: name,
-      input: input,
-      originValue: originValue,
-      message: message
-    }
+    const self = { input, message };
 
-    const done = (result = true, msg = null, args = {}) => {
-      switch (true) {
-        case result:
-          return pass(true);
+    const done = function (isValid = true, message = null, msgArgs = null) {
 
-        case msg:
-          return pass(false, msg);
-      }
-
-      if (typeof message === 'object') {
-        let type = typeof value === 'string' ? 'string' : 'numeric';
-        msg = message[type];       
+      if (isValid) return passes(true);
       
-      } else {
-        msg = message;
+      if (!message) {
+        message = typeof self.message === 'object'
+          ? self.message[typeof value === 'string' ? 'string' : 'numeric']
+          : self.message;
       }
 
-      msg = msg.replace(':attribute', formatter(attribute));
+      message = message.replace(':attribute', messages.attributeFormatter(attribute));
 
-      for (const [key, value] of Object.entries(args)) {
-        msg = msg.replace(`:${key}`, value);
+      for (const [key, value] of Object.entries(msgArgs || {})) {
+        message = message.replace(`:${key}`, value);
       }
 
-      return pass(false, msg);
+      return passes(false, message);
     }
 
-    fn.call(moreInfo, attribute, value, args, done);
+    return validateFunc.call(self, attribute, value, args, done);
   }
+}
+
+Validator.registerAsync = function (ruleName, callback) {
+  return registerAsync(ruleName, enhance(callback));
+}
+
+Validator.registerAsyncImplicit = function (ruleName, callback) {
+  return registerAsyncImplicit(ruleName, enhance(callback));
 }

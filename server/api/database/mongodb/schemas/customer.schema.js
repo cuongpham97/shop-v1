@@ -23,7 +23,7 @@ async function uniqueEmail(email) {
   if (!this.isModified('email')) return true;
   
   const model = this.parent().constructor;
-  const customer = await model.findOne({ 'local.email': email });
+  const customer = await model.findOne({ "local.email": email }, '_id');
   return !customer;
 }
 
@@ -31,7 +31,7 @@ async function uniquePhone(phone) {
   if (!this.isModified('phone')) return true;
 
   const model = this.parent().constructor;
-  const customer = await model.findOne({ 'local.phone': phone });
+  const customer = await model.findOne({ "local.phone": phone }, '_id');
   return !customer;
 }
 
@@ -118,6 +118,13 @@ const CustomerSchema = new Schema({
   avatar: {
     type: Avatar,
     default: null
+  },
+  groups: {
+    type: [{
+      type: ObjectId,
+      ref: 'customer-group'
+    }],
+    default: []
   },
   local: {
     type: LocalProvider
