@@ -865,25 +865,58 @@
 // }
 
 // validator.checkAsync(passes, fails);
+// const config = require('./config');
+// const validate = require('~utils/validator');
+
+// (async function () {
+
+//   const value = {
+//     name: null,
+//     //age: null
+//   }
+  
+//   const validation = await validate(value, {
+//     'age': 'required|array'
+//   });
+  
+//   if (validation.errors) {
+//     console.log(validation.errors);
+//   }
+  
+//   console.log(validation.result);
+
+// })();
+
+//const config = require('./config');
 const config = require('./config');
-const validate = require('~utils/validator');
+const validate = require('./utilities/validate');
 
-(async function () {
+const input = {
+  name: {
+    first: ' Phạm',
+    last: 'A'
+  },
+  age: 100,
+  skill: ['js', 'php', 'angular']
+}
 
-  const value = {
-    name: null,
-    age: null
-  }
-  
-  const validation = await validate(value, {
-    'age': 'numeric'
-  });
-  
+const rules = {
+  name: {
+    first: 'required|string|nullable|uppercase|lowercase|titlecase|trim|min:1|max:10',
+    last: [['regex', /A/]]
+  },
+  'age': 'required',
+  'skill': 'array'
+}
+
+!(async function () {
+
+  const validation = await validate(input, rules);
+
+
   if (validation.errors) {
-    console.log(validation.errors);
+    console.log(validation.errors.toArray());
   }
-  
-  console.log(validation.result);
 
+  console.log(validation.result)
 })();
-

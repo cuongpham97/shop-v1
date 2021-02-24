@@ -22,7 +22,11 @@ const Image = new Schema({
     default: []
   },
   creator: {
-    id: String,
+    account: {
+      type: String,
+      enum: ['admin', 'customer']
+    },
+    id: ObjectId,
     name: String
   },
   description: String

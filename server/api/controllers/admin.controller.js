@@ -20,7 +20,10 @@ exports.registerNewAdminAccount = async function (req, res) {
 };
 
 exports.partialUpdateAdmin = async function (req, res) {
-  const admin = await adminService.partialUpdate(req.params.id, req.body);
+
+  const role = req.user.roles.includes('superadmin') ? 'superadmin' : 'admin';
+  
+  const admin = await adminService.partialUpdate(req.params.id, req.body, role);
 
   return res.status(StatusCodes.OK).json(admin);
 }

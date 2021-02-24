@@ -7,7 +7,7 @@ const moment = require('moment');
 
 exports.model = mongodb.model('admin');
 
-exports.find = async function (query) {
+exports.find = async function (query) { 
   
   const validation = await validate(query, {
     'search': 'not_allow',
@@ -22,7 +22,7 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new BadRequestException({ code: 'WRONG_QUERY_PARAMETER', message: validation.errors });
   }
 
   return await mongodb.model('admin').paginate(validation.result);
@@ -41,7 +41,7 @@ exports.findById = async function (id, fields = null) {
   const admin = await mongodb.model('admin').findById(id, fields);
 
   if (!admin) {
-    throw new NotFoundException({ message: 'Admin ID not found' });
+    throw new NotFoundException({ message: 'Admin ID not does not exist' });
   }
 
   return admin;
@@ -54,9 +54,9 @@ exports.create = async function (admin) {
     'name.first': 'string|trim|min:1|max:20',
     'name.last': 'string|trim|min:1|max:20',
     'displayName': 'required|string|trim|min:2|max:100',
-    'gender': ['required', 'lowercase', 'regex:' + regexes.GENDER],
+    'gender': ['required', 'lowercase', 'titlecase', 'regex:' + regexes.GENDER],
     'birthday': 'required|date:YYYY/MM/DD',
-    'phones': 'string|trim|phone',
+    'phone': 'string|trim|phone',
     'avatar': 'mongo_id',
     'address': 'object',
     'address.block': 'required_with:address|string|trim|min:1|max:100',
@@ -112,19 +112,19 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
     'name.first': 'string|trim|min:1|max:20',
     'name.last': 'string|trim|min:1|max:20',
     'displayName': 'string|trim|min:2|max:100',
-    'gender': ['lowercase', 'regex:' + regexes.GENDER],
+    'gender': ['lowercase', 'titlecase', 'regex:' + regexes.GENDER],
     'birthday': 'date:YYYY/MM/DD',
-    'phones': 'string|trim|phone',
-    'avatar': 'mongo_id',
-    'address': 'object',
+    'phone': 'string+null|trim|phone',
+    'avatar': 'mongo_id+null',
+    'address': 'object+null',
     'address.block': 'required_with:address|string|trim|min:1|max:100',
     'address.district': 'required_with:address|string|trim|min:1|max:100',
     'address.province': 'required_with:address|string|trim|min:1|max:100',
     'username': 'not_allow',
     'password': 'not_allow',
-    'roles': 'array',
+    'roles': role === 'superadmin' ? 'array' : 'not_allow',
     'roles.*': 'string',
-    'active': role === 'superadmin' ? 'boolean' : 'unset'
+    'active': role === 'superadmin' ? 'boolean' : 'not_allow'
   });
 
   if (validation.errors) {
@@ -141,7 +141,7 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
     let admin = await mongodb.model('admin').findById(id);
 
     if (!admin) {
-      throw new NotFoundException({ message: 'Admin ID not found' });
+      throw new NotFoundException({ message: 'Admin ID not does not exist' });
     }
 
     if ('avatar' in data) {

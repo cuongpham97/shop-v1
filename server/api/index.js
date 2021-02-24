@@ -28,7 +28,7 @@ function createApp() {
   api.use(express.json({ limit: '18mb' }));
   api.use(unflatten);
   
-  // Define route
+  // Define routes
   const customerGroup = require('~routes/customer-group.routes');
   const customer = require('~routes/customer.routes');
   const admin = require('~routes/admin.routes');

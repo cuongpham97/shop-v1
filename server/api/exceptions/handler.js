@@ -1,26 +1,35 @@
-const { Exception } = require('./classes');
+const moment = require('moment');
+
 const ExceptionFilter = require('./filters/exception.filter');
 const ErrorFilter = require('./filters/error.filter');
 
-const registerFilters = new Map([
-  // [ ValidationException, ValidateExceptionFilter ]
-]);
+const registerFilters = new Map([]);
+
+function findFilter(error, register) {
+
+  for (const [eClass, filter] of register) {
+    if (error.constructor === eClass) {
+      return filter;
+    }
+  }
+
+  if (error instanceof Exception) {
+    return ExceptionFilter;
+  }
+
+  return ErrorFilter;
+}
 
 module.exports = async function (error, req, res, next) {
   if (!error) return next();
 
-  // Handle errors with registered filter
-  for (let [exceptionType, filter] of registerFilters) {
-    if (error.constructor === exceptionType) {
-      return (new filter).catch(error, req, res, next);
-    }
-  }
+  const filter = findFilter(error, registerFilters);
+  const result = (new filter).catch(error, req, res);
 
-  // Handle errors that inherit from Exception class
-  if (error instanceof Exception) {
-    return (new ExceptionFilter).catch(error, req, res, next);
-  }
-
-  // Handle uncaught errors
-  return (new ErrorFilter).catch(error, req, res, next);
+  return res.status(result.httpStatus).json({
+    error: result.name,
+    code: result.code,
+    message: result.message,
+    timestamp: moment().format('HH:mm:ss DD-MM-yyyy')
+  });
 }

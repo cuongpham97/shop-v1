@@ -12,8 +12,8 @@ function enhance(validateFunc) {
     const messages = this.validator.messages;
 
     const message = messages.customMessages[ruleName] 
-      || messages.messages[ruleName] 
       || messages.customMessages['def'] 
+      || messages.messages[ruleName] 
       || messages.messages['def'];
 
     const self = { input, message };
@@ -28,10 +28,10 @@ function enhance(validateFunc) {
           : self.message;
       }
 
-      message = message.replace(':attribute', messages.attributeFormatter(attribute));
+      message = message.replace(/:attribute/g, messages.attributeFormatter(attribute));
 
       for (const [key, value] of Object.entries(msgArgs || {})) {
-        message = message.replace(`:${key}`, value);
+        message = message.replace(new RegExp(`:${key}`, 'g'), value);
       }
 
       return passes(false, message);
@@ -47,4 +47,9 @@ Validator.registerAsync = function (ruleName, callback) {
 
 Validator.registerAsyncImplicit = function (ruleName, callback) {
   return registerAsyncImplicit(ruleName, enhance(callback));
+}
+
+Validator.registerAsyncWithNullable = function (ruleName, callback) {
+  registerAsync(ruleName + '+null', enhance(callback));
+  registerAsyncImplicit(ruleName, enhance(callback));
 }

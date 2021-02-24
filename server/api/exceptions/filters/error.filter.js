@@ -1,20 +1,25 @@
-const moment = require('moment');
 const { StatusCodes } = require('http-status-codes');
 const report = require('~utils/report'); 
-const config = require('~config');
 
 class ErrorFilter {
-  catch(error, _req, res, _next) {
+  catch(error) {
 
-    if(config.ENVIRONMENT === 'DEVELOPMENT') {
-      report.error(error);
+    if (error instanceof SyntaxError && 'body' in error && error.status === 400) {
+      return {
+        httpStatus: StatusCodes.BAD_REQUEST,
+        name: 'BadRequestException',
+        code: 'WRONG_JSON_FORMAT',
+        message: error.message
+      };
     }
 
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: 'UncaughtException',
-      message: 'Something went wrong, an error has occurred',
-      timestamp: moment().format('HH:mm:ss DD-MM-yyyy')
-    });
+    report.error(error);
+
+    return {
+      httpStatus: StatusCodes.INTERNAL_SERVER_ERROR,
+      name: 'UncaughtException',
+      message: 'Something went wrong, an error has occurred'
+    };
   }
 }
 

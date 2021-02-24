@@ -2,13 +2,7 @@ const Validator = require('validatorjs');
 require('./override');
 require('./rules');
 
-(function () {
-  // Set messages
-  Validator.setMessages('en', require('./lang/en.json'));
-
-  // Format attribute
-  Validator.setAttributeFormatter(attribute => `"${attribute}"`);
-})();
+Validator.setMessages('en', require('./lang/en.json'));
 
 module.exports = function (input, rules, customMessages, validator = Validator) {
 
