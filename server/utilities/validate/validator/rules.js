@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 function _isAcceptable(value) {
   if (value === null || value === undefined || value === '') {
     return false;
@@ -105,7 +107,7 @@ function numeric(attribute, value, _args, done) {
 
   const num = Number(value);
 
-  const check = typeof num === 'number' && !isNaN(num) && typeof val !== 'boolean' && val !== '';
+  const check = typeof num === 'number' && !isNaN(num) && typeof value !== 'boolean' && value !== '';
  
   if (!check) return done(false);
 
@@ -118,7 +120,7 @@ function integer(attribute, value, _args, done) {
   
   if (!this.isPresent() || this.passedNullable()) return done();
 
-  const isInteger = /^\d+$/.test(value);
+  const isInteger = /^-*\d+$/.test(value);
 
   if (!isInteger) return done(false);
 

@@ -33,6 +33,7 @@ function createApp() {
   const customer = require('~routes/customer.routes');
   const admin = require('~routes/admin.routes');
   const auth = require('~routes/auth.routes');
+  const cart = require('~routes/cart.routes');
   const role = require('~routes/role.routes');
   const image = require('~routes/image.routes');
   const product = require('~routes/product.routes');
@@ -44,6 +45,7 @@ function createApp() {
   api.use(admin);
   api.use(auth);
   api.use(role);
+  api.use(cart);
   api.use(image);
   api.use(product);
   api.use(category);

@@ -6,7 +6,7 @@ module.exports = function transaction(mongoose) {
 
     let promise = Promise.resolve(false);
 
-    function commit() {
+    function _commit() {
       promise = promise.then(async function (isDone) {
         
         if (isDone) {
@@ -18,7 +18,7 @@ module.exports = function transaction(mongoose) {
       });
     }
 
-    function abort() {
+    function _abort() {
       promise = promise.then(async function (isDone) {
         
         if (isDone) {
@@ -32,7 +32,7 @@ module.exports = function transaction(mongoose) {
 
     try {
       
-      const fnExecute = await func(session, commit, abort);
+      const fnExecute = await func(session, _commit, _abort);
 
       promise = promise.then(async function (isDone) {
         if (!isDone) {

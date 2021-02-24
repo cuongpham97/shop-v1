@@ -1,83 +1,62 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 
-async function validateOptions(options) {
-
-  let { result, errors } = await validate(options, {
-    'search'    : 'string|trim|max:200',
-    'regexes'   : 'object',
-    'filters'   : 'object',
-    'orders'    : 'to:array',
-    'orders.*'  : 'string|min:1|max:100',
-    'fields'    : 'to:array',
-    'fields.*'  : 'string|min:1|max:100',
-    'page'      : 'integer|min:1',
-    'pageSize'  : 'integer|min:1|max:200'
-  });
-
-  if (errors) throw new Error(errors);
-
-  return result;
+function _makeSearchQuery(text) {
+  return text ? { "$match": { "$text": { "$search": text } } } : [];
 }
 
-const makeQuery = {
-  search: function(text) {
-    return text ? { "$match": { "$text": { "$search": text } } } : [];
-  },
+function _makeRegexQuery(regexes) {
+  let fields = {};
 
-  regexes: function(regexes) {
-    let fields = {};
+  _.forEach(regexes, (value, key) => fields[key] = { "$regex": value, "$options": "im" });
 
-    _.forEach(regexes, (value, key) => fields[key] = { "$regex": value, "$options": "im" });
-
-    return !_.isEmpty(fields) ? { "$match": fields } : [];
-  },
-
-  query: function(filters) {
-    return filters ? { "$match": filters } : [];
-  },
-
-  skip: function(page, pageSize) {
-    return { "$skip": (page - 1) * pageSize || 0 };
-  },
-
-  limit: function(pageSize) {
-    return { "$limit": pageSize || 80 };
-  },
-
-  sort: function(fields) {
-    if (!fields) return [];
-
-    let orders = {};
-
-    fields.forEach(field => field.startsWith('-') ? orders[field.substring(1)] = -1 : orders[field] = 1);
-
-    return { "$sort": orders };
-  },
-
-  project: function(fields) {
-    if (!fields) return [];
-
-    const valid = fields.every(field => !field.startsWith('-')) || fields.every(field => field.startsWith('-'));
-
-    if (!valid) return [];
-
-    let project = {};
-
-    fields.forEach(field => field.startsWith('-') ? project[field.substring(1)] = 0 : project[field] = 1);
-
-    return { "$project": project };
-  }
+  return !_.isEmpty(fields) ? { "$match": fields } : [];
 }
 
-function buildQuery(options) {
+function _makeMatchQuery(filters) {
+  return filters ? { "$match": filters } : [];
+}
+
+function _makeSkipQuery(page, pageSize) {
+  return { "$skip": (page - 1) * pageSize || 0 };
+}
+
+function _makeLimitQuery(pageSize) {
+  return { "$limit": pageSize || 80 };
+}
+
+function _makeSortQuery(fields) {
+  if (!fields) return [];
+
+  let orders = {};
+
+  fields.forEach(field => field.startsWith('-') ? orders[field.substring(1)] = -1 : orders[field] = 1);
+
+  return { "$sort": orders };
+}
+
+function _makeProjectQuery(fields) {
+  if (!fields) return [];
+
+  const valid = fields.every(field => !field.startsWith('-')) || fields.every(field => field.startsWith('-'));
+
+  if (!valid) return [];
+
+  let project = {};
+
+  fields.forEach(field => field.startsWith('-') ? project[field.substring(1)] = 0 : project[field] = 1);
+
+  return { "$project": project };
+}
+
+function _buildQuery(options) {
   
-  const search = makeQuery.search(options.search);
-  const regexes = makeQuery.regexes(options.regexes); 
-  const query = makeQuery.query(options.filters);
-  const skip = makeQuery.skip(options.page, options.pageSize);
-  const limit = makeQuery.limit(options.pageSize);
-  const sort = makeQuery.sort(options.orders);
-  const project = makeQuery.project(options.fields);
+  const search = _makeSearchQuery(options.search);
+  const regexes = _makeRegexQuery(options.regexes); 
+  const query = _makeMatchQuery(options.filters);
+  const skip = _makeSkipQuery(options.page, options.pageSize);
+  const limit = _makeLimitQuery(options.pageSize);
+  const sort = _makeSortQuery(options.orders);
+  const project = _makeProjectQuery(options.fields);
 
   return [
     ... []
@@ -106,7 +85,7 @@ function buildQuery(options) {
   ];
 }
 
-function paginateResult(docs, options) {
+function _paginateResult(docs, options) {
   let collection = options.collectionName || (this.collection.name);
 
   let page = options.page;
@@ -129,17 +108,19 @@ function paginateResult(docs, options) {
 
 function paginationPlugin(schema, _options) {
 
-  schema.statics.paginate = async function(options = {}, validateOpts = false) {
+  schema.statics.paginate = async function(options) {
 
-    options = _.assign({ page: 1, pageSize: 80 }, options);
-    
-    options = validateOpts ? await validateOptions(options) : options;
+    const paging = {
+      page: 1,
+      pageSize: 80
+    };
 
-    let [docs] = await this.aggregate(buildQuery(options));
+    options = _.assign(paging, options);
+    const query = _buildQuery(options);
+    const [docs] = await this.aggregate(query);
     
-    return paginateResult.call(this, docs, options);
+    return _paginateResult.call(this, docs, options);
   }
-
 }
 
 module.exports = paginationPlugin;

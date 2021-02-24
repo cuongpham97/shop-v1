@@ -1,6 +1,6 @@
 const { Schema } = require('mongoose');
 
-async function uniqueName(name) {
+async function _uniqueName(name) {
   if (!this.isModified('name')) return true;
   
   const model = this.constructor;
@@ -14,7 +14,7 @@ const CustomerGroupSchema = new Schema({
     minLength: 1,
     maxLength: 200,
     required: true,
-    validate: { validator: uniqueName, msg: 'msg: "name" already in use' }
+    validate: { validator: _uniqueName, msg: 'msg: "name" already in use' }
   },
   nCustomer: {
     type: Number,

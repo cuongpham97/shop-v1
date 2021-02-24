@@ -8,7 +8,7 @@ exports.alias = {
   '~config': `${root}/config`,
   '~utils': `${root}/utilities`,
   '~storage': `${root}/storage`,
-  '~libraries': `${root}/libraries`,
+  '~libraries': `${root}/api/libraries`,
   '~routes': `${root}/api/routes`,
   '~controllers': `${root}/api/controllers`,
   '~services': `${root}/api/services`,

@@ -1,5 +1,5 @@
 const { mongodb } = require('~database');
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 const upload = require('~utils/upload');
 const report = require('~utils/report');
 
@@ -14,7 +14,7 @@ exports.upload = async function (data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   data = validation.result;
@@ -31,7 +31,7 @@ exports.deleteById = async function (id, isSync = true) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;

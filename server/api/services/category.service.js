@@ -1,67 +1,66 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
+const cacheService = require('./cacheService');
 const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
 
-const cache = {
-  
-  categories: [],
-  categoryTree: [],
+function _buildCategoriesTree(categories) {
+  const groupByParent = _.groupBy(categories, item => _.last(item.ancestors));
 
-  ensureCached: async function () {
-
-    if (!cache.categories.length) {
-      cache.categories = await mongodb.model('category').find();
-    };
-
-    if (cache.categories.length && !cache.categoryTree.length) {
-      cache.categoryTree = cache.buildCategoryTree(cache.categories);
-    }
-  },
-
-  buildCategoryTree: function (categories) {
-
-    const groupByParent = _.groupBy(categories, item => _.last(item.ancestors));
-
-    function getChildren(parent) {
+    function _getChildren(parent) {
       if (!groupByParent[parent]) return [];
 
       return groupByParent[parent].map(item => {
         return {
           _id: item._id,
           name: item.name,
-          children: getChildren(item._id)
+          children: _getChildren(item._id)
         };
       });
     }
 
-    return getChildren();
-  },
+    return _getChildren();
+}
 
-  getByIds: async function (ids) {
-    await this.ensureCached();
+function _isCached() {
+  return cacheService.has('categories') && cacheService.has('categoriesTree');
+}
 
-    const categories = ids.map(id => cache.categories.find(item => item._id.equals(id)));
-    return _.cloneDeep(categories);
-  },
+async function _updateCache() {
+  const categories = await mongodb.model('category').find();
+  cacheService.set('categories', categories);
 
-  getAll: async function () {
-    await this.ensureCached();
-    
-    return _.cloneDeep(this.categories);
-  },
+  const categoriesTree = _buildCategoriesTree(categories);
+  cacheService.set('categoriesTree', categoriesTree);
+}
 
-  getCategoryTree: async function () {
-    await this.ensureCached();
-
-    return _.cloneDeep(this.categoryTree);
+async function _ensureCached() {
+  if (!_isCached()) {
+    await _updateCache();
   }
-};
+}
 
-(async function () {
-  mongodb.model('category').watch().on('change', cache.ensureCached);
+exports.findByIdsFromCache = async function (ids) {
+  await _ensureCached();
+
+  const categories = ids.map(id => cacheService.get('categories').find(item => item._id.equals(id)));
+  return _.cloneDeep(categories);
+}
+
+exports.getAllFromCache = async function () {
+  await _ensureCached();
+
+  return _.cloneDeep(cacheService.get('categories'));
+}
+
+exports.getCategoriesTreeFromCache = async function () {
+  await _ensureCached();
+
+  return _.cloneDeep(cacheService.get('categoriesTree'));
+}
+
+!(async function () {
+  mongodb.model('category').watch().on('change', _updateCache);
 })();
-
-exports.cache = cache;
 
 exports.model = mongodb.model('category');
 
@@ -80,7 +79,10 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new BadRequestException({ 
+      code: 'WRONG_QUERY_PARAMETERS', 
+      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    });
   }
 
   return await mongodb.model('category').paginate(validation.result);
@@ -91,7 +93,7 @@ exports.findById = async function (id, fields = null) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -99,7 +101,7 @@ exports.findById = async function (id, fields = null) {
   const category = await mongodb.model('category').findById(id, fields);
 
   if (!category) {
-    throw new NotFoundException({ message: 'Category ID not found' });
+    throw new NotFoundException({ message: 'Category ID not does not exist' });
   }
 
   return category;
@@ -115,7 +117,7 @@ exports.create = async function (category) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   category = validation.result;
@@ -142,13 +144,13 @@ exports.partialUpdate = async function (id, data) {
   const validation = await validate(data, {
     'id': 'mongo_id',
     'name': 'string|trim|min:1|max:200',
-    'parent': 'mongo_id',
+    'parent': 'mongo_id|nullable',
     'order': 'integer',
     'description': 'string|max:2000'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -213,7 +215,7 @@ exports.deleteById = async function (id) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -230,13 +232,13 @@ exports.deleteById = async function (id) {
     children = children.map(doc => doc._id);
 
     // Delete children
-    const state = await mongodb.model('category').deleteMany({ "_id": { "$in": children } }, { session });
+    const result = await mongodb.model('category').deleteMany({ "_id": { "$in": children } }, { session });
 
     return {
       expected: 1,
       found: [id],
       dependent: children,
-      deletedCount: state.deletedCount + 1
+      deletedCount: result.deletedCount + 1
     };
   });
 }
@@ -249,7 +251,7 @@ exports.deleteMany = async function (ids) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   ids = validation.result.ids;

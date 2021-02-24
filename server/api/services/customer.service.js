@@ -1,4 +1,4 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 const imageService = require('~services/image.service');
 const { updateDocument } = require('~utils/tools');
 const { regexes } = require('~utils/constants');
@@ -21,7 +21,10 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new BadRequestException({ 
+      code: 'WRONG_QUERY_PARAMETERS', 
+      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    });
   }
 
   return await mongodb.model('customer').paginate(validation.result);
@@ -32,7 +35,7 @@ exports.findById = async function (id, fields = null) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -49,7 +52,7 @@ exports.findById = async function (id, fields = null) {
 exports.create = async function (customer, provider = 'local') {
 
   const rule = {
-    'name': 'object',
+    'name': 'object|nullable',
     'name.first': 'string|trim|min:1|max:20',
     'name.last': 'string|trim|min:1|max:20',
     'displayName': 'required|string|trim|min:2|max:100',
@@ -63,14 +66,14 @@ exports.create = async function (customer, provider = 'local') {
     'addresses.*.block': 'required|trim|min:1|max:100',
     'addresses.*.district': 'required|trim|min:1|max:100',
     'addresses.*.province': 'required|trim|min:1|max:100',
-    'groups': 'array|unique',
+    'groups': 'array|unique|max:20',
     'groups.*': 'mongo_id',
     'active': 'not_allow'
   };
 
   const providerRules = {
     local: {
-      'local': 'required|object|only_one_of:local.email,local.phone',
+      'local': 'required|object|required_one_of:local.email,local.phone',
       'local.email': 'string|trim|lowercase|email',
       'local.phone': 'string|trim|phone',
       'local.password': 'required|string|min:6|max:16',
@@ -94,7 +97,7 @@ exports.create = async function (customer, provider = 'local') {
   const validation = await validate(customer, _.merge(rule, providerRules[provider]));
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   customer = validation.result;
@@ -144,13 +147,13 @@ exports.partialUpdate = async function (id, data) {
     'birthday': 'date:YYYY/MM/DD',
     'phones': 'array',
     'phones.*': 'string|trim|phone',
-    'avatar': 'mongo_id',
+    'avatar': 'mongo_id|nullable',
     'addresses': 'array',
     'addresses.*': 'object',
     'addresses.*.block': 'required|trim|min:1|max:100',
     'addresses.*.district': 'required|trim|min:1|max:100',
     'addresses.*.province': 'required|trim|min:1|max:100',
-    'groups': 'array|unique',
+    'groups': 'array|unique|max:20',
     'groups.*': 'mongo_id',
     'active': 'not_allow',
     'local': 'not_allow',
@@ -159,7 +162,7 @@ exports.partialUpdate = async function (id, data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -200,8 +203,9 @@ exports.partialUpdate = async function (id, data) {
       
       const oldGroups = customer.groups;
       const newGroups = data.groups;
-      const isChange = _.differenceWith(oldGroups, newGroups, (a, b) => a.equals(b)).length;
+      const isChange = _(oldGroups).xorWith(newGroups, (a, b) => a.equals(b)).value().length;
 
+      console.log(isChange);
       if (isChange && oldGroups.length) {
         await mongodb.model('customer-group').updateMany(
           { "_id": { "$in": oldGroups } },
@@ -243,7 +247,7 @@ exports.changePassword = async function (id, data, role = 'customer') {
   const validation = await validate(data, rules);
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -284,7 +288,7 @@ exports.deleteById = async function (id) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -325,7 +329,7 @@ exports.deleteMany = async function (ids) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   ids = validation.result.ids;

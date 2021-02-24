@@ -1,16 +1,16 @@
 const wrap = require('async-middleware').wrap;
 const mongoose = require('mongoose');
 
-function flatten(o, skipTrace = []) {
+function _flatten(o, skipTrace = []) {
   let result = {};
 
-  function recursive(o, path) {
+  function _recursive(o, path) {
     for (const [key, value] of Object.entries(o)) {
       
       let currentPath = path ? `${path}.${key}` : key;
 
       if (typeof value === 'object' && value !== null && !skipTrace.some(fn => fn(value))) {
-        recursive(value, currentPath); 
+        _recursive(value, currentPath); 
       }
       else {
         result[currentPath] = value;
@@ -18,7 +18,7 @@ function flatten(o, skipTrace = []) {
     }
   }
 
-  recursive(o, null);
+  _recursive(o, null);
 
   return result;
 }
@@ -27,7 +27,7 @@ exports.updateDocument = function (document, data) {
   
   const skip = [Array.isArray, v => v instanceof ObjectId || v instanceof mongoose.Model];
 
-  for (const [key, value] of Object.entries(flatten(data, skip))) {
+  for (const [key, value] of Object.entries(_flatten(data, skip))) {
     document.set(key, value);
   }
 

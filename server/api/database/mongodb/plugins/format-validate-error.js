@@ -1,6 +1,6 @@
 const { ValidationException } = require('~exceptions');
 
-function customErrorMessage(path, error) {
+function _customErrorMessage(path, error) {
 
   const e = error;
 
@@ -43,7 +43,7 @@ function customErrorMessage(path, error) {
   }
 }
 
-function afterValidate(error, _doc, next) {
+function _afterValidate(error, _doc, next) {
 
   if (!error) return next();
 
@@ -55,7 +55,7 @@ function afterValidate(error, _doc, next) {
 
     for (const [path, err] of Object.entries(error.errors)) {
       if (err.errors) continue;
-      message.push(customErrorMessage(path, err));
+      message.push(_customErrorMessage(path, err));
     }
 
     return next(new ValidationException({ message: message }));
@@ -64,4 +64,4 @@ function afterValidate(error, _doc, next) {
   return next(error);
 }
 
-module.exports = (schema) => schema.post('validate', afterValidate);
+module.exports = (schema) => schema.post('validate', _afterValidate);

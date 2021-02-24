@@ -1,4 +1,4 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 const { mongodb } = require('~database');
 const { regexes } = require('~utils/constants');
 const roleService = require('~services/role.service');
@@ -10,7 +10,7 @@ exports.getToken = async function (credentials, account = 'customer') {
   if (!credentials) {
     throw new AuthenticationException({ 
       code: 'INVALID_CREDENTIALS',
-      message: 'username or password is incorrect' 
+      message: 'Username or password is incorrect' 
     });
   }
 
@@ -30,7 +30,7 @@ exports.getToken = async function (credentials, account = 'customer') {
   if (validation.errors) {
     throw new AuthenticationException({
       code: 'INVALID_CREDENTIALS',
-      message: 'username or password is incorrect' 
+      message: 'Username or password is incorrect' 
     });
   }
 
@@ -45,7 +45,7 @@ exports.getToken = async function (credentials, account = 'customer') {
     if (!customer || !await customer.comparePassword(password)) {
       throw new AuthenticationException({ 
         code: 'INVALID_CREDENTIALS',
-        message: 'username or password is incorrect' 
+        message: 'Username or password is incorrect' 
       });
     }
 
@@ -85,7 +85,7 @@ exports.getToken = async function (credentials, account = 'customer') {
     if (!admin || !await admin.comparePassword(password)) {
       throw new AuthenticationException({ 
         code: 'INVALID_CREDENTIALS',
-        message: 'username or password is incorrect' 
+        message: 'Username or password is incorrect' 
       });
     }
 

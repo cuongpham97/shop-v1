@@ -5,7 +5,7 @@ const ErrorFilter = require('./filters/error.filter');
 
 const registerFilters = new Map([]);
 
-function findFilter(error, register) {
+function _findFilter(error, register) {
 
   for (const [eClass, filter] of register) {
     if (error.constructor === eClass) {
@@ -23,7 +23,7 @@ function findFilter(error, register) {
 module.exports = async function (error, req, res, next) {
   if (!error) return next();
 
-  const filter = findFilter(error, registerFilters);
+  const filter = _findFilter(error, registerFilters);
   const result = (new filter).catch(error, req, res);
 
   return res.status(result.httpStatus).json({

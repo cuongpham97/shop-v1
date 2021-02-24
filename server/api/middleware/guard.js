@@ -4,12 +4,15 @@ const customerService = require('~services/customer.service');
 const adminService = require('~services/admin.service');
 const roleService = require('~services/role.service');
 
-function getTokenFromHeader(req) {
+function _getTokenFromHeader(req) {
 
   let token = req.headers['authorization'] || req.headers['x-access-token'];
 
   if (!token) {
-    throw new AuthenticationException({ message: 'Access token not provided' });
+    throw new AuthenticationException({ 
+      code: 'MISSING_ACCESS_TOKEN',
+      message: 'Access token not provided' 
+    });
   }
 
   if (token.startsWith('Bearer ')) {
@@ -19,7 +22,7 @@ function getTokenFromHeader(req) {
   return token;
 }
 
-function decodeToken(token) {
+function _decodeToken(token) {
   try {
     return jwt.verifyAccessToken(token);
 
@@ -28,19 +31,19 @@ function decodeToken(token) {
   }
 }
 
-async function getProfile(account, id, fields) {
+async function _getProfile(account, id, fields) {
 
   const service = account === 'customer' ? customerService : adminService;
   
   return await service.findById(id, ['_id', 'tokenVersion', 'roles'].concat(fields));
 }
 
-function checkTokenVersion(profile, tokenVersion) {
+function _checkTokenVersion(profile, tokenVersion) {
   
   return profile.tokenVersion == tokenVersion;
 }
 
-function hasPermission(expect, permission) {
+function _hasPermission(expect, permission) {
   
   const [resource, action] = expect.trim().split('.');
 
@@ -63,17 +66,17 @@ module.exports = chain({
 
     return async function (req, _res, next) {
       
-      const token = getTokenFromHeader(req);
-      const decodedToken = decodeToken(token);
+      const token = _getTokenFromHeader(req);
+      const decodedToken = _decodeToken(token);
 
       if (decodedToken.type !== account) return next(
         new AuthenticationException({ message: 'Cannot use this token' })
       );
 
       const fields = this.context.getFields;
-      const profile = await getProfile(account, decodedToken.id, fields);
+      const profile = await _getProfile(account, decodedToken.id, fields);
       
-      const check = checkTokenVersion(profile, decodedToken.version);
+      const check = _checkTokenVersion(profile, decodedToken.version);
 
       if (!check) return next(
         new AuthenticationException({ 
@@ -147,19 +150,19 @@ module.exports = chain({
       
       const { roles } = req.user;
 
-      const permission = await roleService.cache.getPermissionByRoleNames(...roles);
+      const permission = await roleService.getPermissionByRoleNames(...roles);
 
       for (const expect of actions) {
 
         if (Array.isArray(expect)) {
 
-          if (!expect.find(e => hasPermission(e, permission))) return next(
+          if (!expect.find(e => _hasPermission(e, permission))) return next(
             new AuthorizationException({ message: 'Don\'t have permission to access' })
           );
 
         } else {
 
-          if (!hasPermission(expect, permission)) return next(
+          if (!_hasPermission(expect, permission)) return next(
             new AuthorizationException({ message: 'Don\'t have permission to access' })
           );
         }

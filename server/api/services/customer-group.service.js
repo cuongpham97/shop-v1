@@ -1,4 +1,4 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
 
@@ -19,7 +19,10 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new BadRequestException({ 
+      code: 'WRONG_QUERY_PARAMETERS', 
+      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    });
   }
 
   return await mongodb.model('customer-group').paginate(validation.result);
@@ -30,7 +33,7 @@ exports.findById = async function (id, fields = null) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -53,7 +56,7 @@ exports.create = async function (customerGroup) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   group = validation.result;
@@ -75,7 +78,7 @@ exports.partialUpdate = async function (id, data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -99,7 +102,7 @@ exports.deleteById = async function (id) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -134,7 +137,7 @@ exports.deleteMany = async function (ids) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   ids = validation.result.ids;

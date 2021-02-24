@@ -1,4 +1,4 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 const imageService = require('~services/image.service');
 const { updateDocument } = require('~utils/tools');
 const { regexes } = require('~utils/constants');
@@ -22,7 +22,10 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new BadRequestException({ code: 'WRONG_QUERY_PARAMETER', message: validation.errors });
+    throw new BadRequestException({ 
+      code: 'WRONG_QUERY_PARAMETERS', 
+      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    });
   }
 
   return await mongodb.model('admin').paginate(validation.result);
@@ -33,7 +36,10 @@ exports.findById = async function (id, fields = null) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ 
+      code: 'WRONG_QUERY_PARAMS',
+      message: validation.errors.first()
+    });
   }
 
   id = validation.result.id;
@@ -51,9 +57,9 @@ exports.create = async function (admin) {
 
   const validation = await validate(admin, {
     'name': 'object',
-    'name.first': 'string|trim|min:1|max:20',
-    'name.last': 'string|trim|min:1|max:20',
-    'displayName': 'required|string|trim|min:2|max:100',
+    'name.first': 'string|trim|min:1|max:20|titlecase',
+    'name.last': 'string|trim|min:1|max:20|titlecase',
+    'displayName': 'required|string|trim|min:2|max:100|titlecase',
     'gender': ['required', 'lowercase', 'titlecase', 'regex:' + regexes.GENDER],
     'birthday': 'required|date:YYYY/MM/DD',
     'phone': 'string|trim|phone',
@@ -70,7 +76,7 @@ exports.create = async function (admin) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   admin = validation.result;
@@ -108,15 +114,15 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
 
   const validation = await validate(data, {
     'id': 'mongo_id',
-    'name': 'object',
+    'name': 'object|nullable',
     'name.first': 'string|trim|min:1|max:20',
     'name.last': 'string|trim|min:1|max:20',
     'displayName': 'string|trim|min:2|max:100',
     'gender': ['lowercase', 'titlecase', 'regex:' + regexes.GENDER],
     'birthday': 'date:YYYY/MM/DD',
-    'phone': 'string+null|trim|phone',
-    'avatar': 'mongo_id+null',
-    'address': 'object+null',
+    'phone': 'string|nullable|trim|phone',
+    'avatar': 'mongo_id|nullable',
+    'address': 'object|nullable',
     'address.block': 'required_with:address|string|trim|min:1|max:100',
     'address.district': 'required_with:address|string|trim|min:1|max:100',
     'address.province': 'required_with:address|string|trim|min:1|max:100',
@@ -128,7 +134,7 @@ exports.partialUpdate = async function (id, data, role = 'admin') {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -189,7 +195,7 @@ exports.changePassword = async function (id, data, role = 'admin') {
   const validation = await validate(data, rules);
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -223,7 +229,7 @@ exports.deleteById = async function (id) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -255,7 +261,7 @@ exports.deleteMany = async function (ids) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   ids = validation.result.ids;

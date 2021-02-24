@@ -6,7 +6,7 @@ const moment = require('moment');
 let accessToken = config.imgur.ACCESS_TOKEN;
 let expiresIn = 0;
 
-function checkToken() {
+function _checkToken() {
   if (expiresIn && moment().isBefore(expiresIn)) {
     return null;
   }
@@ -30,7 +30,7 @@ const request = new Proxy(axios, {
   get: function (target, method, receiver) {
 
     return async function (...args) {
-      await checkToken();
+      await _checkToken();
 
       const instance = axios.create({ 
         headers: { Authorization: `Bearer ${accessToken}` } 

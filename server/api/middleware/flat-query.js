@@ -3,7 +3,7 @@ const patterns = {
   '{value},...'      : /(?<value>"(?:(?<=\\)"|[^"])+"|[^,]+)(?:,|$)/g
 }
 
-function unflatten(str) {
+function _unflatten(str) {
 
   switch (true) {
     case patterns['{key}={value},...'].test(str): {
@@ -36,7 +36,7 @@ function unflatten(str) {
 
 exports.unflatten = function (req, _res, next) {
 
-  Object.keys(req.query).forEach(param => req.query[param] = unflatten(req.query[param]));
+  Object.keys(req.query).forEach(param => req.query[param] = _unflatten(req.query[param]));
 
   return next();
 }

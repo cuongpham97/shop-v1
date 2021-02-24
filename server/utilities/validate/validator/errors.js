@@ -11,6 +11,10 @@ Errors.prototype = {
     ++this.errorsCount;
   },
 
+  first: function () {
+    return Object.values(this.errors)[0];
+  },
+
   keys: function () {
     return Object.keys(this.errors);
   },

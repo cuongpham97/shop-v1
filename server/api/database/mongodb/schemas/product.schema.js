@@ -49,8 +49,7 @@ const Image = new Schema({
 
 const Discount = new Schema({
   customerGroup: {
-    type: ObjectId,
-    default: null,
+    type: ObjectId
   },
   quantity: {
     type: Number,
@@ -77,8 +76,7 @@ const Discount = new Schema({
 
 const Special = new Schema({
   customerGroup: {
-    type: ObjectId,
-    default: null
+    type: ObjectId
   },
   priority: {
     type: Number,

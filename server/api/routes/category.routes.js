@@ -4,7 +4,7 @@ const tools = require('~utils/tools');
 
 module.exports = tools.applyRoutes(router, [
 
-  ['GET', '/categories/tree', categoryCtrl.getCategoryTree],
+  ['GET', '/categories/tree', categoryCtrl.getCategoriesTree],
 
   ['GET', '/admin/categories', categoryCtrl.getManyCategory],
   ['POST', '/admin/categories', categoryCtrl.createNewCategory],

@@ -19,7 +19,7 @@ const Avatar = new Schema({
   size: Number
 });
 
-async function uniqueUsername(username) {
+async function _uniqueUsername(username) {
   if (!this.isModified('username')) return true;
  
   const admin = await this.constructor.findOne({ "username": username }, '_id');
@@ -50,7 +50,6 @@ const AdminSchema = new Schema({
   },
   gender: {
     type: String,
-    lowercase: true,
     match: regexes.GENDER,
     required: true
   },
@@ -74,7 +73,7 @@ const AdminSchema = new Schema({
     maxLength: 16,
     lowercase: true,
     required: true,
-    validate: { validator: uniqueUsername, msg: 'msg: Username already in use' }
+    validate: { validator: _uniqueUsername, msg: 'msg: Username already in use' }
   },
   password: {
     type: String,

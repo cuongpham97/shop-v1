@@ -1,4 +1,4 @@
-const validate = require('~utils/validator');
+const validate = require('~utils/validate');
 const imageService = require('~services/image.service');
 const categoryService = require('~services/category.service');
 const { updateDocument } = require('~utils/tools');
@@ -23,7 +23,10 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new BadRequestException({ 
+      code: 'WRONG_QUERY_PARAMETERS', 
+      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    });
   }
 
   return await mongodb.model('product').paginate(validation.result);
@@ -34,7 +37,7 @@ exports.findById = async function (id, fields = null) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -42,7 +45,7 @@ exports.findById = async function (id, fields = null) {
   const product = await mongodb.model('product').findById(id, fields);
 
   if (!product) {
-    throw new NotFoundException({ message: 'Product ID not found' });
+    throw new NotFoundException({ message: 'Product ID does not exist' });
   }
 
   return product;
@@ -122,7 +125,7 @@ exports.create = async function (product) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   product = validation.result;
@@ -145,7 +148,7 @@ exports.create = async function (product) {
     //#region Transform categories
 
     // Get categories
-    let categories = await categoryService.cache.getByIds(product.categories);
+    let categories = await categoryService.findByIdsFromCache(product.categories);
 
     // Populate ancestors
     for (const [index, category] of categories.entries()) {
@@ -154,7 +157,7 @@ exports.create = async function (product) {
         throw new NotFoundException({ message: `"categories.${index}" does not exist` });
       }
 
-      category.ancestors = await categoryService.cache.getByIds(category.ancestors);
+      category.ancestors = await categoryService.findByIdsFromCache(category.ancestors);
     }
   
     product.categories = categories.map(category => {
@@ -274,7 +277,7 @@ exports.partialUpdate = async function (id, data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   id = validation.result.id;
@@ -304,7 +307,7 @@ exports.partialUpdate = async function (id, data) {
     if (data.categories) {
 
       // Get categories
-      let categories = await categoryService.cache.getByIds(data.categories);
+      let categories = await categoryService.findByIdsFromCache(data.categories);
 
       // Populate ancestors
       for (const [index, category] of categories.entries()) {
@@ -313,7 +316,7 @@ exports.partialUpdate = async function (id, data) {
           throw new NotFoundException({ message: `"categories.${index}" does not exist` });
         }
 
-        category.ancestors = await categoryService.cache.getByIds(category.ancestors);
+        category.ancestors = await categoryService.findByIdsFromCache(category.ancestors);
       }
     
       data.categories = categories.map(category => {
@@ -374,7 +377,7 @@ exports.deleteById = async function (id) {
   const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.first() });
   }
 
   id = validation.result.id;
@@ -406,7 +409,7 @@ exports.deleteMany = async function (ids) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   ids = validation.result.ids;

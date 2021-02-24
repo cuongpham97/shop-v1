@@ -1,6 +1,6 @@
 const { Schema } = require('mongoose');
 
-async function uniqueCategoryName(name) {
+async function _uniqueCategoryName(name) {
   if (!this.isModified('name')) return true;
  
   const category = await this.constructor.findOne({ "name": name }, '_id');
@@ -13,7 +13,7 @@ const CategorySchema = new Schema({
     minLength: 1,
     maxLength: 200, 
     required: true,
-    validate: { validator: uniqueCategoryName, msg: 'msg: Category name already in use' }
+    validate: { validator: _uniqueCategoryName, msg: 'msg: Category name already in use' }
   },
   ancestors: [{ 
     type: Schema.Types.ObjectId, 

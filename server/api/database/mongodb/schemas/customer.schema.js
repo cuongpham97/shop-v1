@@ -19,7 +19,7 @@ const Avatar = new Schema({
   size: Number
 });
 
-async function uniqueEmail(email) {
+async function _uniqueEmail(email) {
   if (!this.isModified('email')) return true;
   
   const model = this.parent().constructor;
@@ -27,7 +27,7 @@ async function uniqueEmail(email) {
   return !customer;
 }
 
-async function uniquePhone(phone) {
+async function _uniquePhone(phone) {
   if (!this.isModified('phone')) return true;
 
   const model = this.parent().constructor;
@@ -41,13 +41,13 @@ const LocalProvider = new Schema({
     trim: true,
     lowercase: true,
     match: regexes.EMAIL,
-    validate: { validator: uniqueEmail, msg: 'msg: "local.email" already in use' }
+    validate: { validator: _uniqueEmail, msg: 'msg: "local.email" already in use' }
   },
   phone: {
     type: String,
     trim: true,
     match: regexes.PHONE_NUMBER,
-    validate: { validator: uniquePhone, msg: 'msg: "local.phone" already in use' }
+    validate: { validator: _uniquePhone, msg: 'msg: "local.phone" already in use' }
   },
   password: {
     type: String,
@@ -97,7 +97,6 @@ const CustomerSchema = new Schema({
   },
   gender: {
     type: String,
-    lowercase: true,
     match: regexes.GENDER,
     required: true
   },

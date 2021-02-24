@@ -1,3 +1,5 @@
+const validate = require('~utils/validate');
+const { mongodb } = require('~database');
 const pricing = require('~libraries/pricing');
 const moment = require('moment');
 
@@ -13,7 +15,7 @@ exports.findByCustomer = async function (customerId, customerGroup = []) {
   );
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   customerId = validation.result.id;
@@ -24,7 +26,6 @@ exports.findByCustomer = async function (customerId, customerGroup = []) {
   if (!cart) return { items: [] };
 
   const productIds = cart.items.map(item => item.product);
-
   const products = await mongodb.model('product').find({ "_id": { "$in": productIds } });
 
   const now = moment();
@@ -32,14 +33,15 @@ exports.findByCustomer = async function (customerId, customerGroup = []) {
   const items = cart.items.map(item => {
 
     const product = products.find(product => product._id.equals(item.product));
-
+    
     if (!product) return undefined;
 
     const sku = product.skus.find(sku => sku._id.equals(item.sku));
 
     if (!sku) return undefined;
 
-    // TODO: calculate price //const salePrice = pricing.calcSalePrice(product, sku)
+    // TODO: calculate price
+    //const salePrice = pricing.calcSalePrice(product, sku);
 
     return {
       product: product._id,
@@ -57,7 +59,7 @@ exports.findByCustomer = async function (customerId, customerGroup = []) {
   return { items: items.filter(Boolean) }; 
 }
 
-exports.addToCart = async function (customerId, item) {
+exports.setCartItem = async function (customerId, item) {
   
   const data = item;
   data.id = customerId;
@@ -66,11 +68,11 @@ exports.addToCart = async function (customerId, item) {
     'id': 'mongo_id',
     'product': 'required|mongo_id',
     'sku': 'required|mongo_id',
-    'quantity': 'required|integer'
+    'quantity': 'required|integer|min:0'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors });
+    throw new ValidationException({ message: validation.errors.toArray() });
   }
 
   customerId = validation.result.id;

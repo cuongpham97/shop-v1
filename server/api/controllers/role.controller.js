@@ -16,13 +16,13 @@ exports.getRoleById = async function (req, res) {
 }
 
 exports.createNewRole = async function (req, res) {
-  const newRole = await roleService.create(req.body);
+  const newRole = await roleService.create(req.body, req.user);
 
   return res.status(StatusCodes.OK).json(newRole);
 }
 
 exports.partialUpdateRole = async function (req, res) {
-  const role = await roleService.partialUpdate(req.params.id, req.body);
+  const role = await roleService.partialUpdate(req.params.id, req.body, req.user);
 
   return res.status(StatusCodes.OK).json(role);
 }

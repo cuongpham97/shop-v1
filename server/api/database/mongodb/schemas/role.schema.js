@@ -1,15 +1,16 @@
 const { Schema } = require('mongoose');
 
-async function uniqueRoleName(name) {
+async function _uniqueRoleName(name) {
   if (!this.isModified('name')) return true;
 
   const role = await this.constructor.findOne({ "name": name }, '_id');
   return !role;
 }
 
-function validatePermission(permission) {
+function _validatePermission(permission) {
   if (!this.isModified('permission')) return true;
 
+  //TODO: validate permission
   return true;
 }
 
@@ -19,7 +20,7 @@ const RoleSchema = new Schema({
     minlength: 1,
     maxlength: 200,
     required: true,
-    validate: { validator: uniqueRoleName, msg: 'msg: Role already in use'}
+    validate: { validator: _uniqueRoleName, msg: 'msg: Role already in use'}
   },
   level: {
     type: Number,
@@ -27,15 +28,15 @@ const RoleSchema = new Schema({
   },
   permission: {
     type: Schema.Types.Mixed,
-    validate: { validator: validatePermission, msg: 'msg: Invalid permission' },
+    validate: { validator: _validatePermission, msg: 'msg: Invalid permission' },
     default: {}
   },
   creator: {
-    id: String,
+    _id: ObjectId,
     name: String
   },
   updator: {
-    id: String,
+    _id: ObjectId,
     name: String
   },
   active: {
