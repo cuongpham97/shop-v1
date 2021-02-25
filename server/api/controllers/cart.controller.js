@@ -3,7 +3,7 @@ const cartService  = require('~services/cart.service');
 
 exports.getCurrentUserCart = async function (req, res) {
 
-  const cart = await cartService.findByCustomer(req.user._id, req.user.group);
+  const cart = await cartService.findByCustomer(req.user);
 
   return res.status(StatusCodes.OK).json(cart);
 }

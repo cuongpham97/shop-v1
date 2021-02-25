@@ -3,25 +3,21 @@ const { mongodb } = require('~database');
 const pricing = require('~libraries/pricing');
 const moment = require('moment');
 
-exports.findByCustomer = async function (customerId, customerGroup = []) {
+exports.findByCustomer = async function (customer) {
 
-  const validation = await validate(
-    { 'id': customerId, 'group': customerGroup }, 
-    { 
-      'id': 'mongo_id',
-      'group': 'to:array',
-      'group.*': 'mongo_id' 
-    } 
-  );
+  const validation = await validate(customer, { 
+    '_id': 'mongo_id',
+    'groups': 'to:array',
+    'groups.*': 'mongo_id' 
+  });
 
   if (validation.errors) {
     throw new ValidationException({ message: validation.errors.toArray() });
   }
 
-  customerId = validation.result.id;
-  customerGroup = validation.result.group;
+  customer = validation.result;
 
-  const cart = await mongodb.model('cart').findOne({ "customer": customerId });
+  const cart = await mongodb.model('cart').findOne({ "customer": customer._id });
 
   if (!cart) return { items: [] };
 
@@ -41,7 +37,7 @@ exports.findByCustomer = async function (customerId, customerGroup = []) {
     if (!sku) return undefined;
 
     // TODO: calculate price
-    //const salePrice = pricing.calcSalePrice(product, sku);
+    const sellingPrice = pricing.calculateSellingPrice(product, sku, item.quantity, customer);
 
     return {
       product: product._id,

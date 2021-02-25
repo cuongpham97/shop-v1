@@ -5,7 +5,7 @@ const tools = require('~utils/tools');
 
 module.exports = tools.applyRoutes(router, [
 
-  ['GET', '/carts', guard.auth('customer').get('group') , cartCtrl.getCurrentUserCart],
+  ['GET', '/carts', guard.auth('customer').get('groups') , cartCtrl.getCurrentUserCart],
   ['POST', '/carts/items', guard.auth('customer'), cartCtrl.setCurrentUserCartItem]
   
 ]);
