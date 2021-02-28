@@ -12,6 +12,7 @@ const cartModel = require('./models/cart.model');
 const imageModel = require('./models/image.model');
 const productModel = require('./models/product.model');
 const categoryModel = require('./models/category.model');
+const checkoutModel = require('./models/checkout.model');
 
 // Plugins
 const pagination = require('./plugins/pagination');
@@ -26,7 +27,8 @@ const models = [
   cartModel,
   imageModel, 
   productModel,
-  categoryModel
+  categoryModel,
+  checkoutModel
 ];
 
 const plugins = [

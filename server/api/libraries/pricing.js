@@ -1,13 +1,25 @@
 const moment = require('moment');
 
-function _originPrice(product, sku) {
+function _additionPrice(product, sku) {
+  if (product.template === 'VARIANT') {
+    return 0;
+  }
 
-  return product.pricingTemplate === 'PRODUCT' ? product.price : sku.price;
+  const { sign, value } = sku.additionPrice;
+
+  return (sign === '-' ? -1 : 1) * value;
+}
+
+function _nomarlPrice(product, sku) {
+  let nomarlPrice = product.pricingTemplate === 'PRODUCT' 
+    ? product.price 
+    : sku.price 
+
+  return nomarlPrice + _additionPrice(product, sku);
 }
 
 function _hasGroup(customer, groupId) {
   if (!groupId) return true;
-
   return customer && customer.groups && customer.groups.find(i => i.equals(groupId));
 }
 
@@ -16,17 +28,9 @@ function _isInTime(effectiveDate, expiryDate) {
   return (!effectiveDate || now.isAfter(effectiveDate)) && (!expiryDate || now.isBefore(expiryDate));
 }
 
-function _orderByPriority(array) {
-  return array.sort((a, b) => a.priority - b.priority);
-}
-
 function _salePrice(product, sku, customer) {
-  
-  const template = product.pricingTemplate === 'PRODUCT' 
-    ? 'PRODUCT' 
-    : 'VARIANT';
 
-  let special = template === 'PRODUCT' ? product.special : sku.special;
+  let special = product.pricingTemplate === 'PRODUCT' ? product.special : sku.special;
 
   special = special.filter(line => _hasGroup(customer, line.customerGroup) && _isInTime(line.effectiveDate, line.expiryDate));
 
@@ -34,20 +38,58 @@ function _salePrice(product, sku, customer) {
     return undefined;
   }
 
-  return _orderByPriority(special)[0].salePrice;
-}
-
-exports.calculateSellingPrice = function (product, sku, quantity, customer = null) {
+  special = special.sort((a, b) => a.priority - b.priority);
   
-  const price = _originPrice(product, sku);
+  return special[0].salePrice + _additionPrice(product, sku);
+}
+
+function _percentageSale(price, salePrice) {
+  const percent = (price - salePrice) / price * 100; 
+  return percent.toFixed(2);
+}
+
+function _discountQueue(product, sku, customer) {
+  let discount = product.pricingTemplate === 'PRODUCT' ? product.discount : sku.discount;
+  discount = discount.filter(line => _hasGroup(customer, line.customerGroup) && _isInTime(line.effectiveDate, line.expiryDate));
+  discount.sort((a, b) => a.quantity - b.quantity || a.priority - b.priority);
+  return discount;
+}
+
+function _discount(product, sku, quantity, customer) {
+  const discount = _discountQueue(product, sku, customer).find(line => line.quantity === quantity);
+  return discount ? discount.value : 0;
+}
+
+exports.expectedPrice = function (product, sku, customer = null) {
+
+  const nomarlPrice = _nomarlPrice(product, sku);
   const salePrice = _salePrice(product, sku, customer);
-
-  console.log(salePrice);
+  const percentageSale = _percentageSale(nomarlPrice, salePrice);
+  const discountQueue = _discountQueue(product, sku, customer);
+  
+  return {
+    nomarlPrice,
+    discountQueue, 
+    salePrice,
+    percentageSale
+  };
 }
 
-exports.calculateExpectedPrice = function (product, sku, customer = null) {
+exports.productLinePrice = function (product, sku, quantity, customer = null) {
+  
+  const nomarlPrice = _nomarlPrice(product, sku);
+  const salePrice = _salePrice(product, sku, customer);
+  const percentageSale = _percentageSale(nomarlPrice, salePrice);
+  const discount = _discount(product, sku, quantity, customer);
+  const price = (salePrice || nomarlPrice) - discount;
+  const subtotal = price * quantity;
 
-}
-
-exports.calcTotalPrice = function (product, sku, quantity, tax = null, customerGroup = null) {
+  return {
+    price,
+    nomarlPrice,
+    discount, 
+    salePrice,
+    percentageSale,
+    subtotal
+  };
 }

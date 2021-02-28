@@ -1,13 +1,12 @@
 const validate = require('~utils/validate');
 const { mongodb } = require('~database');
 const pricing = require('~libraries/pricing');
-const moment = require('moment');
 
 exports.findByCustomer = async function (customer) {
 
   const validation = await validate(customer, { 
     '_id': 'mongo_id',
-    'groups': 'to:array',
+    'groups': 'required|array',
     'groups.*': 'mongo_id' 
   });
 
@@ -24,20 +23,15 @@ exports.findByCustomer = async function (customer) {
   const productIds = cart.items.map(item => item.product);
   const products = await mongodb.model('product').find({ "_id": { "$in": productIds } });
 
-  const now = moment();
-
   const items = cart.items.map(item => {
 
     const product = products.find(product => product._id.equals(item.product));
-    
     if (!product) return undefined;
 
     const sku = product.skus.find(sku => sku._id.equals(item.sku));
-
     if (!sku) return undefined;
 
-    // TODO: calculate price
-    const sellingPrice = pricing.calculateSellingPrice(product, sku, item.quantity, customer);
+    const sellingPrice = pricing.productLinePrice(product, sku, item.quantity, customer);
 
     return {
       product: product._id,
@@ -45,8 +39,7 @@ exports.findByCustomer = async function (customer) {
       name: product.name,
       attributes: sku.attributes,
       images: sku.images,
-      //price
-      //sale
+      pricing: sellingPrice,
       quantity: item.quantity,
       inventory: sku.quantity
     };
