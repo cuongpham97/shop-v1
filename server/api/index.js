@@ -38,8 +38,10 @@ function createApp() {
   const image = require('~routes/image.routes');
   const product = require('~routes/product.routes');
   const category = require('~routes/category.routes');
+  const checkout = require('~routes/checkout.routes');
   const permission = require('~routes/permission.routes');
   
+
   api.use(customerGroup);
   api.use(customer);
   api.use(admin);
@@ -49,6 +51,7 @@ function createApp() {
   api.use(image);
   api.use(product);
   api.use(category);
+  api.use(checkout);
   api.use(permission);
   
   api.use('*', () => { 

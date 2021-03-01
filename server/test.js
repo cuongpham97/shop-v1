@@ -888,35 +888,69 @@
 // })();
 
 //const config = require('./config');
-const config = require('./config');
-const validate = require('./utilities/validate');
+//const config = require('./config');
+// const validate = require('./utilities/validate');
 
-const input = {
-  name: {
-    first: ' Phạm',
-    last: 'A'
-  },
-  age: 100,
-  skill: ['js', 'php', 'angular']
-}
+// const input = {
+//   name: {
+//     first: ' Phạm',
+//     last: 'A'
+//   },
+//   age: 100,
+//   skill: ['js', 'php', 'angular']
+// }
 
-const rules = {
-  name: {
-    first: 'required|string|nullable|uppercase|lowercase|titlecase|trim|min:1|max:10',
-    last: [['regex', /A/]]
-  },
-  'age': 'required',
-  'skill': 'array'
-}
+// const rules = {
+//   name: {
+//     first: 'required|string|nullable|uppercase|lowercase|titlecase|trim|min:1|max:10',
+//     last: [['regex', /A/]]
+//   },
+//   'age': 'required',
+//   'skill': 'array'
+// }
 
-!(async function () {
+// !(async function () {
 
-  const validation = await validate(input, rules);
+//   const validation = await validate(input, rules);
 
 
-  if (validation.errors) {
-    console.log(validation.errors.toArray());
+//   if (validation.errors) {
+//     console.log(validation.errors.toArray());
+//   }
+
+//   console.log(validation.result)
+// })();
+
+
+const chain = require('./utilities/chain');
+
+const auth = chain(
+  function (type) {
+
+    this.context = type;
+
+    return function (req, res, next) {
+      console.log(this.context);
+      next();
+    } 
+  }, 
+  {
+    get: function (fields) {
+
+      return function (req, res, next) {
+        console.log(this.context);
+        next();
+      }
+    }
+
   }
+);
 
-  console.log(validation.result)
-})();
+let c = auth('admin').get('a');
+let b = auth('customer').get('b');
+
+
+c(null, null, function () {
+  console.log('end');
+});
+

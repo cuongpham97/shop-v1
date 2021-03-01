@@ -2,7 +2,7 @@ const validate = require('~utils/validate');
 const { mongodb } = require('~database');
 const pricing = require('~libraries/pricing');
 
-exports.create = async function (data, customer) {
+exports.create = async function (customer, data) {
 
   data.customer = customer;
 
@@ -23,4 +23,8 @@ exports.create = async function (data, customer) {
 
   const items = validation.result.items;
   customer = validation.result.customer;
+
+  const cart = await mongodb.model('cart').findOne({ "customer": customer._id });
+
+  console.log(cart);
 }

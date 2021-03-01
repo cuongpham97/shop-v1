@@ -60,7 +60,7 @@ function _discount(product, sku, quantity, customer) {
   return discount ? discount.value : 0;
 }
 
-exports.expectedPrice = function (product, sku, customer = null) {
+exports.previewProduct = function (product, sku, customer = null) {
 
   const nomarlPrice = _nomarlPrice(product, sku);
   const salePrice = _salePrice(product, sku, customer);

@@ -2,75 +2,43 @@ function concat(...promises) {
   return promises.reduce((p1, p2) => p1.then(v1 => p2.then(v2 => v1.concat(v2))), Promise.resolve([]));
 }
 
-function MiddlewareChain(chain) {
-  this.chain = chain;
-  return this.createMiddleware();
-}
+module.exports = function (target, next) {
 
-MiddlewareChain.prototype.fnChain = function (context) {
+  return new Proxy(target, {
+    apply: function (target, _this, args) {
 
-  const prototype = {};
+      let _context = { context: {} };
+      let _chain = Promise.resolve(target.call(_context, ...args));
 
-  for (const [name, fn] of Object.entries(this.chain)) {
-    prototype[name] = function (...args) {
+      const middleware = async function (req, res, next) {
 
-      context.chain = concat(context.chain, Promise.resolve(fn.call(context, ...args)));
-
-      context.chain.catch(error => { throw error; });
-
-      return this;
-    }
-  }
-
-  return prototype;
-}
-
-MiddlewareChain.prototype.createMiddleware = function () {
-
-  const context = { chain: Promise.resolve([]), context: {} }
-
-  const middleware = async function (req, res, next) {
-
-    const _context = {
-      chain: [...(await context.chain)],
-      context: { ...context.context }
-    };
-
-    const func = _context.chain.shift();
-
-    async function nextFn(error) {
-
-      if (error) return next(error);
-
-      const _next = _context.chain.shift();
-      
-      if (!_next) return next();
-      
-      const wrapped = async function (req, res, next) {
-        try {
-          return await _next.call(_context, req, res, next);
-        
-        } catch(e) {
-          return next(e);
-        }
+        const chain = [...await _chain];
+        const context = { ... _context };
+        const func = chain.shift();
+    
+        await func.call(context, req, res, async error => {
+          try {
+            if (error) return next(error);
+            const _next = chain.shift();
+          
+            if (!_next) return next();
+            return await _next.call(context, req, res, next);
+            
+          } catch(e) {
+            return next(e);
+          }
+        });
       }
 
-      return await wrapped(req, res, nextFn);
-    }
+      for (const [name, fn] of Object.entries(next)) {
+        middleware[name] = function (...args) {
+          _chain = concat(_chain, Promise.resolve(fn.call(_context, ...args)));
+          _chain.catch(error => { throw error; });
+          return this;
+        }
+      } 
 
-    await func.call(_context, req, res, nextFn);
-  }
-
-  return Object.assign(middleware, this.fnChain(context));
-}
-
-module.exports = function (chain) {
-
-  return new Proxy({}, {
-    get: function (_target, property, _receiver) {
-
-      const middleware = new MiddlewareChain(chain);
-      return middleware[property].bind(middleware);
+      return middleware;
     }
   });
 }
