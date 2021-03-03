@@ -12,7 +12,7 @@ module.exports = function (target, next) {
 
       const middleware = async function (req, res, next) {
 
-        const chain = [...await _chain];
+        const chain = [...[].concat(await _chain)];
         const context = { ... _context };
         const func = chain.shift();
     
