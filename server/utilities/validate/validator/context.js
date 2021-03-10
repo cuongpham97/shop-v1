@@ -20,8 +20,12 @@ Context.prototype = {
     return _.has(this.input, this.attribute);
   },
 
-  passedNullable: function () {
+  acceptNullable: function () {
     return _.get(this.input, this.attribute) === null && this.hasRule('nullable');
+  },
+
+  notPresentOrAcceptNullable: function () {
+    return !this.isPresent() || this.acceptNullable();
   },
 
   hasInputAttribute: function (attribute) {

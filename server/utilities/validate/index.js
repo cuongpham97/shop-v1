@@ -6,4 +6,4 @@ module.exports = async function (value, rule, customMessages, validator) {
   return await validator.check();
 }
 
-exports.Validator = Validator;
+module.exports.Validator = Validator;

@@ -31,22 +31,26 @@ function createApp() {
   // Define routes
   const customerGroup = require('~routes/customer-group.routes');
   const customer = require('~routes/customer.routes');
+  const location = require('~routes/location.routes');
   const admin = require('~routes/admin.routes');
   const auth = require('~routes/auth.routes');
   const cart = require('~routes/cart.routes');
   const role = require('~routes/role.routes');
+  const order = require('~routes/order.routes');
   const image = require('~routes/image.routes');
   const product = require('~routes/product.routes');
   const category = require('~routes/category.routes');
   const checkout = require('~routes/checkout.routes');
   const permission = require('~routes/permission.routes');
-  
+
 
   api.use(customerGroup);
   api.use(customer);
+  api.use(location);
   api.use(admin);
   api.use(auth);
   api.use(role);
+  api.use(order);
   api.use(cart);
   api.use(image);
   api.use(product);

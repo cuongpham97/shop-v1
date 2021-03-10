@@ -112,7 +112,7 @@ exports.getToken = async function (credentials, account = 'customer') {
         version: admin.tokenVersion
       }),
 
-      scopes: await roleService.cache.getPermissionByRoleNames(...admin.roles),
+      scopes: await roleService.getPermissionByRoleNames(...admin.roles),
 
       expiresIn: config.jwt.ACCESS_TOKEN_LIFE
     };

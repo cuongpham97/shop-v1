@@ -62,10 +62,7 @@ exports.create = async function (customer, provider = 'local') {
     'phones.*': 'string|trim|phone',
     'avatar': 'mongo_id',
     'addresses': 'array',
-    'addresses.*': 'object',
-    'addresses.*.block': 'required|trim|min:1|max:100',
-    'addresses.*.district': 'required|trim|min:1|max:100',
-    'addresses.*.province': 'required|trim|min:1|max:100',
+    'addresses.*': 'location',
     'groups': 'array|unique|max:20',
     'groups.*': 'mongo_id',
     'active': 'not_allow'
@@ -149,10 +146,7 @@ exports.partialUpdate = async function (id, data) {
     'phones.*': 'string|trim|phone',
     'avatar': 'mongo_id|nullable',
     'addresses': 'array',
-    'addresses.*': 'object',
-    'addresses.*.block': 'required|trim|min:1|max:100',
-    'addresses.*.district': 'required|trim|min:1|max:100',
-    'addresses.*.province': 'required|trim|min:1|max:100',
+    'addresses.*': 'location',
     'groups': 'array|unique|max:20',
     'groups.*': 'mongo_id',
     'active': 'not_allow',
@@ -205,7 +199,6 @@ exports.partialUpdate = async function (id, data) {
       const newGroups = data.groups;
       const isChange = _(oldGroups).xorWith(newGroups, (a, b) => a.equals(b)).value().length;
 
-      console.log(isChange);
       if (isChange && oldGroups.length) {
         await mongodb.model('customer-group').updateMany(
           { "_id": { "$in": oldGroups } },

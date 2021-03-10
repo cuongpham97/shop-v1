@@ -1,9 +1,18 @@
-const en = require('./lang/en.json');
+function _loadMessage(lang) {
+  return require(`./lang/${lang}.json`);
+}
 
 function Messages(customMessages) {
-  this.lang = 'en';
-  this.customMessages = customMessages || {}
-  this.messages = en;
+  this.customMessages = {...Messages.customMessages, ...customMessages };
+  this.messages = _loadMessage(Messages.defaultLang);
+}
+
+Messages.defaultLang = 'en';
+
+Messages.customMessages = {};
+
+Messages.setMessage = function (ruleName, message) {
+  Messages.customMessages[ruleName] = message;
 }
 
 Messages.prototype = {

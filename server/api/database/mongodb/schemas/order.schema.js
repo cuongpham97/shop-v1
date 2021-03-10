@@ -56,7 +56,7 @@ const Pricing = new Schema({
     type: Number,
     min: 0
   }
-});
+}, { _id: false });
 
 const Item = new Schema({
   product: {
@@ -86,10 +86,17 @@ const Item = new Schema({
 const Status = new Schema({
   name: {
     type: String,
-    enum: [],
+    enum: [
+      'PENDING',
+      'CANCELED',
+      'DENIED',
+      'SHIPPING',
+      'COMPLETED',
+      'EXPIRED'
+    ],
     required: true
   },
-  comment: {
+  message: {
     type: String,
     maxLength: 2000
   },
@@ -97,7 +104,7 @@ const Status = new Schema({
     type: Date,
     required: true
   }
-});
+}, { _id: false });
 
 const OrderSchema = new Schema({
   customer: {

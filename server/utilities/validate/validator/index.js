@@ -177,4 +177,12 @@ Validator.prototype = {
   }
 };
 
+Validator.register = function (ruleName, fn, message) {
+  if (message) {
+    Messages.setMessage(ruleName, message);
+  }
+
+  rules.register(ruleName, fn);
+}
+
 module.exports = Validator;

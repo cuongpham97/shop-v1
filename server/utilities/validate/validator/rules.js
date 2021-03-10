@@ -58,7 +58,10 @@ function required_one_of(_attribute, _value, args, done) {
 }
 
 function not_allow(_attribute, _value, _args, done) {
-  return this.isPresent() ? done(false) : done();
+ 
+  return this.isPresent() 
+    ? done(false) 
+    : done();
 }
 
 function not_allow_if(_attribute, _value, args, done) {
@@ -87,14 +90,14 @@ function nullable(_attribute, _value, _args, done) {
 
 function object(_attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   return done(typeof value === 'object' && value !== null);
 }
 
 function boolean(_attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   return typeof value === 'boolean'
     ? done()
@@ -103,7 +106,7 @@ function boolean(_attribute, value, _args, done) {
 
 function numeric(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const num = Number(value);
 
@@ -118,7 +121,7 @@ function numeric(attribute, value, _args, done) {
 
 function integer(attribute, value, _args, done) {
   
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const isInteger = /^-*\d+$/.test(value);
 
@@ -131,21 +134,21 @@ function integer(attribute, value, _args, done) {
 
 function string(_attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   return done(typeof value === 'string');
 }
 
 function array(_attribute, value, _args, done) {
   
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   return done(Array.isArray(value));
 }
 
 function unique(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   if (!Array.isArray(value)) return done(false);
 
@@ -157,7 +160,7 @@ function unique(attribute, value, _args, done) {
 
 function to(attribute, value, args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   args = args.split(',');
   const type = args[0];
@@ -177,7 +180,7 @@ function to(attribute, value, args, done) {
 
 function mongo_id(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const isMongoId = /^[0-9a-fA-F]{24}$/.test(value);
 
@@ -190,7 +193,7 @@ function mongo_id(attribute, value, _args, done) {
 
 function _enum(_attribute, value, args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   return args.split(',').includes(value)
     ? done()
@@ -201,7 +204,7 @@ Object.defineProperty(_enum, 'name', { value: 'enum' });
 
 function date(_attribute, value, args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const format = args || 'YYYY/MM/DD';
 
@@ -212,7 +215,7 @@ function date(_attribute, value, args, done) {
 
 function regex(_attribute, value, args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const rg = /^\/(?<regex>.+)\/(?<options>[img]*)$/;
 
@@ -227,7 +230,7 @@ function regex(_attribute, value, args, done) {
 
 function phone(_attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   return /^[+0-9]{8,12}$/.test(value) 
     ? done()
@@ -236,7 +239,7 @@ function phone(_attribute, value, _args, done) {
 
 function email(_attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   let regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   
@@ -252,7 +255,7 @@ function email(_attribute, value, _args, done) {
 
 function primative(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
   
   switch (value) {
     case 'true': 
@@ -314,7 +317,7 @@ const _deepMap = function _map(o, fn, traceArray = false, traceEnum = false) {
 
 function mongo_guard(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   switch (true) {
 
@@ -339,7 +342,7 @@ function mongo_guard(attribute, value, _args, done) {
 
 function min(_attribute, value, args, done) {
   
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const min = parseInt(args);
 
@@ -356,7 +359,7 @@ function min(_attribute, value, args, done) {
 
 function max(_attribute, value, args, done) {
   
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   const max = parseInt(args);
 
@@ -373,7 +376,7 @@ function max(_attribute, value, args, done) {
 
 function uppercase(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.toUpperCase) return done(false);
 
@@ -384,7 +387,7 @@ function uppercase(attribute, value, _args, done) {
 
 function lowercase(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.toLowerCase) return done(false);
 
@@ -395,7 +398,7 @@ function lowercase(attribute, value, _args, done) {
 
 function titlecase(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.toUpperCase) return done(false);
 
@@ -406,7 +409,7 @@ function titlecase(attribute, value, _args, done) {
 
 function trim(attribute, value, _args, done) {
 
-  if (!this.isPresent() || this.passedNullable()) return done();
+  if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.trim) return done(false);
 
@@ -469,14 +472,23 @@ module.exports = {
     _default
   ],
 
+  customRules: [],
+
   getRule: function (name) {
 
-    const rule = this.rules.find(rule => rule.name === name);
+    const rule = this.customRules.find(rule => rule.name === name)
+      || this.rules.find(rule => rule.name === name);
 
     if (!rule) {
       throw new Error('Validator `' + name + '` is not defined!')
     }
 
     return rule;
+  },
+
+  register: function (ruleName, fn) {
+    Object.defineProperty(fn, 'name', { value: ruleName });
+
+    this.customRules.push(fn);
   }
 }

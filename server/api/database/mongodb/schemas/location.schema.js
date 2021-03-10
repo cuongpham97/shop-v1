@@ -1,26 +1,41 @@
 const { Schema } = require('mongoose');
 
 const Location = new Schema({
-  block: {
+  street: {
     type: String,
     trim: true,
-    minlength: 1,
-    maxLength: 100,
+    maxLength: 200,
     required: true
+  },
+  ward: {
+    code: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    }
   },
   district: {
-    type: String,
-    trim: true,
-    minlength: 1,
-    maxLength: 100,
-    required: true, 
+    code: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    }
   },
   province: {
-    type: String,
-    trim: true,
-    minlength: 1,
-    maxLength: 100,
-    required: true
+    code: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    }
   }
 }, { _id: false });
 
