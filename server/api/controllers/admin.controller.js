@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const adminService  = require('~services/admin.service');
 
-exports.getManyAdmin = async function (req, res) {
+exports.getManyAdmins = async function (req, res) {
   const admins = await adminService.find(req.query);
 
   return res.status(StatusCodes.OK).json(admins);
@@ -51,7 +51,7 @@ exports.deleteAdminById = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.deleteManyAdmin = async function (req, res) {
+exports.deleteManyAdmins = async function (req, res) {
   const result = await adminService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);

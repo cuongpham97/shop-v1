@@ -1,11 +1,9 @@
-const router = require('express').Router();
 const cartCtrl = require('~controllers/cart.controller');
 const auth = require('~middleware/auth');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
+router.get('/carts', auth('customer').get('groups') , cartCtrl.getCurrentUserCart);
+router.post('/carts/items', auth('customer'), cartCtrl.setCurrentUserCartItem);
 
-  ['GET', '/carts', auth('customer').get('groups') , cartCtrl.getCurrentUserCart],
-  ['POST', '/carts/items', auth('customer'), cartCtrl.setCurrentUserCartItem]
-  
-]);
+module.exports = router;

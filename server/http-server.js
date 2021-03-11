@@ -7,7 +7,7 @@ function HttpServer(app) {
 
 HttpServer.prototype.constructor = HttpServer;
 
-HttpServer.prototype.normalizePort = function (val) {
+HttpServer.prototype._normalizePort = function (val) {
   const port = parseInt(val, 10);
 
   switch (true) {
@@ -24,7 +24,7 @@ HttpServer.prototype.normalizePort = function (val) {
 
 HttpServer.prototype.listen = function (port) {
 
-  this.port = this.normalizePort(port);
+  this.port = this._normalizePort(port);
   const server = this.server;
 
   server.on('error', function (error) {

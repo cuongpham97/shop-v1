@@ -1,10 +1,8 @@
-const router = require('express').Router();
 const locationCtrl = require('~controllers/location.controller');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
-  
-  ['GET', '/locations/provinces', locationCtrl.getProvinces],
-  ['GET', '/locations/provinces/:code', locationCtrl.getDistrictsAndWards]
+router.get('/locations/provinces', locationCtrl.getProvinces);
+router.get('/locations/provinces/:code', locationCtrl.getDistrictsAndWards);
 
-]);
+module.exports = router;

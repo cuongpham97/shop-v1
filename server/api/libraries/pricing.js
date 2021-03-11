@@ -23,7 +23,7 @@ function _hasGroup(customer, groupId) {
   return customer && customer.groups && customer.groups.find(i => i.equals(groupId));
 }
 
-function _isInTime(effectiveDate, expiryDate) {
+function _inTime(effectiveDate, expiryDate) {
   const now = moment();
   return (!effectiveDate || now.isAfter(effectiveDate)) && (!expiryDate || now.isBefore(expiryDate));
 }
@@ -32,7 +32,7 @@ function _salePrice(product, sku, customer) {
 
   let special = product.pricingTemplate === 'PRODUCT' ? product.special : sku.special;
 
-  special = special.filter(line => _hasGroup(customer, line.customerGroup) && _isInTime(line.effectiveDate, line.expiryDate));
+  special = special.filter(line => _hasGroup(customer, line.customerGroup) && _inTime(line.effectiveDate, line.expiryDate));
 
   if (!special.length) {
     return undefined;
@@ -50,7 +50,7 @@ function _percentageSale(price, salePrice) {
 
 function _discountQueue(product, sku, customer) {
   let discount = product.pricingTemplate === 'PRODUCT' ? product.discount : sku.discount;
-  discount = discount.filter(line => _hasGroup(customer, line.customerGroup) && _isInTime(line.effectiveDate, line.expiryDate));
+  discount = discount.filter(line => _hasGroup(customer, line.customerGroup) && _inTime(line.effectiveDate, line.expiryDate));
   discount.sort((a, b) => a.quantity - b.quantity || a.priority - b.priority);
   return discount;
 }

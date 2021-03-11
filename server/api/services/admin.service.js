@@ -5,8 +5,6 @@ const { regexes } = require('~utils/constants');
 const { mongodb } = require('~database');
 const moment = require('moment');
 
-exports.model = mongodb.model('admin');
-
 exports.find = async function (query) { 
   
   const validation = await validate(query, {
@@ -53,9 +51,9 @@ exports.findById = async function (id, fields = null) {
   return admin;
 }
 
-exports.create = async function (admin) {
+exports.create = async function (input) {
 
-  const validation = await validate(admin, {
+  const validation = await validate(input, {
     'name': 'object',
     'name.first': 'string|trim|min:1|max:20|titlecase',
     'name.last': 'string|trim|min:1|max:20|titlecase',

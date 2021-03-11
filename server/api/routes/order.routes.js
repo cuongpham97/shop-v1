@@ -1,16 +1,13 @@
-const router = require('express').Router();
 const orderCtrl = require('~controllers/order.controller');
 const auth = require('~middleware/auth');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
-  
-  ['POST', '/orders', auth('customer'), orderCtrl.createNewOrder],
+router.post('/orders', auth('customer'), orderCtrl.createNewOrder);
+router.get('/admin/orders', auth('admin'), orderCtrl.getManyOrder);
+router.get('/admin/orders/:id', orderCtrl.getOrderById);
+router.post('/admin/orders/:id/status', auth('admin'), orderCtrl.createOrderStatus);
+router.delete('/admin/orders/:id', orderCtrl.deleteOrderById);
+router.delete('/admin/orders', orderCtrl.deleteManyOrder);
 
-  ['GET', '/admin/orders', auth('admin') , orderCtrl.getManyOrder],
-  ['GET', '/admin/orders/:id', orderCtrl.getOrderById],
-  ['POST', '/admin/orders/:id/status', auth('admin'), orderCtrl.createOrderStatus],
-  ['DELETE', '/admin/orders/:id', orderCtrl.deleteOrderById],
-  ['DELETE', '/admin/orders', orderCtrl.deleteManyOrder]
-
-]);
+module.exports = router;

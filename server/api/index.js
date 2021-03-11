@@ -7,8 +7,8 @@ const config = require('~config');
 const { unflatten } = require('~middleware/flat-query');
 const { exceptionHandler } = require('~exceptions');
 
-function createApp() {
-
+function _createApp() {
+  
   const api = express();
 
   if (config.ENVIRONMENT === 'DEVELOPMENT') {
@@ -43,7 +43,6 @@ function createApp() {
   const checkout = require('~routes/checkout.routes');
   const permission = require('~routes/permission.routes');
 
-
   api.use(customerGroup);
   api.use(customer);
   api.use(location);
@@ -58,7 +57,7 @@ function createApp() {
   api.use(checkout);
   api.use(permission);
   
-  api.use('*', () => { 
+  api.all('*', () => { 
     throw new NotFoundException({ message: 'Request does not match any route' });
   });
   
@@ -68,9 +67,8 @@ function createApp() {
 }
 
 exports.init = async function () {
-
   await database.init();
   await subscribers.init();
 
-  return createApp();
+  return _createApp();
 }

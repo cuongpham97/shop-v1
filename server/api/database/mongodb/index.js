@@ -44,8 +44,8 @@ async function init() {
   // Connect to database, convert calback to async
   await new Promise(resolve => connect(mongoose, resolve));
 
-   // Use plugins
-   models.forEach(model => {
+  // Use plugins
+  models.forEach(model => {
     plugins.forEach(plugin => model.schema && model.schema.plugin(plugin));
   });
 

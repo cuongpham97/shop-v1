@@ -1,9 +1,8 @@
-const router = require('express').Router();
 const imageCtrl = require('~controllers/image.controller');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
+router.post('/images', imageCtrl.uploadImage);
 
-  ['POST', '/images', imageCtrl.uploadImage ]
+module.exports = router;
 
-]);

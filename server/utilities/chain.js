@@ -1,4 +1,4 @@
-function concat(...promises) {
+function _concat(...promises) {
   return promises.reduce((p1, p2) => p1.then(v1 => p2.then(v2 => v1.concat(v2))), Promise.resolve([]));
 }
 
@@ -32,7 +32,7 @@ module.exports = function (target, next) {
 
       for (const [name, fn] of Object.entries(next)) {
         middleware[name] = function (...args) {
-          _chain = concat(_chain, Promise.resolve(fn.call(_context, ...args)));
+          _chain = _concat(_chain, Promise.resolve(fn.call(_context, ...args)));
           _chain.catch(error => { throw error; });
           return this;
         }

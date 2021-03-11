@@ -1,14 +1,12 @@
-const router = require('express').Router();
 const groupCtrl = require('~controllers/customer-group.controller');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
+router.get('/admin/customer-groups', groupCtrl.getManyCustomerGroup );
+router.get('/admin/customer-groups/:id', groupCtrl.getCustomerGroupById);
+router.post('/admin/customer-groups', groupCtrl.createCustomerGroup);
+router.patch('/admin/customer-groups/:id', groupCtrl.partialUpdateCustomerGroup);
+router.delete('/admin/customer-groups/:id', groupCtrl.deleteCustomerGroupById);
+router.delete('/admin/customer-groups', groupCtrl.deleteManyCustomerGroup);
 
-  ['GET', '/admin/customer-groups', groupCtrl.getManyCustomerGroup ],
-  ['GET', `/admin/customer-groups/:id`, groupCtrl.getCustomerGroupById],
-  ['POST', '/admin/customer-groups', groupCtrl.createCustomerGroup],
-  ['PATCH', '/admin/customer-groups/:id', groupCtrl.partialUpdateCustomerGroup],
-  ['DELETE', `/admin/customer-groups/:id`, groupCtrl.deleteCustomerGroupById],
-  ['DELETE', '/admin/customer-groups', groupCtrl.deleteManyCustomerGroup]
-
-]);
+module.exports = router;

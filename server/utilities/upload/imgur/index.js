@@ -27,7 +27,7 @@ function _checkToken() {
 }
 
 const request = new Proxy(axios, {
-  get: function (target, method, receiver) {
+  get: function (_target, method, _receiver) {
 
     return async function (...args) {
       await _checkToken();

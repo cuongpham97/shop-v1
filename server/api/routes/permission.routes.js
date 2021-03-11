@@ -1,9 +1,7 @@
-const router = require('express').Router();
 const pmsCtrl = require('~controllers/permission.controller');;
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
+router.get('/admin/permission', pmsCtrl.getAllPermission);
 
-  ['GET', '/admin/permission', pmsCtrl.getAllPermission]
-
-]);
+module.exports = router;

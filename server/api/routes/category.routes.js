@@ -1,15 +1,12 @@
-const router = require('express').Router();
 const categoryCtrl = require('~controllers/category.controller');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
+router.get('/categories/tree', categoryCtrl.getCategoriesTree);
+router.get('/admin/categories', categoryCtrl.getManyCategory);
+router.post('/admin/categories', categoryCtrl.createNewCategory);
+router.patch('/admin/categories/:id', categoryCtrl.partialUpdateCategory);
+router.delete('/admin/categories/:id', categoryCtrl.deleteCategoryById);
+router.delete('/admin/categories', categoryCtrl.deleteManyCategory);
 
-  ['GET', '/categories/tree', categoryCtrl.getCategoriesTree],
-
-  ['GET', '/admin/categories', categoryCtrl.getManyCategory],
-  ['POST', '/admin/categories', categoryCtrl.createNewCategory],
-  ['PATCH', '/admin/categories/:id', categoryCtrl.partialUpdateCategory],
-  ['DELETE', '/admin/categories/:id', categoryCtrl.deleteCategoryById],
-  ['DELETE', '/admin/categories', categoryCtrl.deleteManyCategory]
-  
-]);
+module.exports = router;

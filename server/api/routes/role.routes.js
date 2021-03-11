@@ -1,15 +1,13 @@
-const router = require('express').Router();
 const roleCtrl = require('~controllers/role.controller');
 const auth = require('~middleware/auth');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
-  
-  ['GET', '/admin/roles', roleCtrl.getManyRole],
-  ['GET', '/admin/roles/:id', roleCtrl.getRoleById],
-  ['POST', '/admin/roles', auth('admin').get('displayName'), roleCtrl.createNewRole],
-  ['PATCH', '/admin/roles/:id', auth('admin').get('displayName'), roleCtrl.partialUpdateRole],
-  ['DELETE', '/admin/roles/:id', roleCtrl.deleteRoleById],
-  ['DELETE', '/admin/roles', roleCtrl.deleteManyRole]
+router.get('/admin/roles', roleCtrl.getManyRole);
+router.get('/admin/roles/:id', roleCtrl.getRoleById);
+router.post('/admin/roles', auth('admin').get('displayName'), roleCtrl.createNewRole);
+router.patch('/admin/roles/:id', auth('admin').get('displayName'), roleCtrl.partialUpdateRole);
+router.delete('/admin/roles/:id', roleCtrl.deleteRoleById);
+router.delete('/admin/roles', roleCtrl.deleteManyRole);
 
-]);
+module.exports = router;

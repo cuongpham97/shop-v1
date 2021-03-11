@@ -1,13 +1,11 @@
-const router = require('express').Router();
 const authCtrl = require('~controllers/auth.controller');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
-
-  ['GET', '/auth/token', authCtrl.getCustomerToken],
-  ['POST', '/auth/token/refresh', authCtrl.refreshCustomerToken],
+router.get('/auth/token', authCtrl.getCustomerToken);
+router.post('/auth/token/refresh', authCtrl.refreshCustomerToken);
   
-  ['GET', '/admin/auth/token', authCtrl.getAdminToken],
-  ['POST', '/admin/auth/token/refresh', authCtrl.refreshAdminToken]
+router.get('/admin/auth/token', authCtrl.getAdminToken);
+router.post('/admin/auth/token/refresh', authCtrl.refreshAdminToken);
 
-]);
+module.exports = router;

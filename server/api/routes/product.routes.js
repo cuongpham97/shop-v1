@@ -1,13 +1,11 @@
-const router = require('express').Router();
 const productCtrl = require('~controllers/product.controller');
 const tools = require('~utils/tools');
+const router = tools.createRouter();
 
-module.exports = tools.applyRoutes(router, [
+router.get('/admin/products', productCtrl.getManyProduct);
+router.post('/admin/products', productCtrl.createNewProduct);
+router.patch('/admin/products/:id', productCtrl.partialUpdateProduct);
+router.delete('/admin/products/:id', productCtrl.deleteProductById);
+router.delete('/admin/products', productCtrl.deleteManyProduct);
 
-  ['GET', '/admin/products', productCtrl.getManyProduct],
-  ['POST', '/admin/products', productCtrl.createNewProduct],
-  ['PATCH', '/admin/products/:id', productCtrl.partialUpdateProduct],
-  ['DELETE', '/admin/products/:id', productCtrl.deleteProductById],
-  ['DELETE', '/admin/products', productCtrl.deleteManyProduct]
-
-]);
+module.exports = router;
