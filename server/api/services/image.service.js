@@ -3,8 +3,6 @@ const validate = require('~utils/validate');
 const upload = require('~utils/upload');
 const report = require('~utils/report');
 
-exports.model = mongodb.model('image');
-
 exports.upload = async function (data) {
 
   const validation = await validate(data, {

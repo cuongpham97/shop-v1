@@ -5,7 +5,6 @@ const adminService = require('~services/admin.service');
 const roleService = require('~services/role.service');
 
 function _getTokenFromHeader(req) {
-
   let token = req.headers['authorization'] || req.headers['x-access-token'];
 
   if (!token) {
@@ -42,7 +41,6 @@ function _checkTokenVersion(profile, tokenVersion) {
 }
 
 function _hasPermission(expect, permission) {
-
   const [resource, action] = expect.trim().split('.');
 
   if (permission[resource] == action || permission[resource].includes(action)) {
@@ -53,7 +51,6 @@ function _hasPermission(expect, permission) {
 }
 
 function _auth(account) {
-
   if (!['customer', 'admin'].includes(account)) {
     throw Error(`Auth middleware with wrong argument '${account}'`);
   }
@@ -79,7 +76,7 @@ function _auth(account) {
       })
     );
 
-    req.user = _.assign(req.user || {}, _.pick(profile.toJSON(), ['_id', 'roles'].concat(fields)));
+    req.user = _.assign(req.user || {}, _.pick(profile, ['_id', 'roles'].concat(fields)));
     req.user.type = account;
 
     return next();

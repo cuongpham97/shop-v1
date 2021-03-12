@@ -1,11 +1,31 @@
 [
   {
-    "name": "user",
+    "name": "customer-group",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  },
+  {
+    "name": "customer",
     "action": ["create", "read", "update", "delete"],
     "description": ""
   },
   {
     "name": "admin",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  },
+  {
+    "name": "category",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  },
+  {
+    "name": "product",
+    "action": ["create", "read", "update", "delete"],
+    "description": ""
+  },
+  {
+    "name": "order",
     "action": ["create", "read", "update", "delete"],
     "description": ""
   },

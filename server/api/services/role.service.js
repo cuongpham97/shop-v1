@@ -77,8 +77,6 @@ async function _ensureBaseRoleAlwayExist() {
   mongodb.model('role').watch().on('change', _updateCache);
 })();
 
-exports.model = mongodb.model('role');
-
 exports.find = async function (query) {
   
   const validation = await validate(query, {

@@ -85,20 +85,25 @@ function _buildQuery(options) {
   ];
 }
 
-function _paginateResult(docs, options) {
-  let collection = options.collectionName || (this.collection.name);
+function _paginateResult(docs, options, transform) {
+  const collection = options.collectionName || (this.collection.name);
 
-  let page = options.page;
-  let pageSize = options.pageSize;
+  const page = options.page;
+  const pageSize = options.pageSize;
+  
+  let data = docs.data;
+  if (transform) {
+    data = data.map(transform);
+  }
 
   return {
-    data: docs.data,
+    data: data,
     metadata: {
       collection: collection,
       page: page,
       pageSize: pageSize,
       maxPage: Math.ceil(docs.total / pageSize),
-      count: docs.data.length,
+      count: data.length,
       total: docs.total,   
       isPre: page > 1 && docs.total > (page - 2) * pageSize,
       isNext: docs.total > page * pageSize
@@ -108,7 +113,7 @@ function _paginateResult(docs, options) {
 
 function paginationPlugin(schema, _options) {
 
-  schema.statics.paginate = async function(options) {
+  schema.statics.paginate = async function(options, transform) {
 
     const paging = {
       page: 1,
@@ -119,7 +124,7 @@ function paginationPlugin(schema, _options) {
     const query = _buildQuery(options);
     const [docs] = await this.aggregate(query);
     
-    return _paginateResult.call(this, docs, options);
+    return _paginateResult.call(this, docs, options, transform);
   }
 }
 

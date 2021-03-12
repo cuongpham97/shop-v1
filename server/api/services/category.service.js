@@ -62,8 +62,6 @@ exports.getCategoriesTreeFromCache = async function () {
   mongodb.model('category').watch().on('change', _updateCache);
 })();
 
-exports.model = mongodb.model('category');
-
 exports.find = async function (query) {
 
   const validation = await validate(query, {

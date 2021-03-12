@@ -32,7 +32,7 @@ exports.changeCustomerPassword = async function (req, res) {
   return res.status(StatusCodes.NO_CONTENT).end();
 }
 
-exports.getManyCustomer = async function (req, res) {
+exports.getManyCustomers = async function (req, res) {
   const customers = await customerService.find(req.query);
 
   return res.status(StatusCodes.OK).json(customers);
@@ -44,7 +44,7 @@ exports.deleteCustomerById = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.deleteManyCustomer = async function (req, res) {
+exports.deleteManyCustomers = async function (req, res) {
   const result = await customerService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);

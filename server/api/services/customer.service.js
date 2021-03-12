@@ -3,11 +3,20 @@ const imageService = require('~services/image.service');
 const { updateDocument } = require('~utils/tools');
 const { regexes } = require('~utils/constants');
 const { mongodb } = require('~database');
+const CustomerGroup = mongodb.model('customer-group');
+const Customer = mongodb.model('customer');
+const Image = mongodb.model('image');
+const moment = require('moment');
 
-exports.model = mongodb.model('customer');
+function _projectDocument(customer) {
+  if (customer.toJSON) {
+    customer = customer.toJSON();
+  }
 
-exports.find = async function (query) {
+  return _.omit(customer, ['local', 'google', 'facebook', '__v']);
+}
 
+async function _filterFindQuery(query) {
   const validation = await validate(query, {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
@@ -21,36 +30,50 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new BadRequestException({ 
-      code: 'WRONG_QUERY_PARAMETERS', 
-      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    throw new BadRequestException({
+      code: 'WRONG_QUERY_PARAMETERS',
+      message: `Invalid query parameters \`${validation.errors.keys().join(', ')}\``
     });
   }
 
-  return await mongodb.model('customer').paginate(validation.result);
+  return validation.result;
+}
+
+exports.find = async function (query) {
+  query = await _filterFindQuery(query);
+  return await Customer.paginate(query, _projectDocument);
+}
+
+async function _filterFindByIdInput(input) {
+  const validation = await validate(input, {
+    'id': 'mongo_id',
+    'fields': 'to:array',
+    'fields.*': 'string|min:1|max:100|mongo_guard'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({
+      message: validation.errors.first()
+    });
+  }
+
+  return validation.result;
 }
 
 exports.findById = async function (id, fields = null) {
+  const input = await _filterFindByIdInput({ id, fields });
 
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
-
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
-  }
-
-  id = validation.result.id;
-
-  const customer = await mongodb.model('customer').findById(id, fields);
-
+  const customer = await Customer.findById(input.id, input.fields);
   if (!customer) {
-    throw new NotFoundException({ message: 'Customer ID does not exist' });
+    throw new NotFoundException({
+      message: 'Customer ID not does not exist'
+    });
   }
 
-  return customer;
+  return _projectDocument(customer);
 }
 
-exports.create = async function (customer, provider = 'local') {
-
+async function _filterNewCustomerInput(input, provider) {
   const rule = {
     'name': 'object|nullable',
     'name.first': 'string|trim|min:1|max:20',
@@ -91,50 +114,65 @@ exports.create = async function (customer, provider = 'local') {
     }
   }
 
-  const validation = await validate(customer, _.merge(rule, providerRules[provider]));
+  const validation = await validate(input, _.merge(rule, providerRules[provider]));
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({
+      message: validation.errors.toArray()
+    });
   }
 
-  customer = validation.result;
+  return validation.result;
+}
+
+async function _setAvatar(customer, imageId, session) {
+  const image = await Image.findById(imageId);
+  if (!image) {
+    throw new NotFoundException({
+      message: 'Avatar image does not exist'
+    });
+  }
+
+  await imageService.set(imageId, `customer:${customer._id}/avatar`, session);
+
+  customer.set('avatar', image);
+}
+
+async function _increaseGroupsMember(groups, session) {
+  await CustomerGroup.updateMany(
+    { "_id": { "$in": groups } },
+    { "$inc": { "nCustomer": 1 } },
+    { session }
+  );
+}
+
+async function _prepareNewCustomer(input, session) {
+  const customer = new Customer(input);
+
+  if (input.avatar) {
+    await _setAvatar(customer, input.avatar, session);
+  }
+
+  if (input.groups.length) {
+    await _increaseGroupsMember(input.groups);
+  }
+
+  return customer;
+}
+
+exports.create = async function (data, provider = 'local') {
+  const input = await _filterNewCustomerInput(data, provider);
 
   return await mongodb.transaction(async function (session, _commit, _abort) {
-    
-    customer._id = ObjectId();
+    const newCustomer = await _prepareNewCustomer(input, session);
+    await newCustomer.save({ session });
 
-    if (customer.avatar) {
-
-      const image = await mongodb.model('image').findById(customer.avatar);
-
-      if (!image) {
-        throw new NotFoundException({ message: 'Avatar image ID does not exist' });
-      }
-
-      await imageService.set(image._id, `customer:${customer._id}/avatar`, session);
-
-      customer.avatar = image;
-    }
-
-    if (customer.groups.length) {
-      await mongodb.model('customer-group').updateMany(
-        { "_id": { "$in": customer.groups } },
-        { "$inc": { "nCustomer": 1 } },
-        { session }
-      );
-    }
-
-    const [newCustomer] = await mongodb.model('customer').create([customer], { session });
-
-    return newCustomer;
+    return _projectDocument(newCustomer);
   });
 }
 
-exports.partialUpdate = async function (id, data) {
-
-  data.id = id;
-
-  const validation = await validate(data, {
+async function _filterUpdateCustomerInput(input) {
+  const validation = await validate(input, {
     'id': 'mongo_id',
     'name': 'object',
     'name.first': 'string|trim|min:1|max:20',
@@ -156,70 +194,113 @@ exports.partialUpdate = async function (id, data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({
+      message: validation.errors.toArray()
+    });
   }
 
-  id = validation.result.id;
-  _.unset(validation.result, 'id');
+  return validation.result;
+}
 
-  data = validation.result;
+async function _changeAvatar(customer, newImageId, session) {
+  const oldImage = customer.avatar && customer.avatar._id;
+  const newImage = newImageId;
+  const isChange = !ObjectId(oldImage).equals(newImage);
+
+  customer.avatar = null;
+
+  if (isChange && newImage) {
+    customer.avatar = await Image.findById(newImage);
+
+    if (!customer.avatar) {
+      throw new NotFoundException({
+        message: 'Avatar image ID does not exist'
+      });
+    }
+
+    await imageService.set(newImage, `customer:${customer._id}/avatar`, session);
+  }
+
+  if (isChange && oldImage) {
+    await imageService.unset(oldImage._id, `customer:${customer._id}/avatar`, session);
+  }
+
+  return customer;
+}
+
+async function _changeCustomerGroups(customer, newGroups) {
+  const oldGroups = customer.groups;
+  const isChange = _(oldGroups).xorWith(newGroups, (a, b) => a.equals(b)).value().length;
+
+  if (isChange && oldGroups.length) {
+    await CustomerGroup.updateMany(
+      { "_id": { "$in": oldGroups } },
+      { "$inc": { "nCustomer": -1 } },
+      { session }
+    );
+  }
+
+  if (isChange && newGroups.length) {
+    await CustomerGroup.updateMany(
+      { "_id": { "$in": newGroups } },
+      { "$inc": { "nCustomer": 1 } },
+      { session }
+    );
+  }
+
+  customer.set('groups', newGroups);
+
+  return customer;
+}
+
+async function _prepareUpdateCustomer(customer, input, session) {
+  const clone = { ...input };
+
+  if ('avatar' in clone) {
+    await _changeAvatar(customer, clone.avatar, session);
+    delete clone.avatar;
+  }
+
+  if ('groups' in clone) {
+    await _changeCustomerGroups(customer, clone.groups, session);
+    delete clone.groups;
+  }
+
+  return updateDocument(customer, clone);
+}
+
+exports.partialUpdate = async function (id, data) {
+  const input = await _filterUpdateCustomerInput({ id, ...data });
+
+  const customer = await Customer.findById(input.id);
+  if (!customer) {
+    throw new NotFoundException({
+      message: 'Customer ID not does not exist'
+    });
+  }
 
   return await mongodb.transaction(async function (session, _commit, _abort) {
+    const updated = await _prepareUpdateCustomer(customer, input, session);
+    await updated.save({ session });
 
-    let customer = await mongodb.model('customer').findById(id);
-
-    if (!customer) {
-      throw new NotFoundException({ message: 'Customer ID not found' });
-    }
-    
-    if ('avatar' in data) {
-
-      const oldImage = customer.avatar && customer.avatar._id;
-      const newImage = data.avatar;
-      const isChange = !ObjectId(oldImage).equals(newImage);
-
-      if (isChange && newImage) {
-        data.avatar = await mongodb.model('image').findById(newImage);
-
-        if (!data.avatar) {
-          throw new NotFoundException({ message: 'Avatar image ID does not exist' });
-        }
-
-        await imageService.set(newImage._id, `customer:${customer._id}/avatar`, session);
-      }
-      
-      if (isChange && oldImage) {
-        await imageService.unset(oldImage._id, `customer:${customer._id}/avatar`, session);
-      }
-    }
-
-    if ('groups' in data) {
-      
-      const oldGroups = customer.groups;
-      const newGroups = data.groups;
-      const isChange = _(oldGroups).xorWith(newGroups, (a, b) => a.equals(b)).value().length;
-
-      if (isChange && oldGroups.length) {
-        await mongodb.model('customer-group').updateMany(
-          { "_id": { "$in": oldGroups } },
-          { "$inc": { "nCustomer": -1 } },
-          { session }
-        );
-      }
-
-      if (isChange && newGroups.length) {
-        await mongodb.model('customer-group').updateMany(
-          { "_id": { "$in": newGroups } },
-          { "$inc": { "nCustomer": 1 } },
-          { session }
-        );
-      }
-    }
-
-    await updateDocument(customer, data).save({ session });
-  
-    return customer;
+    return _projectDocument(customer);
   });
+}
+
+async function _filterChangePasswordInput(input, role) {
+  const validation = await validate(input, {
+    'id': 'mongo_id',
+    'password': role === 'customer' ? 'required|string|min:6|max:16' : 'unset',
+    'newPassword': 'required|string|min:6|max:16'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
+  }
+
+  return validation.result;
 }
 
 /**
@@ -228,47 +309,35 @@ exports.partialUpdate = async function (id, data) {
  * @param {('customer'|'admin')} role
  */
 exports.changePassword = async function (id, data, role = 'customer') {
+  const input = await _filterChangePasswordInput({ id, ...data });
 
-  data.id = id;
-
-  const rules = {
-    'id': 'mongo_id',
-    'password': role === 'customer' ? 'required|string|min:6|max:16' : 'unset',
-    'newPassword': 'required|string|min:6|max:16'
-  };
-
-  const validation = await validate(data, rules);
-
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
-  }
-
-  id = validation.result.id;
-
-  let customer = await mongodb.model('customer').findById(id);
-
+  const customer = Customer.findById(input.id);
   if (!customer) {
-    throw new NotFoundException({ message: 'Customer ID not found' });
-  }
-
-  if (!customer.local) {
-    throw new BadRequestException({ 
-      code: 'CANNOT_BE_CHANGED',
-      message: 'Customer does not use local provider' 
+    throw new NotFoundException({ 
+      message: 'Customer ID does not exist' 
     });
   }
 
-  const match = role === 'admin' 
-    ? true 
-    : await customer.comparePassword(validation.result.password);
-
-  if (!match) {
-    throw new AuthenticationException({ message: 'Password is incorrect' });
+  if (!customer.local) {
+    throw new BadRequestException({
+      code: 'CANNOT_BE_CHANGED',
+      message: 'Customer does not use local provider'
+    });
   }
 
-  const update = { 
-    "local": { "password": validation.result.newPassword }, 
-    "tokenVersion": moment().valueOf() 
+  const match = role === 'admin'
+    ? true
+    : await customer.comparePassword(input.password);
+
+  if (!match) {
+    throw new AuthenticationException({ 
+      message: 'Password is incorrect' 
+    });
+  }
+
+  const update = {
+    "local": { "password": input.newPassword },
+    "tokenVersion": moment().valueOf()
   };
 
   await updateDocument(customer, update).save();
@@ -276,85 +345,103 @@ exports.changePassword = async function (id, data, role = 'customer') {
   return true;
 }
 
-exports.deleteById = async function (id) {
-  
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+async function _filterDeleteByIdInput(input) {
+  const validation = await validate(input, { 
+    'id': 'mongo_id' 
+  });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
   }
 
-  id = validation.result.id;
+  return validation.result;
+}
 
-  const customer = await mongodb.model('customer').findByIdAndDelete(id).select('_id avatar groups');
-
-  if (!customer) {
-    throw new NotFoundException({ message: 'Customer ID does not exist' });
+async function _unsetAvatar(customer) {
+  if (customer.avatar) {
+    await imageService.unset(customer.avatar._id, `customer:${customer._id}/avatar`);
   }
 
-  const image = customer.avatar;
+  customer.set('avatar', null);
+}
 
-  if (image) {
-    await imageService.unset(image._id, `customer:${customer._id}/avatar`);
-  }
-
-  const groups = customer.groups;
-
+async function _decreaseGroupsMember(groups) {
   if (groups.length) {
-    await mongodb.model('customer-group').updateMany(
+    await CustomerGroup.updateMany(
       { "_id": { "$in": groups } },
       { "$inc": { "nCustomer": -1 } }
     );
   }
+}
+
+exports.deleteById = async function (id) {
+  const input = await _filterDeleteByIdInput({ id });
+
+  const customer = Customer.findByIdAndDelete(input.id).select('_id avatar groups');
+  if (!customer) {
+    throw new NotFoundException({ 
+      message: 'Customer ID does not exist' 
+    });
+  }
+
+  await _unsetAvatar(customer);
+  await _decreaseGroupsMember(customer.groups);
 
   return {
     expected: 1,
-    found: [id],
+    found: [input.id],
     deletedCount: 1
   };
 }
 
-exports.deleteMany = async function (ids) {
-  
-  const validation = await validate({ 'ids': ids }, {
+async function _filterDeleteManyInput(input) {
+  const validation = await validate(input, {
     'ids': 'to:array|unique',
     'ids.*': 'mongo_id'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  ids = validation.result.ids;
+  return validation.result;
+}
 
-  const docs = await mongodb.model('customer').find({ _id: { "$in": ids } }).select('_id avatar groups');
+async function _unsetAvatars(customersArray) {
+  const images = customersArray.map(customer => customer.avatar && customer.avatar._id).filter(Boolean);
+  
+  await imageService.unsetMany(images, customersArray.map(customer => `customer:${customer._id}/avatar`));
+}
 
-  if (!docs.length) {
-    throw new NotFoundException({ message: 'Customer IDs does not exist' });
+exports.deleteMany = async function (ids) {
+  const input = await _filterDeleteManyInput({ ids });
+
+  const customers = await Customer.find({ "_id": { "$in": input.ids } }, '_id avatar groups');
+  if (!customer.length) {
+    throw new NotFoundException({ 
+      message: 'Customer IDs does not exist' 
+    });
   }
 
   // Delete customers
-  const found = docs.map(doc => doc._id);
-  const result = await mongodb.model('customer').deleteMany({ "_id": { "$in": found } }); 
+  const foundIds = customers.map(customer => customer._id);
+  const result = await Customer.deleteMany({ "_id": { "$in": foundIds } });
 
   // Unset avatar images
-  const images = docs.map(doc => doc.avatar && doc.avatar._id).filter(Boolean);
-  await imageService.unsetMany(images, found.map(id => `customer:${id}/avatar`));
-  
-  // Subtract nCustomer of customer groups
-  for (const groups of docs.map(doc => doc.groups)) {
-    
-    if (groups.length) {
-      await mongodb.model('customer-group').updateMany(
-        { "_id": { "$in": groups } },
-        { "$inc": { "nCustomer": -1 } }
-      );
-    }
+  await _unsetAvatars(customers);
+
+  // Decrease nCustomer of customer-groups
+  for (const groups of customers.map(customer => customer.groups)) {
+    await _decreaseGroupsMember(groups);
   }
 
   return {
-    expected: ids.length,
-    found: found,
+    expected: input.ids.length,
+    found: foundIds,
     deletedCount: result.deletedCount
   };
 }

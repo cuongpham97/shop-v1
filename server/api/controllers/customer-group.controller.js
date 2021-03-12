@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const groupService  = require('~services/customer-group.service');
 
-exports.getManyCustomerGroup = async function (req, res) {
+exports.getManyCustomerGroups = async function (req, res) {
   const groups = await groupService.find(req.query);
 
   return res.status(StatusCodes.OK).json(groups);
@@ -31,7 +31,7 @@ exports.deleteCustomerGroupById = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.deleteManyCustomerGroup = async function (req, res) {
+exports.deleteManyCustomerGroups = async function (req, res) {
   const result = await groupService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);

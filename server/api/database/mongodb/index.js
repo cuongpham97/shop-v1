@@ -51,27 +51,10 @@ async function init() {
 
   // Use models
   models.forEach(model => model.apply(mongoose));
-
+  
   return mongoose;
 }
 
-module.exports = new Proxy(mongoose, { 
-  get: function (_target, property, _receiver) {
-
-    switch (property) {
-
-      case 'init': 
-        return init;
-
-      case 'instance':
-        return mongoose;
-
-      case 'transaction': 
-        return transaction(mongoose);
-
-      default:
-        return mongoose[property];
-    }
-
-  }
-});
+module.exports = mongoose;
+module.exports.init = init;
+module.exports.transaction = transaction(mongoose);

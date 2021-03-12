@@ -2,8 +2,6 @@ const validate = require('~utils/validate');
 const { mongodb } = require('~database');
 const moment = require('moment');
 
-exports.model = mongodb.model('order');
-
 exports.find = async function (query) { 
   
   const validation = await validate(query, {

@@ -56,11 +56,9 @@ function _buildLocationObject(provinceCode, districtCode, wardCode) {
 }
 
 Validator.register('location', function (attribute, value, _args, done) {
-  
   if (this.notPresentOrAcceptNullable()) return done();
 
   const isObject = typeof value === 'object' && value !== null;
-
   if (!isObject) {
     return done(false);
   }
@@ -68,7 +66,6 @@ Validator.register('location', function (attribute, value, _args, done) {
   const { province, district, ward, street } = value;
 
   const location = _buildLocationObject(province, district, ward);
-
   if (!location) {
     return done(false);
   }

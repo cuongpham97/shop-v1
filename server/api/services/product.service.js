@@ -6,8 +6,6 @@ const { customAlphabet } = require('nanoid');
 const { mongodb } = require('~database');
 const slugify = require('~utils/slugify');
 
-exports.model = mongodb.model('product');
-
 exports.find = async function (query) {
 
   const validation = await validate(query, {

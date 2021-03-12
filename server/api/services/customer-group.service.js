@@ -1,11 +1,17 @@
 const validate = require('~utils/validate');
 const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
+const CustomerGroup = mongodb.model('customer-group');
 
-exports.model = mongodb.model('customer-group');
+function _projectDocument(group){
+  if (group.toJSON) {
+    group = group.toJSON();
+  }
 
-exports.find = async function (query) {
-  
+  return _.omit(group, ['__v']);
+}
+
+async function _filterFindQuery(query) {
   const validation = await validate(query, {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
@@ -21,56 +27,76 @@ exports.find = async function (query) {
   if (validation.errors) {
     throw new BadRequestException({ 
       code: 'WRONG_QUERY_PARAMETERS', 
-      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+      message: `Invalid query parameters \`${validation.errors.keys().join(', ')}\``
     });
   }
 
-  return await mongodb.model('customer-group').paginate(validation.result);
+  return validation.result;
+}
+
+exports.find = async function (query) {
+  query = await _filterFindQuery(query);
+  return await CustomerGroup.paginate(query, _projectDocument);
+}
+
+async function _filterFindByIdInput(input) {
+  const validation = await validate(input, { 
+    'id': 'mongo_id',
+    'fields': 'to:array',
+    'fields.*': 'string|min:1|max:100|mongo_guard'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
+  }
+
+  return validation.result;
 }
 
 exports.findById = async function (id, fields = null) {
-  
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' });
+  const input = await _filterFindByIdInput({ id, fields });
 
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
+  const group = await CustomerGroup.findById(input.id, input.fields);
+  if (!group) {
+    throw new NotFoundException({ 
+      message: 'Customer group ID not does not exist' 
+    });
   }
 
-  id = validation.result.id;
-
-  const customerGroup = await mongodb.model('customer-group').findById(id, fields);
-
-  if (!customerGroup) {
-    throw new NotFoundException({ message: 'Customer group ID not does not exist' });
-  }
-
-  return customerGroup;
+  return _projectDocument(group);
 }
 
-exports.create = async function (customerGroup) {
-
-  const validation = await validate(customerGroup, {
+async function _filterNewGroupInput(input) {
+  const validation = await validate(input, {
     'name': 'required|string|min:1|max:200',
     'nCustomer': 'not_allow',
     'description': 'string|max:2000'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray()
+    });
   }
 
-  group = validation.result;
+  return validation.result;
+}
 
-  const newGroup = await mongodb.model('customer-group').create(group);
+function _prepareNewGroup(input) {
+  return new CustomerGroup(input);
+}
 
-  return newGroup;
+exports.create = async function (data) {
+  const input = await _filterNewGroupInput(data);
+  const newGroup = await _prepareNewGroup(input).save();
+
+  return _projectDocument(newGroup);
 } 
 
-exports.partialUpdate = async function (id, data) {
-
-  data.id = id;
-
-  const validation = await validate(data, {
+async function _filterUpdateGroupInput(input) {
+  const validation = await validate(input, {
     'id': 'mongo_id',
     'name': 'string|min:1|max:200',
     'nCustomer': 'not_allow',
@@ -78,78 +104,99 @@ exports.partialUpdate = async function (id, data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
-  }
-
-  id = validation.result.id;
-  _.unset(validation.result, 'id');
-
-  data = validation.result;
-
-  const customerGroup = await mongodb.model('customer-group').findById(id);
-
-  if (!customerGroup) {
-    throw NotFoundException({ message: 'Customer group ID does not exist' });
-  }
-
-  await updateDocument(customerGroup, data).save();
-  
-  return customerGroup;
-}
-
-exports.deleteById = async function (id) {
-
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
-
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
-  }
-
-  id = validation.result.id;
-
-  const customerGroup = await mongodb.model('customer-group').findById(id, '_id nCustomer');
-
-  if (!customerGroup) {
-    throw new NotFoundException({ message: 'Customer group ID does not exist' });
-  }
-
-  if (customerGroup.nCustomer) {
-    throw new BadRequestException({ 
-      code: 'HAS_ASSIGNED_TO_CUSTOMERS',
-      message: `This customer group cannot be deleted as it is currently assigned to ${customerGroup.nCustomer} customers!`
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
     });
   }
 
-  const result = await mongodb.model('customer-group').deleteOne({ "_id": id });
+  return validation.result;
+}
+
+function _prepareUpdateGroup(group, input) {
+  return updateDocument(group, input);
+}
+
+exports.partialUpdate = async function (id, data) {
+  const input = await _filterUpdateGroupInput({ id, ...data });
+
+  const group = await CustomerGroup.findById(input.id);
+  if (!group) {
+    throw NotFoundException({ 
+      message: 'Customer group ID does not exist' 
+    });
+  }
+
+  await _prepareUpdateGroup(group, data).save();
+
+  return _projectDocument(group);
+}
+
+async function _filterDeleteByIdInput(input) {
+  const validation = await validate(input, { 
+    'id': 'mongo_id' 
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
+  }
+
+  return validation.result;
+}
+
+exports.deleteById = async function (id) {
+  const input = await _filterDeleteByIdInput({ id });
+
+  const group = await CustomerGroup.findById(input.id, '_id nCustomer');
+  if (!group) {
+    throw new NotFoundException({ 
+      message: 'Customer group ID does not exist' 
+    });
+  }
+
+  if (group.nCustomer) {
+    throw new BadRequestException({ 
+      code: 'HAS_ASSIGNED_TO_CUSTOMERS',
+      message: `This customer group cannot be deleted as it is currently assigned to ${group.nCustomer} customers!`
+    });
+  }
+
+  const result = await CustomerGroup.deleteOne({ "_id": input.id });
 
   return {
     expected: 1,
-    found: [id],
+    found: [input.id],
     deletedCount: result.deletedCount
   };
 }
 
-exports.deleteMany = async function (ids) {
-
-  const validation = await validate({ 'ids': ids }, {
+async function _filterDeleteManyInput(input) {
+  const validation = await validate(input, {
     'ids': 'to:array|unique',
     'ids.*': 'mongo_id'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  ids = validation.result.ids;
+  return validation.result;
+}
 
-  const docs = await mongodb.model('customer-group')
-    .find({ "_id": { "$in": ids } }).select('_id name nCustomer');
-
-  if (!docs.length) {
-    throw new NotFoundException({ message: 'Customer group IDs does not exist' });
+exports.deleteMany = async function (ids) {
+  const input = await _filterDeleteManyInput({ ids });
+ 
+  const groups = await CustomerGroup.find({ "_id": { "$in": input.ids } }, '_id name nCustomer');
+  if (!groups.length) {
+    throw new NotFoundException({ 
+      message: 'Customer group IDs does not exist' 
+    });
   }
 
-  for (const group of docs) {
+  for (const group of groups) {
     if (group.nCustomer) {
       throw new BadRequestException({
         code: 'HAS_ASSIGNED_TO_CUSTOMERS',
@@ -158,13 +205,12 @@ exports.deleteMany = async function (ids) {
     }
   }
 
-  const found = docs.map(doc => doc._id);
-
-  const result = await mongodb.model('customer-group').deleteMany({ "_id": { "$in": found } }); 
+  const foundIds = groups.map(group => group._id);
+  const result = await CustomerGroup.deleteMany({ "_id": { "$in": foundIds } }); 
   
   return {
-    expected: ids.length,
-    found: found,
+    expected: input.ids.length,
+    found: foundIds,
     deletedCount: result.deletedCount
   };
 }
