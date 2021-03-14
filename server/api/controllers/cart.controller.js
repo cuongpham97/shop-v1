@@ -11,5 +11,5 @@ exports.getCurrentUserCart = async function (req, res) {
 exports.setCurrentUserCartItem = async function (req, res) {
   const item = await cartService.setCartItem(req.user._id, req.body);
 
-  return res.status(StatusCodes.OK).json(item);
+  return res.status(StatusCodes.NO_CONTENT).end();
 }

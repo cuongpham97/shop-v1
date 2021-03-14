@@ -1,8 +1,9 @@
-const cacheService = require('./cacheService');
-const permissionService = require('./permission.service');
 const validate = require('~utils/validate');
+const permissionService = require('./permission.service');
+const cacheService = require('./cacheService');
 const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
+const Role = mongodb.model('role');
 
 const SUPERADMIN_ROLE_LEVEL = 0;
 
@@ -77,8 +78,15 @@ async function _ensureBaseRoleAlwayExist() {
   mongodb.model('role').watch().on('change', _updateCache);
 })();
 
-exports.find = async function (query) {
-  
+function _projectDocument(role) {
+  if (role.toJSON) {
+    role = role.toJSON();
+  }
+
+  return _.omit(role, ['__v']);
+}
+
+async function _filterFindQuery(query) {
   const validation = await validate(query, {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
@@ -92,76 +100,94 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new BadRequestException({ 
-      code: 'WRONG_QUERY_PARAMETERS', 
-      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    throw new BadRequestException({
+      code: 'WRONG_QUERY_PARAMETERS',
+      message: `Invalid query parameters \`${validation.errors.keys().join(', ')}\``
     });
   }
 
-  return await mongodb.model('role').paginate(validation.result);
+  return validation.result;
+}
+
+exports.find = async function (query) {
+  query = await _filterFindQuery(query);
+  return await Role.paginate(query, _projectDocument);
+}
+
+async function _filterFindByIdInput(input) {
+  const validation = await validate(input, {
+    'id': 'mongo_id',
+    'fields': 'to:array',
+    'fields.*': 'string|min:1|max:100|mongo_guard'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({
+      message: validation.errors.first()
+    });
+  }
+
+  return validation.result;
 }
 
 exports.findById = async function (id, fields = null) {
+  const input = await _filterFindByIdInput({ id, fields });
 
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
-
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
-  }
-
-  id = validation.result.id;
-
-  const role = await mongodb.model('role').findById(id, fields);
-
+  const role = await Role.findById(input.id, input.fields);
   if (!role) {
-    throw new NotFoundException({ message: 'Role ID not does not exist' });
+    throw new NotFoundException({ 
+      message: 'Role ID not does not exist' 
+    });
   }
 
-  return role;
+  return _projectDocument(role);
 }
 
-exports.create = async function (role, creator = null) {
-  
-  role.creator = {
-    _id: creator._id,
-    name: creator.displayName
-  };
-
-  const validation = await validate(role, {
+async function _filterNewRoleInput(input) {
+  const validation = await validate(input, {
     'name': 'required|string|min:1|max:200',
     'level': 'integer',
     'permission': 'object',
     'creator': 'object',
     'creator._id': 'mongo_id',
-    'creator.name': 'string',
+    'creator.displayName': 'string',
     'active': 'boolean'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  role = validation.result;
-
-  if (role.level <= SUPERADMIN_ROLE_LEVEL) {
-    throw new ValidationException({ message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL });
+  if (input.level <= SUPERADMIN_ROLE_LEVEL) {
+    throw new ValidationException({ 
+      message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL 
+    });
   }
 
-  const newRole = await mongodb.model('role').create(role);
-
-  return newRole;
+  return validation.result;
 }
 
-exports.partialUpdate = async function (id, data, updator) {
+async function _prepareNewRole(input) {
+  const role = new Role(input);
 
-  data.id = id;
+  role.set('creator.name', input.creator.displayName);
 
-  data.updator = {
-    id_: updator._id,
-    name: updator.displayName
-  };
+  return role;
+}
 
-  const validation = await validate(data, {
+exports.create = async function (data, creator) {
+  const input = await _filterNewRoleInput({ ...data, creator });
+
+  const newRole = await _prepareNewRole(input);
+  await newRole.save();
+
+  return _projectDocument(newRole);
+}
+
+async function _filterUpdateRoleInput(input) {
+  const validation = await validate(input, {
     'id': 'mongo_id',
     'name': 'string|min:1|max:200',
     'level': 'integer',
@@ -173,22 +199,36 @@ exports.partialUpdate = async function (id, data, updator) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  id = validation.result.id;
-  _.unset(validation.result, 'id');
-
-  data = validation.result;
-
-  if (data.level <= SUPERADMIN_ROLE_LEVEL) {
-    throw new ValidationException({ message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL });
+  if (input.level <= SUPERADMIN_ROLE_LEVEL) {
+    throw new ValidationException({ 
+      message: 'Role level must be greater than ' + SUPERADMIN_ROLE_LEVEL 
+    });
   }
 
-  let role = await mongodb.model('role').findById(id);
+  return validation.result;
+}
 
+async function _prepareUpdateRole(role, input) {
+  const clone = { ...input };
+
+  role.set('updator.name', clone.updator.displayName);
+
+  return updateDocument(role, input);
+}
+
+exports.partialUpdate = async function (id, data, updator) {
+  const input = await _filterUpdateRoleInput({ id, ...data, updator });
+
+  const role = await Role.findById(input.id);
   if (!role) {
-    throw new NotFoundException({ message: 'Role ID does not exist' });
+    throw new NotFoundException({ 
+      message: 'Role ID does not exist' 
+    });
   }
 
   if (role.name === 'superadmin') {
@@ -198,78 +238,93 @@ exports.partialUpdate = async function (id, data, updator) {
     });
   }
 
-  await updateDocument(role, data).save();
+  const updated = await _prepareUpdateRole(role, input);
+  await updated.save();
 
-  return true;
+  return _projectDocument(updated);
+}
+
+async function _filterDeleteByIdInput(input) {
+  const validation = await validate(input, { 
+    'id': 'mongo_id' 
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
+  }
+
+  return validation.result;
 }
 
 exports.deleteById = async function (id) {
+  const input = await _filterDeleteByIdInput({ id });
 
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
-
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
-  }
-
-  id = validation.result.id;
-
-  const role = await mongodb.model('role').findById(id).select('_id name');
-
+  const role = await Role.findById(input.id, '_id name');
   if (!role) {
-    throw new NotFoundException({ message: 'Role ID does not exist' });
+    throw new NotFoundException({
+      message: 'Role ID does not exist' 
+    });
   }
 
   if (role.name === 'superadmin') {
     throw new BadRequestException({
       code: 'CANNOT_BE_DELETED',
-      message: 'Cannot delete "superadmin" role' 
+      message: 'Cannot delete `superadmin` role' 
     });
   }
   
-  const result = await mongodb.model('role').deleteOne({ _id: id });
+  const result = await Role.deleteOne({ "_id": input.id });
 
   return {
     expected: 1,
-    found: [id],
+    found: [input.id],
     deletedCount: result.deletedCount
   };
 }
 
-exports.deleteMany = async function (ids) {
-  
-  const validation = await validate({ 'ids': ids }, {
+async function _filterDeleteManyInput(input) {
+  const validation = await validate(input, {
     'ids': 'to:array|unique',
     'ids.*': 'mongo_id'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  ids = validation.result.ids;
+  return validation.result;
+}
 
-  const docs = await mongodb.model('role').find({ _id: { "$in": ids } }).select('_id name');
+exports.deleteMany = async function (ids) {
+  const input = await _filterDeleteManyInput({ ids });
 
-  if (!docs.length) {
-    throw new NotFoundException({ message: 'Role IDs does not exist' });
+  const roles = await Role.find({ "_id": { "$in": input.ids } }, '_id name');
+  if (!roles.length) {
+    throw new NotFoundException({ 
+      message: 'Role IDs does not exist' 
+    });
   }
 
-  docs.forEach(doc => {
-    if (doc.name === 'superadmin') {
+  for (const role of roles) {
+    if (role.name === 'superadmin') {
       throw new BadRequestException({ 
         code: 'CANNOT_BE_DELETED',
-        message: 'Cannot delete "superadmin" role' 
+        message: 'Cannot delete `superadmin` role' 
       });
-    }  
-  });
+    }
+  }
 
-  const found = docs.map(doc => doc._id);
+  const foundIds = roles.map(role => role._id);
 
-  const result = await mongodb.model('role').deleteMany({ _id: { "$in": found } }); 
+  const result = await Role.deleteMany({ "_id": { "$in": foundIds } }); 
 
   return {
-    expected: ids.length,
-    found: found,
+    expected: input.ids.length,
+    found: foundIds,
     deletedCount: result.deletedCount
   };
 }

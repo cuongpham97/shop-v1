@@ -1,11 +1,11 @@
-const { mongodb } = require('~database');
 const validate = require('~utils/validate');
 const upload = require('~utils/upload');
 const report = require('~utils/report');
+const { mongodb } = require('~database');
+const Image = mongodb.model('image');
 
-exports.upload = async function (data) {
-
-  const validation = await validate(data, {
+async function _filterUploadInput(input) {
+  const validation = await validate(input, {
     'name': 'string|trim|max:200',
     'image': 'required|string',
     'description': 'string|trim|max:500'
@@ -15,39 +15,53 @@ exports.upload = async function (data) {
     throw new ValidationException({ message: validation.errors.toArray() });
   }
 
-  data = validation.result;
+  return validation.result;
+}
 
-  const image = await upload.uploadImage(data.image, data.name, data.description);
-
-  const newImage = await mongodb.model('image').create(image);
+exports.upload = async function (data) {
+  const input = await _filterUploadInput(data);
+  
+  const image = await upload.uploadImage(input.image, input.name, input.description);
+  const newImage = await Image.create(image);
 
   return newImage;
 }
 
-exports.deleteById = async function (id, isSync = true) {
-
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+async function _filterDeleteByIdInput(input) {
+  const validation = await validate(input, { 
+    'id': 'mongo_id' 
+  });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
   }
 
-  id = validation.result.id;
+  return validation.result;
+}
 
-  const image = await mongodb.model('image').findByIdAndDelete(id);
+exports.deleteById = async function (id, isSync = true) {
+  const input = await _filterDeleteByIdInput({ id });
 
+  const image = await Image.findByIdAndDelete(input.id);
   if (!image) {
-    throw new NotFoundException({ message: 'Image ID does not exist' });
+    throw new NotFoundException({
+      message: 'Image ID does not exist' 
+    });
   }
 
-  isSync ? await upload.deleteImage(image) : upload.deleteImage(image).catch(e => report.error(e));
+  if (isSync) {
+    await upload.deleteImage(image);
+  } else {
+    upload.deleteImage(image).catch(e => report.error(e));
+  }
 
   return true;
 }
 
 exports.set = async function (id, usedFor, session = null) {
-
-  const result = await mongodb.model('image').updateOne(
+  const result = await Image.updateOne(
     { "_id": id }, 
     { "$addToSet": { "related": usedFor } },
     { session }
@@ -61,8 +75,7 @@ exports.set = async function (id, usedFor, session = null) {
 }
 
 exports.unset = async function (id, unusedFor, session = null) {
-
-  const result = await mongodb.model('image').updateOne(
+  const result = await Image.updateOne(
     { "_id": id },
     { "$pull": { "related": unusedFor } },
     { session }
@@ -76,8 +89,7 @@ exports.unset = async function (id, unusedFor, session = null) {
 }
 
 exports.setMany = async function (ids, usedFor, session = null) {
-
-  const result = await mongodb.model('image').updateMany(
+  const result = await Image.updateMany(
     { "_id": { "$in": ids } },
     { "$addToSet": { "related": usedFor } },
     { session }
@@ -92,7 +104,7 @@ exports.setMany = async function (ids, usedFor, session = null) {
 
 exports.unsetMany = async function (ids, matches, session = null) {
 
-  const result = await mongodb.model('image').updateMany(
+  const result = await Image.updateMany(
     { "_id": { "$in": ids } },
     { "$pull": { "related": { "$in": matches } } },
     { session }

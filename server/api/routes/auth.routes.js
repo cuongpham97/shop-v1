@@ -2,10 +2,10 @@ const authCtrl = require('~controllers/auth.controller');
 const tools = require('~utils/tools');
 const router = tools.createRouter();
 
-router.get('/auth/token', authCtrl.getCustomerToken);
-router.post('/auth/token/refresh', authCtrl.refreshCustomerToken);
+router.get('/auth/token', authCtrl.getCustomerTokens);
+router.post('/auth/token/refresh', authCtrl.refreshCustomerTokens);
   
-router.get('/admin/auth/token', authCtrl.getAdminToken);
-router.post('/admin/auth/token/refresh', authCtrl.refreshAdminToken);
+router.get('/admin/auth/token', authCtrl.getAdminTokens);
+router.post('/admin/auth/token/refresh', authCtrl.refreshAdminTokens);
 
 module.exports = router;

@@ -1,39 +1,27 @@
 const validate = require('~utils/validate');
-const { mongodb } = require('~database');
 const pricing = require('~libraries/pricing');
+const { mongodb } = require('~database');
+const Product = mongodb.model('product');
+const Cart = mongodb.model('cart');
 
 exports.findByCustomer = async function (customer) {
+  const items = [];
 
-  const validation = await validate(customer, { 
-    '_id': 'mongo_id',
-    'groups': 'required|array',
-    'groups.*': 'mongo_id' 
-  });
+  const cart = await Cart.findOne({ "customer": customer._id });
+  if (!cart) return { items };
 
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
-  }
+  const products = await Product.find({ "_id": { "$in": cart.items.map(item => item.product) } });
 
-  customer = validation.result;
-
-  const cart = await mongodb.model('cart').findOne({ "customer": customer._id });
-
-  if (!cart) return { items: [] };
-
-  const productIds = cart.items.map(item => item.product);
-  const products = await mongodb.model('product').find({ "_id": { "$in": productIds } });
-
-  const items = cart.items.map(item => {
-
+  for (const item of cart.items) {
     const product = products.find(product => product._id.equals(item.product));
-    if (!product) return undefined;
+    if (!product) continue;
 
     const sku = product.skus.find(sku => sku._id.equals(item.sku));
-    if (!sku) return undefined;
+    if (!sku) continue;
 
     const sellingPrice = pricing.productLinePrice(product, sku, item.quantity, customer);
 
-    return {
+    items.push({
       product: product._id,
       sku: sku._id,
       name: product.name,
@@ -42,125 +30,100 @@ exports.findByCustomer = async function (customer) {
       pricing: sellingPrice,
       quantity: item.quantity,
       inventory: sku.quantity
-    };
-  });
+    });
+  }
 
-  return { items: items.filter(Boolean) }; 
+  return { items }; 
 }
 
-exports.setCartItem = async function (customerId, item) {
-  
-  const data = item;
-  data.id = customerId;
-
-  const validation = await validate(data, {
-    'id': 'mongo_id',
+async function _filterSetCartItemInput(input) {
+  const validation = await validate(input, {
+    'id': 'required|mongo_id',
     'product': 'required|mongo_id',
     'sku': 'required|mongo_id',
     'quantity': 'required|integer|min:0'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  customerId = validation.result.id;
-  _.unset(validation.result, 'id');
+  return validation.result;
+}
 
-  item = validation.result;
+function _findItemLineInCart(cart, product, sku) {
+  return cart.items.find(line => line.product.equals(product) && line.sku.equals(sku));
+}
 
+function _removeEmptyLine(cart) {
+  cart.items = cart.items.filter(line => line.quantity);
+}
+
+async function _subtractInventory(product, sku, quantity, session) {
+  const picked = await Product.findOneAndUpdate(
+    {
+      "_id": product,
+      "skus": { "$elemMatch": { "_id": sku, "quantity": { "$gte": quantity } } }
+    },
+    { "$inc": { "skus.$.quantity": -quantity } },
+    { new: true, projection: '_id', session }
+  );
+
+  if (!picked) {
+    throw new BadRequestException({ 
+      code: 'NOT_ENOUGH_QUANTITY',
+      message: 'Not enough product quantity' 
+    });
+  }
+}
+
+async function _addToCart(cart, item, session) {
+  await _subtractInventory(item.product, item.sku, item.quantity, session);
+
+  cart.items.push(item);
+}
+
+async function _updateCartLine(line, quantity, session) {
+  const increasement = quantity - line.quantity;
+  await _subtractInventory(line.product, line.sku, increasement, session);
+
+  line.quantity = quantity;
+}
+
+exports.setCartItem = async function (customerId, item) {
+  const input = await _filterSetCartItemInput({ id: customerId, ...item });
+
+  const product = await Product.findById(input.product);
+  if (!product) {
+    throw new NotFoundException({ 
+      message: 'Product ID does not exist'
+    });
+  }
+
+  const sku = product.skus.find(sku => sku._id.equals(input.sku));
+  if (!sku) {
+    throw new NotFoundException({ 
+      message: 'Sku ID does not exist' 
+    });
+  }
+
+  const cart = await Cart.findOne({ "customer": input.id }) 
+    || await Cart.create({ customer: input.id, items: [] });
+  
   return await mongodb.transaction(async function (session, _commit, _abort) {
-
-    const product = await mongodb.model('product').findById(item.product).select('_id skus');
-
-    if (!product) {
-      throw new NotFoundException({ message: 'Product ID does not exist' });
-    }
-
-    const sku = product.skus.find(sku => sku._id.equals(item.sku));
-
-    if (!sku) {
-      throw new NotFoundException({ message: 'Sku ID does not exist' });
-    }
-
-    let cart = await mongodb.model('cart').findOne({ customer: customerId });
-
-    if (!cart) {
-      cart = await mongodb.model('cart').create({
-        customer: customerId,
-        items: []
-      });
-    }
-
-    const inCart = cart.items.find(line => line.product.equals(item.product) && line.sku.equals(item.sku));
-
-    if (!inCart) {
-
-      if (item.quantity < 0) {
-        throw new BadRequestException({
-          code: 'CANNOT_BE_LESS_THAN_ZERO',
-          message: 'Quantity in cart cannot be less than 0'
-        });
-      }
-
-      const picked = await mongodb.model('product').findOneAndUpdate(
-        {
-          "_id": item.product,
-          "skus": { "$elemMatch": { "_id": item.sku, "quantity": { "$gte": item.quantity } } }
-        },
-        { "$inc": { "skus.$.quantity": -item.quantity } },
-        { new: true, session }
-      );
-  
-      if (!picked) {
-        throw new BadRequestException({ 
-          code: 'NOT_ENOUGH_QUANTITY',
-          message: 'Not enough product quantity' 
-        });
-      }
-  
-      cart.items.push(item);
-  
-      //remove empty cart line
-      cart.items = cart.items.filter(line => line.quantity);
-      
-      await cart.save({ session });
+    const inCart = _findItemLineInCart(cart, input.product, input.sku);
     
+    if (inCart) {
+      await _updateCartLine(inCart, input.quantity, session);
     } else {
-
-      if (item.quantity < 0 && inCart.quantity < -item.quantity) {
-        throw new BadRequestException({
-          code: 'CANNOT_BE_LESS_THAN_ZERO',
-          message: 'Quantity in cart cannot be less than 0' 
-        });
-      }
-
-      const delta = item.quantity - inCart.quantity;
-  
-      const picked = await mongodb.model('product').findOneAndUpdate(
-        {
-          "_id": item.product,
-          "skus": { "$elemMatch": { "_id": item.sku, "quantity": { "$gte": delta } } }
-        },
-        { "$inc": { "skus.$.quantity": -delta } },
-        { new: true, session }
-      );
-  
-      if (!picked) {
-        throw new BadRequestException({
-          code: 'NOT_ENOUGH_QUANTITY', 
-          message: 'Not enough product quantity' 
-        });
-      }
-  
-      inCart.quantity = item.quantity;
-  
-      //remove empty cart line
-      cart.items = cart.items.filter(item => item.quantity);
-      
-      await cart.save(session);
+      await _addToCart(cart, input, session);
     }
-  
-    return item;
+      
+    _removeEmptyLine(cart);
+    await cart.save({ session });
+
+    return true;
   });
 }

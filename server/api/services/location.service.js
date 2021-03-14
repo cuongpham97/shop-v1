@@ -12,7 +12,6 @@ exports.getProvinces = function () {
 
 exports.getDistrictsAndWards = function (provinceCode) {
   const province = location.find(province => province.code === provinceCode);
-
   if (!province) {
     throw new NotFoundException({ message: 'Province code does not exist' });
   }
@@ -22,19 +21,16 @@ exports.getDistrictsAndWards = function (provinceCode) {
 
 function _buildLocationObject(provinceCode, districtCode, wardCode) {
   const province = location.find(province => province.code === provinceCode);
-  
   if (!province) {
     return undefined;
   }
 
   const district = province.districts.find(district => district.code === districtCode);
-
   if (!district) {
     return undefined
   }
 
   const ward = district.wards.find(ward => ward.code === wardCode);
-
   if (!ward) {
     return undefined;
   }
@@ -71,7 +67,7 @@ Validator.register('location', function (attribute, value, _args, done) {
   }
 
   location.street = street;
-  _.set(this.input, attribute, location);
+  this.setInputAttribute(attribute, location);
 
   return done();
 });

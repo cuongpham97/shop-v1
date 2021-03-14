@@ -126,7 +126,7 @@ exports.partialUpdate = async function (id, data) {
     });
   }
 
-  await _prepareUpdateGroup(group, data).save();
+  await _prepareUpdateGroup(group, input).save();
 
   return _projectDocument(group);
 }
