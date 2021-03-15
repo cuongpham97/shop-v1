@@ -190,7 +190,7 @@ async function _changeAvatar(admin, newImageId, session) {
 async function _prepareUpdateAdmin(admin, input, session) {
   const clone = { ...input };
 
-  if ('avatar' in clone) {
+  if ('avatar' in input) {
     await _changeAvatar(admin, clone.avatar, session);
     delete clone.avatar;
   }

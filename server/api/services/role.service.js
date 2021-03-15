@@ -218,7 +218,7 @@ async function _prepareUpdateRole(role, input) {
 
   role.set('updator.name', clone.updator.displayName);
 
-  return updateDocument(role, input);
+  return updateDocument(role, clone);
 }
 
 exports.partialUpdate = async function (id, data, updator) {

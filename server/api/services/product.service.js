@@ -3,11 +3,20 @@ const imageService = require('~services/image.service');
 const categoryService = require('~services/category.service');
 const { updateDocument } = require('~utils/tools');
 const { customAlphabet } = require('nanoid');
-const { mongodb } = require('~database');
 const slugify = require('~utils/slugify');
+const { mongodb } = require('~database');
+const Product = mongodb.model('product');
+const Image = mongodb.model('image');
 
-exports.find = async function (query) {
+function _projectDocument(product) {
+  if (product.toJSON) {
+    product = product.toJSON();
+  }
 
+  return _.omit(product, ['__v']);
+}
+
+async function _filterFindQueryInput(input) {
   const validation = await validate(query, {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
@@ -21,37 +30,51 @@ exports.find = async function (query) {
   });
 
   if (validation.errors) {
-    throw new BadRequestException({ 
-      code: 'WRONG_QUERY_PARAMETERS', 
-      message: 'Query string parameter `' + validation.errors.keys().join(', ') + '` is invalid' 
+    throw new BadRequestException({
+      code: 'WRONG_QUERY_PARAMETERS',
+      message: `Invalid query parameters \`${validation.errors.keys().join(', ')}\``
     });
   }
 
-  return await mongodb.model('product').paginate(validation.result);
+  return validation.result;
+}
+
+exports.find = async function (query) {
+  query = await _filterFindQueryInput(query);
+  return Product.paginate(query, _projectDocument);
+}
+
+async function _filterFindByIdInput(input) {
+  const validation = await validate(input, {
+    'id': 'mongo_id',
+    'fields': 'to:array',
+    'fields.*': 'string|min:1|max:100|mongo_guard'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({
+      message: validation.errors.first()
+    });
+  }
+
+  return validation.result;
 }
 
 exports.findById = async function (id, fields = null) {
+  const input = await _filterFindByIdInput({ id, fields });
 
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
-
-  if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
-  }
-
-  id = validation.result.id;
-
-  const product = await mongodb.model('product').findById(id, fields);
-
+  const product = await Product.findById(input.id, input.fields);
   if (!product) {
-    throw new NotFoundException({ message: 'Product ID does not exist' });
+    throw new NotFoundException({ 
+      message: 'Product ID does not exist' 
+    });
   }
 
-  return product;
+  return _projectDocument(product);
 }
 
-exports.create = async function (product) {
-
-  const validation = await validate(product, {
+async function _filterNewProductInput(input) {
+  const validation = await validate(input, {
     'name': 'required|string|min:1|max:200',
     'title': 'string|max:1000',
     'categories': 'to:array|unique',
@@ -123,87 +146,95 @@ exports.create = async function (product) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  product = validation.result;
+  return validation.result;
+}
 
-  return await mongodb.transaction(async function (session, _commit, _abort) {
+function _generateProductSlug(product, input) {
+  const shortid = customAlphabet('0123456789', 6);
 
-    //#region Generate _id
+  product.slug = `${slugify(input.name)}-${shortid()}`;
+}
 
-    product._id = ObjectId();
-    
-    //#endregion Generate _id
+function _tracingCategoryPath(category, delimiter = ' > ') {
+  return category.ancestors
+    .map(ancestor => ancestor ? ancestor.name : '???')
+    .concat(category.name)
+    .join(delimiter);
+}
 
-    //#region Generate slug
+async function _assignProductCategories(product, input) {
+  const categories = await categoryService.findByIdsFromCache(input.categories);
 
-    const shortid = customAlphabet('0123456789', 6);
-    product.slug = `${slugify(product.name)}-${shortid()}`;
-
-    //#endregion Generate slug
-
-    //#region Transform categories
-
-    // Get categories
-    let categories = await categoryService.findByIdsFromCache(product.categories);
-
-    // Populate ancestors
-    for (const [index, category] of categories.entries()) {
-
-      if (!category) {
-        throw new NotFoundException({ message: `"categories.${index}" does not exist` });
-      }
-
-      category.ancestors = await categoryService.findByIdsFromCache(category.ancestors);
+  // Populate ancestors
+  for (const [index, category] of categories.entries()) {
+    if (!category) {
+      throw new NotFoundException({ 
+        message: `"categories.${index}" does not exist` 
+      });
     }
-  
-    product.categories = categories.map(category => {
 
-      // Tracing category path
-      const path = category.ancestors
-        .map(ancestor => ancestor ? ancestor.name : '???')
-        .concat(category.name)
-        .join(' > ');
+    category.ancestors = await categoryService.findByIdsFromCache(category.ancestors);
+  }
 
-      return { _id: category.id, path: path };
-    });
-    
-    //#endregion Transform categories
-
-    //#region Create skus
-
-    for (const [index, sku] of product.skus.entries()) {
-
-      // Generate sku _id
-      sku._id = ObjectId();
-
-      sku.images = await mongodb.model('image').find({ "_id": { "$in": sku.images } });
-
-      if (!sku.images.length) {
-        throw new NotFoundException({ message: `skus.${index}.images IDs does not exist` });
-      }
-
-      let imageIds = sku.images.map(image => image._id);
-
-      await imageService.setMany(imageIds, `product:${product._id}/sku:${sku._id}/images`, session);
-    }
-  
-    //#endregion Create skus
-
-    const newProduct = await mongodb.model('product').create(product);
-
-    return newProduct;
+  product.categories = categories.map(category => {
+    return { 
+      _id: category.id, 
+      path: _tracingCategoryPath(category) 
+    };
   });
 }
 
-exports.partialUpdate = async function (id, data) {
+async function _createProductSkus(product, input, session) {
+  product.skus = [];
 
-  data.id = id;
+  for (const [index, sku] of input.skus) {
+    sku._id = ObjectId();
 
-  const validation = await validate(data, {
+    const images = await Image.find({ "_id": { "$in": sku.images } });
+    if (!images.length) {
+      throw new NotFoundException({ 
+        message: `skus.${index}.images IDs does not exist` 
+      });
+    } 
+      
+    await imageService.setMany(sku.images, `product:${product._id}/sku:${sku._id}/images`, session);
+    sku.images = images;
+
+    product.skus.push(sku);
+  }
+}
+
+async function _prepareNewProduct(input, session) {
+  const product = new Product(input);
+
+  _generateProductSlug(product, input);
+  
+  await _assignProductCategories(product, input);
+  
+  _createProductSkus(product, input, session);
+
+  return product;
+}
+
+exports.create = async function (data) {
+  const input = await _filterNewProductInput(data);
+
+  return await mongodb.transaction(async function (session, _commit, _abort) {
+    const newProduct = await _prepareNewProduct(input, session);
+    await newProduct.save({ session });
+
+    return _projectDocument(newProduct);
+  });
+}
+
+async function _filterUpdateProductInput(input) {
+  const validation = await validate(input, {
     'id': 'mongo_id',
-
     'name': 'string|min:1|max:200',
     'title': 'string|max:1000',
     'categories': 'to:array|unique',
@@ -275,164 +306,135 @@ exports.partialUpdate = async function (id, data) {
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  id = validation.result.id;
-  _.unset(validation.result, 'id');
+  return validation.result;
+}
 
-  data = validation.result;
+async function _deleteOldSkus(product, session) {
+  for (const sku of product.skus) {
+    const imageIds = sku.images.map(image => image._id);
 
+    await imageService.unsetMany(imageIds, [`product:${product._id}/sku:${sku._id}/images`], session);
+  }
+}
+
+async function _prepareUpdateProduct(product, input, session) {
+  const clone = { ...input };
+
+  if ('name' in input) {
+    _generateProductSlug(product, clone);
+  }
+
+  if ('categories' in input) {
+    await _assignProductCategories(product, clone);
+    delete clone.categories;
+  }
+
+  if ('skus' in input) {
+    await _deleteOldSkus(product, session);
+    await _createProductSkus(product, input, session);
+    delete clone.skus;
+  }
+
+  return updateDocument(product, clone);
+}
+
+exports.partialUpdate = async function (id, data) {
+  const input = await _filterUpdateProductInput({ id, ...data });
+
+  const product = await Product.findById(input.id);
+  if (!product) {
+    throw new NotFoundException({ 
+      message: 'Product ID not found' 
+    });
+  }
+  
   return await mongodb.transaction(async function (session, _commit, _abort) {
+    const updated = await _prepareUpdateProduct(product, input, session);
+    await updated.save({ session });
 
-    let product = await mongodb.model('product').findById(id);
-
-    if (!product) {
-      throw new NotFoundException({ message: 'Product ID not found' });
-    }
-    
-    //#region Regenerate slug
-
-    if (data.name) {
-      const shortid = customAlphabet('0123456789', 6);
-      data.slug = `${slugify(data.name)}-${shortid()}`;
-    }
-
-    //#endregion Regenerate slug
-
-    //#region Transform categories
-
-    if (data.categories) {
-
-      // Get categories
-      let categories = await categoryService.findByIdsFromCache(data.categories);
-
-      // Populate ancestors
-      for (const [index, category] of categories.entries()) {
-
-        if (!category) {
-          throw new NotFoundException({ message: `"categories.${index}" does not exist` });
-        }
-
-        category.ancestors = await categoryService.findByIdsFromCache(category.ancestors);
-      }
-    
-      data.categories = categories.map(category => {
-
-        // Tracing category path
-        const path = category.ancestors
-          .map(ancestor => ancestor ? ancestor.name : '???')
-          .concat(category.name)
-          .join(' > ');
-
-        return { _id: category.id, path: path };
-      });
-
-    }
-   
-    //#endregion Transform categories
-
-    //#region Create skus
-
-    if (data.skus) {
-
-      //Remove images from old skus
-      for (const sku of product.skus) {
-
-        const imageIds = sku.images.map(image => image._id);
-
-        await imageService.unsetMany(imageIds, [`product:${product._id}/sku:${sku._id}/images`], session);
-      }
-
-      // Create new skus
-      for (const [index, sku] of data.skus.entries()) {
-
-        // Generate sku _id
-        sku._id = ObjectId();
-  
-        sku.images = await mongodb.model('image').find({ "_id": { "$in": sku.images } });
-  
-        if (!sku.images.length) {
-          throw new NotFoundException({ message: `skus.${index}.images IDs does not exist` });
-        }
-  
-        const imageIds = sku.images.map(image => image._id);
-  
-        await imageService.setMany(imageIds, `product:${product._id}/sku:${sku._id}/images`, session);
-      }
-    }
-
-    //#endregion Create skus
-
-    await updateDocument(product, data).save({ session });
-
-    return product;
+    return _projectDocument(updated);
   });
 }
 
-exports.deleteById = async function (id) {
-
-  const validation = await validate({ 'id': id }, { 'id': 'mongo_id' } );
+async function _filterDeleteByIdInput(input) {
+  const validation = await validate(input, { 
+    'id': 'mongo_id' 
+  });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.first() });
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
   }
 
-  id = validation.result.id;
+  return validation.result;
+}
 
-  const product = await mongodb.model('product').findByIdAndDelete(id).select('_id skus');
+exports.deleteById = async function (id) {
+  const input = await _filterDeleteByIdInput({ id });
 
+  const product = await Product.findByIdAndDelete(input.id).select('_id skus');
   if (!product) {
-    throw new NotFoundException({ message: 'Product ID does not exist'});
+    throw new NotFoundException({ 
+      message: 'Product ID does not exist'
+    });
   }
 
   for (sku of product.skus) {
     const imageIds = sku.images.map(image => image._id);
-
     await imageService.unsetMany(imageIds, [`product:${product._id}/sku:${sku._id}/images`]);
   }
 
   return {
     expected: 1,
-    found: [id],
+    found: [input.id],
     deletedCount: 1
   };
 }
 
-exports.deleteMany = async function (ids) {
-
-  const validation = await validate({ 'ids': ids }, {
+async function _filterDeleteManyInput(input) {
+  const validation = await validate(input, {
     'ids': 'to:array|unique',
     'ids.*': 'mongo_id'
   });
 
   if (validation.errors) {
-    throw new ValidationException({ message: validation.errors.toArray() });
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
   }
 
-  ids = validation.result.ids;
+  return validation.result;
+}
 
-  const docs = await mongodb.model('product').find({ "_id": { "$in": ids } }).select('_id skus');
+exports.deleteMany = async function (ids) {
+  const input = await _filterDeleteManyInput({ ids });
 
-  if (!docs.length) {
-    throw new NotFoundException({ message: 'Product IDs does not exist' });
+  const products = await Product.find({ "_id": { "$in": ids } }, '_id skus');
+  if (!products.length) {
+    throw new NotFoundException({ 
+      message: 'Product IDs does not exist' 
+    });
   }
 
-  const found = docs.map(doc => doc._id);
- 
-  const result = await mongodb.model('product').deleteMany({ "_id": { "$in": found } }); 
+  const foundIds = products.map(i => i._id);
+  const result = await Product.deleteMany({ "_id": { "$in": foundIds } }); 
 
-  for (const product of docs) {
+  for (const product of products) {
     for (const sku of product.skus) {
-
       const imageIds = sku.images.map(image => image._id);
       await imageService.unsetMany(imageIds, [`product:${product._id}/sku:${sku._id}/images`]);
     }
   }
 
   return {
-    expected: ids.length,
-    found: found,
+    expected: input.ids.length,
+    found: foundIds,
     deletedCount: result.deletedCount
   };
 }

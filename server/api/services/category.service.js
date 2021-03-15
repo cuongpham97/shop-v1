@@ -234,7 +234,7 @@ async function _changeParent(category, newParentId, session) {
 async function _prepareUpdateCategory(category, input) {
   const clone = { ...input };
 
-  if ('parent' in data) {
+  if ('parent' in input) {
     await _changeParent(category, clone.parent);
     delete clone.parent;
   }

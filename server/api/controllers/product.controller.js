@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const productService  = require('~services/product.service');
 
-exports.getManyProduct = async function (req, res) {
+exports.getManyProducts = async function (req, res) {
   const products = await productService.find(req.query);
 
   return res.status(StatusCodes.OK).json(products);
@@ -25,7 +25,7 @@ exports.deleteProductById = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.deleteManyProduct = async function (req, res) {
+exports.deleteManyProducts = async function (req, res) {
   const result = await productService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);

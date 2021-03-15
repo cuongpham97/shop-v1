@@ -3,6 +3,7 @@ const pricing = require('~libraries/pricing');
 const { mongodb } = require('~database');
 const Product = mongodb.model('product');
 const Cart = mongodb.model('cart');
+const moment = require('moment');
 
 exports.findByCustomer = async function (customer) {
   const items = [];
@@ -10,7 +11,12 @@ exports.findByCustomer = async function (customer) {
   const cart = await Cart.findOne({ "customer": customer._id });
   if (!cart) return { items };
 
-  const products = await Product.find({ "_id": { "$in": cart.items.map(item => item.product) } });
+  const products = await Product.find({ 
+    "_id": { "$in": cart.items.map(item => item.product) },
+    "active": true,
+    "dateAvailable": { "$lte": moment().format() }
+  })
+  .select('-description');
 
   for (const item of cart.items) {
     const product = products.find(product => product._id.equals(item.product));
@@ -95,7 +101,13 @@ async function _updateCartLine(line, quantity, session) {
 exports.setCartItem = async function (customerId, item) {
   const input = await _filterSetCartItemInput({ id: customerId, ...item });
 
-  const product = await Product.findById(input.product);
+  const product = await Product.findOne({
+    "_id": input.product,
+    "active": true,
+    "dateAvailable": { "$lte": moment().format() }
+  })
+  .select('-description');
+  
   if (!product) {
     throw new NotFoundException({ 
       message: 'Product ID does not exist'

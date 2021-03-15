@@ -256,12 +256,12 @@ async function _changeCustomerGroups(customer, newGroups) {
 async function _prepareUpdateCustomer(customer, input, session) {
   const clone = { ...input };
 
-  if ('avatar' in clone) {
+  if ('avatar' in input) {
     await _changeAvatar(customer, clone.avatar, session);
     delete clone.avatar;
   }
 
-  if ('groups' in clone) {
+  if ('groups' in input) {
     await _changeCustomerGroups(customer, clone.groups, session);
     delete clone.groups;
   }

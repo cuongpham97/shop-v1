@@ -7,14 +7,14 @@ exports.getOrderById = async function (req, res) {
   return res.status(StatusCodes.OK).json(order);
 }
 
-exports.getManyOrder = async function (req, res) {
+exports.getManyOrders = async function (req, res) {
   const orders = await orderService.find(req.query);
 
   return res.status(StatusCodes.OK).json(orders);
 }
 
 exports.createNewOrder = async function (req, res) {
-  const newOrder = await orderService.create(req.body, req.user);
+  const newOrder = await orderService.create(req.user, req.body);
 
   return res.status(StatusCodes.OK).json(newOrder);
 }
@@ -31,7 +31,7 @@ exports.deleteOrderById = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.deleteManyOrder = async function (req, res) {
+exports.deleteManyOrders = async function (req, res) {
   const result = orderService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);

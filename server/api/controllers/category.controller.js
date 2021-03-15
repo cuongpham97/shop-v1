@@ -7,7 +7,7 @@ exports.getCategoriesTree = async function (_req, res) {
   return res.status(StatusCodes.OK).json({ categories: categoriesTree });
 }
 
-exports.getManyCategory = async function (req, res) {
+exports.getManyCategories = async function (req, res) {
   const categories = await categoryService.find(req.query);
 
   return res.status(StatusCodes.OK).json(categories);
@@ -31,7 +31,7 @@ exports.deleteCategoryById = async function (req, res) {
   return res.status(StatusCodes.OK).json(result);
 }
 
-exports.deleteManyCategory = async function (req, res) {
+exports.deleteManyCategories = async function (req, res) {
   const result = await categoryService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);
