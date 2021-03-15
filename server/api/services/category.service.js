@@ -2,7 +2,7 @@ const validate = require('~utils/validate');
 const cacheService = require('./cacheService');
 const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
-const Catgory = mongodb.model('category');
+const Category = mongodb.model('category');
 
 function _buildCategoriesTree(categories) {
   const groupByParent = _.groupBy(categories, item => _.last(item.ancestors));
@@ -163,12 +163,13 @@ async function _prepareNewCategory(input) {
     await _assignParent(category, input.parent);
   }
 
-  return newCategory;
+  return category;
 }
 
 exports.create = async function (data) {
   const input = await _filterNewCategoryInput(data);
-  const newCategory = await _prepareNewCategory(input).save();
+  const newCategory = await _prepareNewCategory(input);
+  await newCategory.save();
 
   return _projectDocument(newCategory);
 }
@@ -275,7 +276,7 @@ async function _filterDeleteByIdInput(input) {
 }
 
 async function _deleteChildren(category, session) {
-  const children = await Catgory.find({ "ancestors": category._id }, '_id');
+  const children = await Category.find({ "ancestors": category._id }, '_id');
 
   const ids = children.map(child => child._id);
   const result = await Category.deleteMany({ "_id": { "$in": ids } }, { session });
@@ -291,7 +292,7 @@ exports.deleteById = async function (id) {
 
   return await mongodb.transaction(async function (session, _commit, _abort) {
 
-    const category = await Catgory.findByIdAndDelete(input.id, { session });
+    const category = await Category.findByIdAndDelete(input.id, { session });
     if (!category) {
       throw new NotFoundException({
         message: 'Category ID does not exist'
@@ -358,7 +359,7 @@ exports.deleteMany = async function (ids) {
 
   children = _.filter(children || [], child => found.every(id => !id.equals(child)));
 
-  const result = await Category.deleteMany({ "_id": { "$in": found.concat(children) } }, { session });
+  const result = await Category.deleteMany({ "_id": { "$in": found.concat(children) } });
 
   return {
     expected: input.ids.length,

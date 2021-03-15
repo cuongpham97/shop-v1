@@ -83,7 +83,7 @@ async function _filterNewAdminInput(input) {
     'phone': 'string|trim|phone',
     'avatar': 'mongo_id',
     'address': 'location',
-    'username': 'required|string|trim|min:6|max:16|lowercase|regex:/^\\w[\\w\\_\\.]+$/',
+    'username': 'required|string|trim|min:6|max:100|lowercase|regex:/^\\w[\\w\\_\\.]+$/',
     'password': 'required|string|min:6|max:16',
     'roles': 'array',
     'roles.*': 'string',

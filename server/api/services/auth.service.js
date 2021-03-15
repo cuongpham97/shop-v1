@@ -24,7 +24,7 @@ async function _parseCredentials(basicHeader) {
 
   const [username, password] = credentials;
   const validation = await validate({ username, password }, {
-    'username': 'required|string|min:6|max:16|lowercase',
+    'username': 'required|string|min:6|max:100|lowercase',
     'password': 'required|string|min:6|max:16'
   });
 

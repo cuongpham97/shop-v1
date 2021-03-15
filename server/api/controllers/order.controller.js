@@ -26,13 +26,13 @@ exports.createOrderStatus = async function (req, res) {
 }
 
 exports.deleteOrderById = async function (req, res) {
-  const result = orderService.deleteById(req.params.id);
+  const result = await orderService.deleteById(req.params.id);
 
   return res.status(StatusCodes.OK).json(result);
 }
 
 exports.deleteManyOrders = async function (req, res) {
-  const result = orderService.deleteMany(req.query.ids);
+  const result = await orderService.deleteMany(req.query.ids);
 
   return res.status(StatusCodes.OK).json(result);
 }

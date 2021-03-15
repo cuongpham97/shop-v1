@@ -149,7 +149,7 @@ async function _prepareNewOrder(input, session) {
     total: checkout.total,
     status: [{
       name: 'PENDING',
-      message: order.message,
+      message: input.message,
       updatedAt: moment().format()
     }]
   }));
@@ -259,7 +259,7 @@ async function _filterDeleteManyInput(input) {
 }
 
 exports.deleteMany = async function (ids) {
-  const input = _filterDeleteManyInput({ ids });
+  const input = await _filterDeleteManyInput({ ids });
 
   const orders = await Order.find({ "_id": { "$in": input.ids } }).select('_id');
   if (!orders.length) {

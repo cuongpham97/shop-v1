@@ -70,7 +70,7 @@ const AdminSchema = new Schema({
     type: String,
     match: /^\w[\w\_\.]+$/,
     minLength: 6,
-    maxLength: 16,
+    maxLength: 100,
     lowercase: true,
     required: true,
     validate: { validator: _uniqueUsername, msg: 'msg: Username already in use' }

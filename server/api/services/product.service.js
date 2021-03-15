@@ -17,7 +17,7 @@ function _projectDocument(product) {
 }
 
 async function _filterFindQueryInput(input) {
-  const validation = await validate(query, {
+  const validation = await validate(input, {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
     'filters': 'object|mongo_guard',
@@ -192,7 +192,7 @@ async function _assignProductCategories(product, input) {
 async function _createProductSkus(product, input, session) {
   product.skus = [];
 
-  for (const [index, sku] of input.skus) {
+  for (const [index, sku] of input.skus.entries()) {
     sku._id = ObjectId();
 
     const images = await Image.find({ "_id": { "$in": sku.images } });
@@ -213,10 +213,10 @@ async function _prepareNewProduct(input, session) {
   const product = new Product(input);
 
   _generateProductSlug(product, input);
-  
+
   await _assignProductCategories(product, input);
-  
-  _createProductSkus(product, input, session);
+
+  await _createProductSkus(product, input, session);
 
   return product;
 }

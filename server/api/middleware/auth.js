@@ -40,14 +40,17 @@ function _checkTokenVersion(profile, tokenVersion) {
   return profile.tokenVersion == tokenVersion;
 }
 
+function _assignUserToRequest(req, account, profile, fields) {
+  profile = _.pick(profile, ['_id', 'roles'].concat(fields));
+  
+  req.user = _.assign(req.user || {}, { type: account, ...profile });
+}
+
 function _hasPermission(expect, permission) {
   const [resource, action] = expect.trim().split('.');
 
-  if (permission[resource] == action || permission[resource].includes(action)) {
-    return true;
-  }
-
-  return false;
+  return permission[resource] == action 
+    || permission[resource].includes(action);
 }
 
 function _auth(account) {
@@ -76,9 +79,7 @@ function _auth(account) {
       })
     );
 
-    req.user = _.assign(req.user || {}, _.pick(profile, ['_id', 'roles'].concat(fields)));
-    req.user.type = account;
-
+    _assignUserToRequest(req, account, profile, fields);
     return next();
   }
 }
@@ -97,9 +98,11 @@ function _isOwnerId(from) {
     const expectId = ObjectId(_.get(req, from));
     const userId = ObjectId(_.get(req.user, '_id'));
 
-    if (expectId != userId) {
+    if (!expectId.equals(userId)) {
       return next(
-        new AuthorizationException({ message: 'Don\'t have permission to access' })
+        new AuthorizationException({ 
+          message: 'You are not owner of this resource' 
+        })
       );
     }
 
@@ -117,7 +120,9 @@ function _hasRoles(...expectedRoles) {
 
         if (!_.intersection(roles, expect).length) {
           return next(
-            new AuthorizationException({ message: 'Must be one of "' + expect.join(', ') + '" to access' })
+            new AuthorizationException({ 
+              message: 'Must be one of "' + expect.join(', ') + '" to access' 
+            })
           );
         }
 
@@ -125,7 +130,9 @@ function _hasRoles(...expectedRoles) {
 
         if (!roles.includes(expect)) {
           return next(
-            new AuthorizationException({ message: 'Must be "' + expect + '" to access' })
+            new AuthorizationException({ 
+              message: 'Must be "' + expect + '" to access' 
+            })
           );
         }
       }
@@ -146,7 +153,9 @@ function _canDoAction(...actions) {
 
         if (!expect.find(e => _hasPermission(e, permission))) {
           return next(
-            new AuthorizationException({ message: 'Don\'t have permission to access' })
+            new AuthorizationException({ 
+              message: 'Don\'t have permission to access' 
+            })
           );
         }
 
@@ -154,7 +163,9 @@ function _canDoAction(...actions) {
 
         if (!_hasPermission(expect, permission)) {
           return next(
-            new AuthorizationException({ message: 'Don\'t have permission to access' })
+            new AuthorizationException({ 
+              message: 'Don\'t have permission to access'
+            })
           );
         }
       }

@@ -379,7 +379,7 @@ async function _decreaseGroupsMember(groups) {
 exports.deleteById = async function (id) {
   const input = await _filterDeleteByIdInput({ id });
 
-  const customer = Customer.findByIdAndDelete(input.id).select('_id avatar groups');
+  const customer = await Customer.findByIdAndDelete(input.id).select('_id avatar groups');
   if (!customer) {
     throw new NotFoundException({ 
       message: 'Customer ID does not exist' 
@@ -421,13 +421,12 @@ exports.deleteMany = async function (ids) {
   const input = await _filterDeleteManyInput({ ids });
 
   const customers = await Customer.find({ "_id": { "$in": input.ids } }, '_id avatar groups');
-  if (!customer.length) {
+  if (!customers.length) {
     throw new NotFoundException({ 
       message: 'Customer IDs does not exist' 
     });
   }
 
-  // Delete customers
   const foundIds = customers.map(customer => customer._id);
   const result = await Customer.deleteMany({ "_id": { "$in": foundIds } });
 
