@@ -4,7 +4,8 @@
   "description": "api server",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon"
+    "dev": "nodemon",
+    "start": "node"
   },
   "repository": {
     "type": "git",
