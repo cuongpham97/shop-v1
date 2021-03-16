@@ -8,5 +8,5 @@ const logger = require('~utils/logger');
 });
 
 module.exports = {
-  LISTEN_PORT: process.env.APP_PORT
+  LISTEN_PORT: process.env.PORT || process.env.APP_PORT
 };
