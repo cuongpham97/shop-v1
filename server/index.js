@@ -6,5 +6,5 @@ const HttpServer = require('./http-server');
   const port = config.server.LISTEN_PORT;
   const server = new HttpServer(await api.init());
 
-  server.listen(port);
+  server.listen(process.env.PORT || port);
 })();
