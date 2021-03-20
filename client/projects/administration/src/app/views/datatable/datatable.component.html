@@ -1,0 +1,119 @@
+<ng-template #defaultCheckbox let-type="type" let-row="row" let-fn="fn">
+  <div class="text-center">
+    <div class="pretty p-icon p-smooth">
+      <input type="checkbox" (change)="fn(row)">
+      <div class="state p-success">
+        <i class="icon material-icons">done</i>
+        <label></label>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #defaultHeader let-column="column">
+  {{ column.name }}
+</ng-template>
+
+<ng-template #defaultCell let-value="value">
+  {{ value }}
+</ng-template>
+
+<ng-template #defaultFooter let-total="data.length">
+  <div> {{ total }} total </div>
+</ng-template>
+
+
+<div class="table-header clearfix p-2">
+  <div class="title">
+    <h3>Categories <span class="small">table</span></h3>
+  </div>
+  <div class="controls">
+    <button class="btn btn-add"><i class="fa fa-plus"></i></button>
+    <button class="btn btn-delete"><i class="fa fa-trash"></i></button>
+  </div>
+</div>
+
+<div class="table-filter clearfix">
+  <div class="show-entries">
+    <span>Show </span>
+    <select>
+      <option value="5">5</option>
+      <option value="20" selected>20</option>
+      <option value="40">40</option>
+      <option value="80">80</option>
+    </select>
+    <span> entries</span>
+  </div>
+
+  <div class="options">
+    <button (click)="filtersPanelToggle()" class="btn btn-sm btn-primary"><i class="fas fa-filter"> </i>
+      Filters</button>
+  </div>
+
+  <div class="search-box">
+    <input type="text" class="form-control" placeholder="Search&hellip;">
+    <div class="search-icon">
+      <i class="far fa-search"></i>
+    </div>
+  </div>
+</div>
+
+<div #filtersPanel class="filters-panel">
+  <div class="bg-dark">
+    <pre>
+        sadfasdf
+        á
+      
+          df
+          ádfdf
+          à
+          á
+          f
+      </pre>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-hover datatable">
+    <thead>
+      <th *ngIf="checkbox">
+        <ng-template *ngTemplateOutlet="defaultCheckbox; context: { fn: onSelectAll }"></ng-template>
+      </th>
+
+      <th *ngFor="let col of columns">
+        <ng-template *ngTemplateOutlet="col.header?.template || defaultHeader; context: { column: col }"></ng-template>
+
+        <ng-template [ngIf]="col.sortable" [ngSwitch]="col.sortStatus">
+          <span (click)="col.onSortChange()" class="sort-icon">
+            <i *ngSwitchCase="'none'" class="fal fa-sort"></i>
+            <i *ngSwitchCase="'asc'" class="far fa-angle-up"></i>
+            <i *ngSwitchCase="'desc'" class="far fa-angle-down"></i>
+          </span>
+        </ng-template>
+
+      </th>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data | paginate: { itemsPerPage: pagination.pageSize, currentPage: pagination.page }">
+        <td  *ngIf="checkbox">
+          <ng-template *ngTemplateOutlet="defaultCheckbox; context: { row: row , fn: onSelect }"></ng-template>
+        </td>
+
+        <td *ngFor="let col of columns" class="align-middle">
+          <ng-template
+            *ngTemplateOutlet="col.cell?.template || defaultCell; context: { value: row[col.prop || col.name?.toLowerCase()] }">
+          </ng-template>
+        </td>
+      </tr>
+    </tbody>
+
+  </table>
+</div>
+
+<div class="table-footer clearfix">
+  <div class="status">
+    <ng-template *ngTemplateOutlet="footer?.template || defaultFooter; context: this"></ng-template>
+  </div>
+  <pagination-controls (pageChange)="onPageChange($event)" class="pagination" [responsive]="true">
+  </pagination-controls>
+</div>
