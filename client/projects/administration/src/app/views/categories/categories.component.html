@@ -1,0 +1,32 @@
+<div class="p-1 p-md-3 wrap">
+  <datatable name="Categories" [getData]="getData.bind(this)" [selected]="selected" [checkbox]="true" [filterable]="true">
+
+    <column name="Name" [sortable]="true"></column>
+    <column name="Order" [sortable]="true"></column>
+    <column name="Description">
+      <ng-template cell let-value="value">{{ value?.length < 50 ? value : (value | slice:0:50) + '...' }}</ng-template>
+    </column>
+    <column name="Date Added" prop="createdAt" [sortable]="true">
+      <ng-template cell let-value="value">{{ value | date:'dd/MM/yyyy' }}</ng-template>
+    </column>
+    <column name="Action" prop="_id">
+      <ng-template cell let-value="value">{{ value }}</ng-template>
+    </column>
+
+    <ng-template filterForm let-submit="onFilterChange">
+      <form #form="ngForm" (submit)="submit(form)" class="px-4 py-2">
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label text-sm-right">Name</label>
+          <div class="col-9 col-sm-4">
+            <input ngModel pattern="[^&?$!%#]*" name="name" type="input" class="form-control form-control-sm">
+          </div>
+          <div class="col-3 col-sm-1 text-left">
+            <input type="submit" value="Apply" class="btn btn-sm btn-success px-3">
+          </div>
+        </div>
+
+      </form>
+    </ng-template>
+  </datatable>
+</div>

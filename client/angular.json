@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Administration": {
+    "administration": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/Administration",
+            "outputPath": "dist/administration",
             "index": "projects/administration/src/index.html",
             "main": "projects/administration/src/main.ts",
             "polyfills": "projects/administration/src/polyfills.ts",
@@ -43,6 +43,7 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
+              "extractCss": true,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
@@ -65,18 +66,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "Administration:build"
+            "browserTarget": "administration:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "Administration:build:production"
+              "browserTarget": "administration:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "Administration:build"
+            "browserTarget": "administration:build"
           }
         },
         "test": {
@@ -113,15 +114,15 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "projects/administration/e2e/protractor.conf.js",
-            "devServerTarget": "Administration:serve"
+            "devServerTarget": "administration:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "Administration:serve:production"
+              "devServerTarget": "administration:serve:production"
             }
           }
         }
       }
     }},
-  "defaultProject": "Administration"
+  "defaultProject": "administration"
 }

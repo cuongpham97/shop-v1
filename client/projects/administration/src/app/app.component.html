@@ -1,16 +1,1 @@
-<div class="w-75 m-5 p-3 test">
-<datatable [data]="data" (sort)="onSort($event)" (pageChange)="onPageChange($event)">
-  <column name="Image" prop="avatar">
-    <ng-template cell let-value="value">
-      <img width="40" height="30" [src]="value">
-    </ng-template>
-  </column>
-  <column name="Name" [sortable]="true" [filter]="true"></column>
-  <column name="Age">
-    <ng-template header let-column="column">
-      <strong>{{column.name}}</strong>
-    </ng-template>
-  </column>
-</datatable>
-
-</div>
+<router-outlet></router-outlet>

@@ -1,15 +1,3 @@
-<ng-template #defaultCheckbox let-type="type" let-row="row" let-fn="fn">
-  <div class="text-center">
-    <div class="pretty p-icon p-smooth">
-      <input type="checkbox" (change)="fn(row)">
-      <div class="state p-success">
-        <i class="icon material-icons">done</i>
-        <label></label>
-      </div>
-    </div>
-  </div>
-</ng-template>
-
 <ng-template #defaultHeader let-column="column">
   {{ column.name }}
 </ng-template>
@@ -18,102 +6,116 @@
   {{ value }}
 </ng-template>
 
-<ng-template #defaultFooter let-total="data.length">
-  <div> {{ total }} total </div>
+<ng-template #defaultFooter let-selected="selectedCount" let-total="total">
+  <span *ngIf="checkbox">{{ selected }} selected / </span>{{ total }} total
 </ng-template>
 
+<ng-template #defaultFilterForm let-submit="onFilterChange">
+  <form #form="ngForm"></form>
+</ng-template>
 
-<div class="table-header clearfix p-2">
-  <div class="title">
-    <h3>Categories <span class="small">table</span></h3>
-  </div>
-  <div class="controls">
-    <button class="btn btn-add"><i class="fa fa-plus"></i></button>
-    <button class="btn btn-delete"><i class="fa fa-trash"></i></button>
-  </div>
-</div>
-
-<div class="table-filter clearfix">
-  <div class="show-entries">
-    <span>Show </span>
-    <select>
-      <option value="5">5</option>
-      <option value="20" selected>20</option>
-      <option value="40">40</option>
-      <option value="80">80</option>
-    </select>
-    <span> entries</span>
-  </div>
-
-  <div class="options">
-    <button (click)="filtersPanelToggle()" class="btn btn-sm btn-primary"><i class="fas fa-filter"> </i>
-      Filters</button>
-  </div>
-
-  <div class="search-box">
-    <input type="text" class="form-control" placeholder="Search&hellip;">
-    <div class="search-icon">
-      <i class="far fa-search"></i>
+<div class="table-wrapper pb-2">
+  <div class="table-header clearfix p-2">
+    <div class="title">
+      <h3>{{ name }}<span class="small"> table</span></h3>
+    </div>
+    <div class="controls">
+      <button class="btn btn-add"><i class="fa fa-plus"></i></button>
+      <button class="btn btn-delete"><i class="fa fa-trash"></i></button>
     </div>
   </div>
-</div>
 
-<div #filtersPanel class="filters-panel">
-  <div class="bg-dark">
-    <pre>
-        sadfasdf
-        á
-      
-          df
-          ádfdf
-          à
-          á
-          f
-      </pre>
+  <div class="table-filter clearfix">
+    <div class="show-entries">
+      <span>Show </span>
+      <select (change)="onSelectEntries($event)">
+        <option value="5" selected>5</option>
+        <option value="20">20</option>
+        <option value="40">40</option>
+        <option value="80">80</option>
+      </select>
+      <span> entries</span>
+    </div>
+
+    <div class="options">
+      <button *ngIf="filterable" (click)="filtersPanelToggle()" class="btn btn-sm btn-primary"><i class="fas fa-filter"> </i>
+        Filters</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" class="form-control" placeholder="Search&hellip;">
+      <div class="search-icon"><i class="far fa-search"></i></div>
+    </div>
   </div>
-</div>
 
-<div class="table-responsive">
-  <table class="table table-hover datatable">
-    <thead>
-      <th *ngIf="checkbox">
-        <ng-template *ngTemplateOutlet="defaultCheckbox; context: { fn: onSelectAll }"></ng-template>
-      </th>
+  <div *ngIf="filterable" #filtersPanel class="filters-panel">
+    <ng-template *ngTemplateOutlet="filterForm?.template || defaultFilterForm; context: this"></ng-template>
+  </div>
 
-      <th *ngFor="let col of columns">
-        <ng-template *ngTemplateOutlet="col.header?.template || defaultHeader; context: { column: col }"></ng-template>
+  <div class="table-responsive">
+    <table class="table table-hover datatable">
+      <thead>
+        <th *ngIf="checkbox" class="text-center checkbox">
+          <div class="pretty p-icon p-smooth">
+            <input #selectAllCheckbox type="checkbox" (change)="onSelectAll()">
+            <div class="state p-success">
+              <i class="icon material-icons">done</i>
+              <label></label>
+            </div>
+          </div>
+        </th>
 
-        <ng-template [ngIf]="col.sortable" [ngSwitch]="col.sortStatus">
-          <span (click)="col.onSortChange()" class="sort-icon">
-            <i *ngSwitchCase="'none'" class="fal fa-sort"></i>
-            <i *ngSwitchCase="'asc'" class="far fa-angle-up"></i>
-            <i *ngSwitchCase="'desc'" class="far fa-angle-down"></i>
-          </span>
-        </ng-template>
+        <th *ngFor="let column of columns">
+          <ng-template *ngTemplateOutlet="column.header?.template || defaultHeader; context: { column: column }"></ng-template>
 
-      </th>
-    </thead>
-    <tbody>
-      <tr *ngFor="let row of data | paginate: { itemsPerPage: pagination.pageSize, currentPage: pagination.page }">
-        <td  *ngIf="checkbox">
-          <ng-template *ngTemplateOutlet="defaultCheckbox; context: { row: row , fn: onSelect }"></ng-template>
-        </td>
-
-        <td *ngFor="let col of columns" class="align-middle">
-          <ng-template
-            *ngTemplateOutlet="col.cell?.template || defaultCell; context: { value: row[col.prop || col.name?.toLowerCase()] }">
+          <ng-template [ngIf]="column.sortable" [ngSwitch]="column.order">
+            <span (click)="column.onSortBtnClick()" class="sort-icon">
+              <i *ngSwitchCase="'none'" class="fal fa-sort"></i>
+              <i *ngSwitchCase="'asc'" class="far fa-angle-up"></i>
+              <i *ngSwitchCase="'desc'" class="far fa-angle-down"></i>
+            </span>
           </ng-template>
-        </td>
-      </tr>
-    </tbody>
+        </th>
+      </thead>
+      
+      <tbody>
+        <tr *ngFor="let row of data | paginate: { 
+          itemsPerPage: pagination.pageSize, 
+          currentPage: pagination.page, 
+          totalItems: pagination.total 
+        }; 
+        let index = index"
+        >
+          <td *ngIf="checkbox" class="text-center checkbox">
+            <div class="pretty p-icon p-smooth">
+              <input #checkboxes type="checkbox" (change)="onSelect(index, row)">
+              <div class="state p-success">
+                <i class="icon material-icons">done</i>
+                <label></label>
+              </div>
+            </div>
+          </td>
 
-  </table>
-</div>
+          <td *ngFor="let column of columns" class="align-middle">
+            <ng-template 
+              [ngTemplateOutlet]="column.cell?.template || defaultCell"
+              [ngTemplateOutletContext]="{ value: getCellValue(row, column) }"
+            ></ng-template>
+          </td>
+        </tr>
+      </tbody>
 
-<div class="table-footer clearfix">
-  <div class="status">
-    <ng-template *ngTemplateOutlet="footer?.template || defaultFooter; context: this"></ng-template>
+    </table>
   </div>
-  <pagination-controls (pageChange)="onPageChange($event)" class="pagination" [responsive]="true">
-  </pagination-controls>
+
+  <div class="table-footer clearfix">
+    <div class="status">
+      <ng-template 
+        [ngTemplateOutlet]="footer?.template || defaultFooter"
+        [ngTemplateOutletContext]="{ selectedCount: selectedCount, total: pagination.total }"
+      ></ng-template>
+    </div>
+    <pagination-controls (pageChange)="onPageChange($event)" class="pagination" [responsive]="true">
+    </pagination-controls>
+  </div>
 </div>

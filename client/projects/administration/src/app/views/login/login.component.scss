@@ -1,0 +1,70 @@
+.container-fluid {
+  height: 100vh;
+  overflow-y: auto;
+  background-image: url('/assets/img/login-background.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  .card {
+    padding: 15px;
+    padding-top: 40px;
+    padding-bottom: 80px;
+    margin-top: auto;
+    margin-bottom: auto;
+    width: 370px;
+    border: none;
+
+    .card-header {
+      background: #FFF;
+      color: #4F525A;
+      border-bottom: none;
+      padding-top: 0;
+    }
+
+    .card-body {
+      padding-top: 0.25rem;
+    }
+
+    input {
+      font-weight: normal;
+      &:focus {
+        box-shadow: none;
+      }
+
+      &::placeholder {
+        font-weight: normal;
+        color: #bbb;
+      }
+      
+      &:-ms-input-placeholder {
+        font-weight: normal;
+        color: #bbb;
+      }
+      
+      &::-ms-input-placeholder {
+        font-weight: normal;
+        color: #bbb;
+      }
+    }
+    
+    .message {
+      height: 10px;
+    }
+
+    .login-btn {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      font-weight: 400;
+      margin-top: 35px;
+      color: #fff;
+      background-color: #3EB6CE;
+      width: 200px;
+
+      i {
+        font-size: 14px;
+      }
+    }    
+  }
+}

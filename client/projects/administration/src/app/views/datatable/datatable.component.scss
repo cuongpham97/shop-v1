@@ -6,6 +6,10 @@
   }
 }
 
+.table-wrapper {
+  background: #fff;
+}
+
 .table-header {
   background: rgb(98,23,163);
   background: linear-gradient(90deg, rgba(98,23,163,1) 0%, rgba(123,22,172,1) 50%, rgba(171,9,191,1) 100%);
@@ -104,7 +108,8 @@
 
   .search-box {
     float: right;
-    margin-bottom: 10px;
+    margin-top: 2px;
+    margin-bottom: 8px;
     margin-right: 10px;
     margin-left: 10px;
     position: relative;
@@ -160,6 +165,10 @@ th, td {
   text-align: left;
 }
 
+.checkbox {
+  width: 100px;
+}
+
 th:hover {
   cursor: pointer;
 }
@@ -176,6 +185,7 @@ th:hover {
   color: #757575;
   margin-left: 10px;
   line-height: 24px;
+  font-size: 13px;
 }
 
 ::ng-deep .pagination {

@@ -1,21 +1,55 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
-
 import { AppComponent } from './app.component';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { APIInterceptor } from './interceptors/api.interceptor';
+import { JWTInterceptor } from './interceptors/jwt.interceptor';
+import { AuthService, MenuService, UtilsService } from './services';
+import { ReactiveFormsModule } from '@angular/forms';
+import { LoginComponent } from './views/login/login.component';
+import { SharedModule } from './shared/shared.module';
+import { AuthGuard } from './guards/auth.guard';
+import { LayoutComponent } from './views/containers/layout/layout.component';
+import { BreadcrumbComponent } from './views/containers/breadcrumb/breadcrumb.component';
 
-import { DatatableModule } from './views/datatable/datatable.module';
+const APP_COMPONENTS = [
+  LoginComponent,
+  LayoutComponent,
+  BreadcrumbComponent
+];
+
+const APP_SERVICES = [
+  AuthService,
+  MenuService,
+  UtilsService
+];
+
+const APP_GUARDS = [
+  AuthGuard
+];
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    ...APP_COMPONENTS,
+    LayoutComponent,
+    BreadcrumbComponent
   ],
   imports: [
-    DatatableModule,
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    SharedModule
   ],
-  providers: [],
+  providers: [
+    { provide: 'API_URL', useValue: 'http://api-shop.herokuapp.com'},
+    { provide: HTTP_INTERCEPTORS, useClass: APIInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: JWTInterceptor, multi: true },
+    ...APP_SERVICES,
+    ...APP_GUARDS
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

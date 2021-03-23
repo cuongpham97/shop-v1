@@ -1,0 +1,44 @@
+<nav class="navbar navbar-inverse pl-0 pr-0">
+  <div class="container-fluid">
+    <div class="navbar-header w-100 d-flex justify-content-between">
+      <a class="navbar-brand order-1 order-md-0"><h5 class="m-0">Materialize</h5></a>
+      <a class="navbar-toggler order-0 order-md-1" id="js-sidebar-toggle"><i class="fa fa-bars"></i></a>
+      <a class="d-flex ml-sm-auto order-2"><img *ngIf="user?.avatar" class="avatar" [src]="user.avatar"></a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrapper" id="js-wrapper">
+  <aside class="sidebar">
+    <div class="sidebar-content">
+      <ul class="sidebar-nav">
+        <li [routerLinkActive]="['active']">
+          <a routerLink="/dashboard"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+        </li>
+        <li [routerLinkActive]="['active']"  [class.d-none]="!auth.can('category.read')">
+          <a routerLink="/categories"><i class="fas fa-tags"></i>Categories</a>
+        </li>
+        <li [routerLinkActive]="['active']" [class.d-none]="!auth.can('product.read')">
+          <a routerLink="/products"><i class="fas fa-tshirt"></i>Products</a>
+        </li>
+        <li [routerLinkActive]="['active']" [class.d-none]="!auth.can('order.read')">
+          <a routerLink="/orders"><i class="fas fa-shopping-cart"></i>Orders</a>
+        </li>
+        <li>
+          <a><i class="fas fa-user"></i>Customers</a>
+        </li>
+        <li>
+          <a><i class="fas fa-chart-bar"></i>Reports</a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <aside class="main-side">
+    <breadcrumb></breadcrumb>
+
+    <div class="content p-2 p-md-3">
+      <router-outlet></router-outlet>
+    </div>
+  </aside>
+</div>

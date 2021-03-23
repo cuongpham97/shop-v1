@@ -1,0 +1,42 @@
+<div class="container-fluid">
+	<div class="d-flex justify-content-center h-100">
+		<div class="card">
+			<div class="card-header">
+        <h2>Login</h2>
+        <div class="small">Sign in to your account</div>
+				<hr>
+			</div>
+			<div class="card-body">
+				<form [formGroup]="loginForm">
+					<div class="input-group form-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="far fa-user"></i></span>
+						</div>
+						<input formControlName="username" minLength="6" maxlength="100" type="text" class="form-control" placeholder="username" [ngClass]="{ 
+              'is-valid': loginForm.get('username').touched && loginForm.get('username').valid,
+              'is-invalid': loginForm.get('username').touched && loginForm.get('username').invalid
+            }">
+					</div>
+					<div class="input-group form-group mb-0">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="far fa-key"></i></span>
+						</div>
+						<input formControlName="password" minLength="6" maxlength="16" type="password" class="form-control" placeholder="password" autocomplete="false" [ngClass]="{ 
+              'is-valid': loginForm.get('password').touched && loginForm.get('password').valid,
+              'is-invalid': loginForm.get('password').touched && loginForm.get('password').invalid
+            }">
+					</div>
+					<div class="text-right"><a href="#" class="small text-success">Forgot your password?</a></div>
+          <div class="message">
+            <span *ngIf="message" class="small text-danger "><i>{{ message }}</i></span>
+          </div>
+					<div class="form-group">
+						<button [disabled]="loading" class="btn login-btn pr-3" (click)="onLoginFormSubmit()">
+							<span><i class="fas fa-sign-in-alt mr-1"></i> Sign in</span>
+						</button>
+          </div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

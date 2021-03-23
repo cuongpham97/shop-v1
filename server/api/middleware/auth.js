@@ -49,8 +49,11 @@ function _assignUserToRequest(req, account, profile, fields) {
 function _hasPermission(expect, permission) {
   const [resource, action] = expect.trim().split('.');
 
+  if (Array.isArray(permission[resource])) {
+    return permission[resource].includes(action);
+  }
+  
   return permission[resource] == action 
-    || permission[resource].includes(action);
 }
 
 function _auth(account) {
