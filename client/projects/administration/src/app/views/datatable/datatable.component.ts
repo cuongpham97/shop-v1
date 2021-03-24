@@ -46,7 +46,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     total: 0
   };
 
-  orders = {};
+  orders = [];
 
   selectedCount = 0;
   selectedByIndex = {};
@@ -67,6 +67,8 @@ export class DatatableComponent implements OnInit, AfterViewInit {
 
     return this.getData(query).pipe(first())
       .subscribe(dataset => {
+
+        console.log(dataset.data);
         this.data = dataset.data;
         this.pagination.total = dataset.metadata.total;
       });
@@ -87,7 +89,18 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   }
 
   onSortChange(value: { prop: string, type: string }) {
-    this.orders[value.prop] = value.type;
+    this.orders = this.orders.filter(i => i !== value.prop && i !== `-${value.prop}`);
+
+    switch (value.type) {
+      case 'asc':
+        this.orders.push(value.prop);
+        break;
+      
+      case 'desc':
+        this.orders.push('-' + value.prop);
+        break;
+    }
+
     this._refresh();
   }
 

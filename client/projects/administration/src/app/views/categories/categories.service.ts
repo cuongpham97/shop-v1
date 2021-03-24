@@ -13,10 +13,8 @@ export class CategoriesService {
   ) { }
 
   getManyCategories(query) {
-    let querystring = this.utils.serialize(query);
+    const querystring = this.utils.serialize(query).replace('filters', 'regexes');
     
-    querystring = querystring.replace(/(orders=(?:[-\w]+,)*)(([^,=]+)=(desc|asc)))/);
-
-    return this.http.get('/admin/categories');
+    return this.http.get('/admin/categories?populate&' + querystring);
   }
 }

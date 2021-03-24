@@ -1,11 +1,8 @@
 <div class="p-1 p-md-3 wrap">
   <datatable name="Categories" [getData]="getData.bind(this)" [selected]="selected" [checkbox]="true" [filterable]="true">
 
-    <column name="Name" [sortable]="true"></column>
-    <column name="Order" [sortable]="true"></column>
-    <column name="Description">
-      <ng-template cell let-value="value">{{ value?.length < 50 ? value : (value | slice:0:50) + '...' }}</ng-template>
-    </column>
+    <column name="Category Name" prop="name" [sortable]="true"></column>
+    <column name="Sort Order" prop="order" [sortable]="true"></column>
     <column name="Date Added" prop="createdAt" [sortable]="true">
       <ng-template cell let-value="value">{{ value | date:'dd/MM/yyyy' }}</ng-template>
     </column>

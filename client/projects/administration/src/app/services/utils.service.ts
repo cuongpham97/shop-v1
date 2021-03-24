@@ -10,6 +10,8 @@ export class UtilsService {
       if (!value) continue;
 
       if (Array.isArray(value)) {
+        if (!value.length) continue;
+        
         const encodedArray = value.map(i => encodeURIComponent(i));
         pragments.push(`${key}=${encodedArray.join(',')}`);
 
