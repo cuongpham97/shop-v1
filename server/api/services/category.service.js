@@ -98,8 +98,8 @@ exports.find = async function (query) {
   query = await _filterFindQuery(query);
 
   const dataset = await Category.paginate(query, _projectDocument);
+  
   if ('populate' in query) {
-
     dataset.data = await Category.populate(dataset.data, { 
       path: 'ancestors', 
       select: "_id name"
