@@ -97,12 +97,16 @@ async function _filterFindQuery(query) {
 exports.find = async function (query) {
   query = await _filterFindQuery(query);
 
-  const categories = await Category.paginate(query, _projectDocument);
+  const dataset = await Category.paginate(query, _projectDocument);
   if ('populate' in query) {
-    categories.data = await Category.populate(categories.data, { path: 'ancestors' });
+
+    dataset.data = await Category.populate(dataset.data, { 
+      path: 'ancestors', 
+      select: "_id name"
+    });
   }
 
-  return categories;
+  return dataset;
 }
 
 async function _filterFindByIdInput(input) {
