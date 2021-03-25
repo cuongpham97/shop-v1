@@ -208,7 +208,7 @@ async function _filterUpdateCategoryInput(input) {
 }
 
 async function _updateAncesstorsOfChildren(category, session) {
-  await Catgory.updateMany({ "ancestors": category._id }, [
+  await Category.updateMany({ "ancestors": category._id }, [
     {
       "$set": {
         "ancestors": {
