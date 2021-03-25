@@ -8,7 +8,7 @@ exports.getManyAdmins = async function (req, res) {
 }
 
 exports.getAdminById = async function (req, res) {
-  const admin = await adminService.findById(req.params.id, req.query.fields);
+  const admin = await adminService.findById(req.params.id, req.query);
 
   return res.status(StatusCodes.OK).json(admin);
 }
