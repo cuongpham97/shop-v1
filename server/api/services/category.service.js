@@ -125,7 +125,7 @@ async function _filterFindByIdInput(input) {
   return validation.result;
 }
 
-exports.findById = async function (id, fields = null) {
+exports.findById = async function (id, fields = []) {
   const input = await _filterFindByIdInput({ id, fields });
 
   const category = await Category.findById(input.id, input.fields);

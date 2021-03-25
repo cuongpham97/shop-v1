@@ -2,7 +2,7 @@ const { StatusCodes } = require('http-status-codes');
 const categoryService = require('~services/category.service');
 
 exports.getCategoryById = async function (req, res) {
-  const category = await categoryService.getById(req.params.id);
+  const category = await categoryService.findById(req.params.id, req.query.fields);
 
   return res.status(StatusCodes.OK).json(category);
 }
