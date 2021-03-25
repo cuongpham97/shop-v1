@@ -111,6 +111,7 @@ Validator.prototype = {
 
     for (const rule of rulesArray) {
       if (context.stopValidating) break;
+      
       const inputValue = _.get(this.input, attribute);
       context.setCurrentRule(rule);
 
