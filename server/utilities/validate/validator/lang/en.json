@@ -35,6 +35,6 @@
 	"string": "`:attribute` must be a string",
 	"title": "`:attribute` is invalid, title string failed",
 	"trim": "`:attribute` is invalid, trim string failed",
-	"unique": ":atrribute must be an array",
+	"unique": ":attribute must be an array",
 	"uppercase": "`:attribute` is invalid, uppercase failed"
 }

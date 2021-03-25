@@ -29,7 +29,6 @@ function required_if(_attribute, value, args, done) {
 }
 
 function required_with(_attribute, value, args, done) {
-  
   const present = args.split(',').filter(key => this.hasInputAttribute(key)).length;
 
   return (!present || _isAcceptable(value))
@@ -38,7 +37,6 @@ function required_with(_attribute, value, args, done) {
 }
 
 function required_without(_attribute, value, args, done) {
-
   if (this._isAcceptable(value)) return done(); 
 
   const without = args.split(',').find(i => !this.hasInputAttribute(i));
@@ -49,8 +47,7 @@ function required_without(_attribute, value, args, done) {
 }
 
 function required_one_of(_attribute, _value, args, done) {
-
-  let count = args.split(',').filter(key => _isAcceptable(this.getInputAttribute(key))).length;
+  const count = args.split(',').filter(key => _isAcceptable(this.getInputAttribute(key))).length;
 
   return count === 1 
     ? done()
@@ -58,14 +55,12 @@ function required_one_of(_attribute, _value, args, done) {
 }
 
 function not_allow(_attribute, _value, _args, done) {
- 
   return this.isPresent() 
     ? done(false) 
     : done();
 }
 
 function not_allow_if(_attribute, _value, args, done) {
-  
   if (!this.isPresent()) return done();
 
   const [orField, orValue] = Array.isArray(args) ? args : args.split(',');
@@ -76,7 +71,6 @@ function not_allow_if(_attribute, _value, args, done) {
 }
 
 function unset(attribute, _value, _args, done) {
-
   if (this.isPresent()) {
     _.unset(this.input, attribute);
   }
@@ -89,14 +83,12 @@ function nullable(_attribute, _value, _args, done) {
 }
 
 function object(_attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   return done(typeof value === 'object' && value !== null);
 }
 
 function boolean(_attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   return typeof value === 'boolean'
@@ -105,63 +97,50 @@ function boolean(_attribute, value, _args, done) {
 }
 
 function numeric(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   const num = Number(value);
-
   const check = typeof num === 'number' && !isNaN(num) && typeof value !== 'boolean' && value !== '';
- 
   if (!check) return done(false);
 
   this.setInputAttribute(attribute, num);
-
   return done();
 }
 
 function integer(attribute, value, _args, done) {
-  
   if (this.notPresentOrAcceptNullable()) return done();
 
   const isInteger = /^-*\d+$/.test(value);
-
   if (!isInteger) return done(false);
 
   this.setInputAttribute(attribute, parseInt(value));
-
   return done();
 }
 
 function string(_attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   return done(typeof value === 'string');
 }
 
 function array(_attribute, value, _args, done) {
-  
   if (this.notPresentOrAcceptNullable()) return done();
 
   return done(Array.isArray(value));
 }
 
 function unique(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   if (!Array.isArray(value)) return done(false);
 
-
   this.setInputAttribute(attribute, [...new Set(value)]);
-
   return done();
 }
 
 function to(attribute, value, args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
-
+  
   args = args.split(',');
   const type = args[0];
 
@@ -179,20 +158,16 @@ function to(attribute, value, args, done) {
 }
 
 function mongo_id(attribute, value, _args, done) {
-
-  if (this.notPresentOrAcceptNullable()) return done();
-
+  if (this.notPresentOrAcceptNullable()) return done(); 
+  
   const isMongoId = /^[0-9a-fA-F]{24}$/.test(value);
-
   if (!isMongoId) return done(false);
 
   this.setInputAttribute(attribute, ObjectId(value));
-
   return done();
 }
 
 function _enum(_attribute, value, args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   return args.split(',').includes(value)
@@ -203,7 +178,6 @@ function _enum(_attribute, value, args, done) {
 Object.defineProperty(_enum, 'name', { value: 'enum' });
 
 function date(_attribute, value, args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   const format = args || 'YYYY/MM/DD';
@@ -214,22 +188,18 @@ function date(_attribute, value, args, done) {
 }
 
 function regex(_attribute, value, args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   const rg = /^\/(?<regex>.+)\/(?<options>[img]*)$/;
-
   if (!rg.test(args)) {
     return done(new RegExp(args).test(value))
   }
 
   const match = rg.exec(args);
-
   return done(new RegExp(match.groups.regex, match.groups.options).test(value));
 }
 
 function phone(_attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   return /^[+0-9]{8,12}$/.test(value) 
@@ -238,11 +208,9 @@ function phone(_attribute, value, _args, done) {
 }
 
 function email(_attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   let regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  
   if (!regex.test(value)) {
     // added support domain 3-n level https://github.com/skaterdav85/validatorjs/issues/384
     regex = /^((?:[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]|[^\u0000-\u007F])+@(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?(?:\.(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?)+)*$/;
@@ -281,11 +249,9 @@ function primative(attribute, value, _args, done) {
 }
 
 const _deepMap = function _map(o, fn, traceArray = false, traceEnum = false) {
-
   const keys = Object[traceEnum ? 'getOwnPropertyNames' : 'keys' ](o);
 
   for (const key of keys) {
-    
     const action = fn({ key: key, value: o[key] });
 
     if (!action) continue;
@@ -316,11 +282,9 @@ const _deepMap = function _map(o, fn, traceArray = false, traceEnum = false) {
 }
 
 function mongo_guard(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   switch (true) {
-
     case typeof value === 'string' || value instanceof String:
       this.setInputAttribute(attribute, value.replace(/^\$/, '\\$'))
       return done();
@@ -341,7 +305,6 @@ function mongo_guard(attribute, value, _args, done) {
 }
 
 function min(_attribute, value, args, done) {
-  
   if (this.notPresentOrAcceptNullable()) return done();
 
   const min = parseInt(args);
@@ -358,7 +321,6 @@ function min(_attribute, value, args, done) {
 }
 
 function max(_attribute, value, args, done) {
-  
   if (this.notPresentOrAcceptNullable()) return done();
 
   const max = parseInt(args);
@@ -375,46 +337,38 @@ function max(_attribute, value, args, done) {
 }
 
 function uppercase(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.toUpperCase) return done(false);
 
   this.setInputAttribute(attribute, value.toUpperCase());
-
   return done();
 }
 
 function lowercase(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.toLowerCase) return done(false);
 
   this.setInputAttribute(attribute, value.toLowerCase());
-
   return done();
 }
 
 function titlecase(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.toUpperCase) return done(false);
 
   this.setInputAttribute(attribute, _.startCase(value));
-
   return done();
 }
 
 function trim(attribute, value, _args, done) {
-
   if (this.notPresentOrAcceptNullable()) return done();
 
   if (!value.trim) return done(false);
 
   this.setInputAttribute(attribute, value.trim());
-
   return done();
 }
 
@@ -423,7 +377,6 @@ function any(_attribute, _value, _args, done) {
 }
 
 function _default(attribute, _value, args, done) {
-
   if (!this.isPresent()) {
     this.setInputAttribute(attribute, args);
   }
@@ -434,7 +387,6 @@ function _default(attribute, _value, args, done) {
 Object.defineProperty(_default, 'name', { value: 'default' });
 
 module.exports = {
-
   rules: [
     present,
     required,
@@ -475,7 +427,6 @@ module.exports = {
   customRules: [],
 
   getRule: function (name) {
-
     const rule = this.customRules.find(rule => rule.name === name)
       || this.rules.find(rule => rule.name === name);
 
