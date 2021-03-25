@@ -126,14 +126,14 @@ async function _filterFindByIdInput(input) {
 }
 
 exports.findById = async function (id, query) {
-  const input = await _filterFindByIdInput({ id, fields: query.fields });
+  const input = await _filterFindByIdInput({ id, fields: query.fields || [] });
 
   let mongoQuery = Category.findById(input.id, input.fields);
   if ('populate' in query) {
-    mongoQuery = mongoQuery.populate('ancestors');
+    mongoQuery = mongoQuery.populate('ancestors', '_id name');
   }
 
-  const category = await mongoQuery.select('_id name');
+  const category = await mongoQuery;
   if (!category) {
     throw new NotFoundException({
       message: 'Category ID not does not exist'
