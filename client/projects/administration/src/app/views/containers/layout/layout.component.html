@@ -3,7 +3,9 @@
     <div class="navbar-header w-100 d-flex justify-content-between">
       <a class="navbar-brand order-1 order-md-0"><h5 class="m-0">Materialize</h5></a>
       <a class="navbar-toggler order-0 order-md-1" id="js-sidebar-toggle"><i class="fa fa-bars"></i></a>
-      <a class="d-flex ml-sm-auto order-2"><img *ngIf="user?.avatar" class="avatar" [src]="user.avatar"></a>
+      <a class="d-flex ml-sm-auto order-2">
+        <img *ngIf="user?.avatar" class="avatar" [src]="user.avatar">
+      </a>
     </div>
   </div>
 </nav>

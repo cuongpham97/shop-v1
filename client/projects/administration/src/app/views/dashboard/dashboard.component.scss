@@ -1,0 +1,33 @@
+.widget {
+  box-shadow: 0 1px 1px 0 rgba(60,75,100,.14), 0 2px 1px -1px rgba(60,75,100,.12), 0 1px 3px 0 rgba(60,75,100,.2);
+  border: 0;
+  color: #fff;
+  
+  .card-header {
+    font-size: 14px;
+
+    .text-value {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  }
+
+  .card-body {
+    padding: 0;
+  
+    .chart-container {
+      height: 80px;
+    }
+  }
+}
+
+.chart {
+  height: 300px;
+  margin-top: 20px;
+}
+
+.card-custom {
+  width: 100%;
+  padding: 20px;
+  color: #3C4B7D;
+}

@@ -8,6 +8,7 @@ import { HeaderDirective } from "./directives/header.directive";
 import { CellDirective } from "./directives/cell.directive";
 import { FooterDirective } from "./directives/footer.directive";
 import { FilterFormDirective } from "./directives/filter-form.directive";
+import { HeaderButtonsDirective } from './directives/header-buttons.directive';
 
 @NgModule({
   imports: [CommonModule, FormsModule, NgxPaginationModule],
@@ -17,7 +18,8 @@ import { FilterFormDirective } from "./directives/filter-form.directive";
     HeaderDirective,
     CellDirective,
     FooterDirective,
-    FilterFormDirective
+    FilterFormDirective,
+    HeaderButtonsDirective
   ],
   exports: [
     DatatableComponent,
@@ -25,7 +27,8 @@ import { FilterFormDirective } from "./directives/filter-form.directive";
     HeaderDirective,
     CellDirective,
     FooterDirective,
-    FilterFormDirective
+    FilterFormDirective,
+    HeaderButtonsDirective
   ]
 })
 export class DatatableModule {}

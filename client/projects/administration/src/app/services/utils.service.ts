@@ -1,7 +1,30 @@
 import { Injectable } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class UtilsService {
+
+  constructor(
+    private router: Router
+  ) {}
+
+  markFormControlTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      if ((control as any).controls) {
+        this.markFormControlTouched(control as FormGroup);
+      } else {
+        control.markAsTouched();
+      }
+    });
+  }
+
+  reload() {
+    const currentRoute = this.router.url;
+
+    this.router.navigateByUrl('/', { skipLocationChange: true })
+      .then(() => this.router.navigate([currentRoute]));
+  }
 
   serialize(o) {
     const pragments = [];

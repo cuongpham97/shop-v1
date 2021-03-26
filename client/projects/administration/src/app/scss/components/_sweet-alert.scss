@@ -1,0 +1,11 @@
+.swal-button:focus {
+  box-shadow: none;
+}
+
+.sweet-warning{
+  background-color: $danger-legacy;
+}
+ 
+.sweet-warning:not([disabled]):hover{
+  background-color: $danger-dark;
+}

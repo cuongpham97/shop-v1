@@ -1,0 +1,24 @@
+.form-custom {
+  .form-group {
+    .col-form-label {
+      word-wrap: break-word;
+      text-align: right;
+      font-weight: bold;
+      color: #545480;
+      font-size: 14px;
+  
+      @media (max-width: 767px) { 
+        text-align: left;
+      }
+    }
+  }
+ 
+  
+  .form-control:focus {
+    box-shadow: none;
+  }
+
+  small {
+    font-style: italic;
+  }
+}

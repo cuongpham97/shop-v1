@@ -1,0 +1,82 @@
+.datatable {
+  .row-btn {
+    border: none;
+    background: rgba(0,0,0,0);
+
+    &:focus { outline: none; }
+    i { font-size: 20px; }
+  }
+
+  .row-add-btn {
+    color: #27c46b;
+  }
+  .row-view-btn {
+    color: #717a75;
+  }
+  .row-edit-btn {
+    color: #2d18d8;
+  }
+  .row-delete-btn {
+    color: #e34724;
+  }
+}
+
+.btn-header-cancel {
+  background: #fff;
+  color: #000;
+  font-size: 14px;
+  margin-left: 6px;
+
+  &:focus {
+    box-shadow: none;
+  }
+  
+  &:hover {
+    background-color: #ddd;
+  }
+}
+
+.btn-header-save {
+  background: #1e91cf;
+  color: #fff;
+  font-size: 14px;
+  margin-left: 6px;
+
+  &:focus {
+    box-shadow: none;
+  }
+  
+  &:hover {
+    background-color: #30178a;
+  }
+}
+
+.btn-header-delete {
+  background: #d80b0b;
+  color: #fff;
+  font-size: 14px;
+  margin-left: 6px;
+
+  &:focus {
+    box-shadow: none;
+  }
+  
+  &:hover {
+    background-color: #C60909;
+  }
+}
+
+.btn-header-add {
+  background: #27c46b;
+  color: #fff;
+  font-size: 14px;
+  margin-left: 6px;
+
+  &:focus {
+    box-shadow: none;
+  }
+  
+  &:hover {
+    background-color: #3cc23a;
+  }
+}

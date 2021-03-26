@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { UtilsService } from '../../services';
 
 @Injectable({
@@ -12,9 +13,47 @@ export class CategoriesService {
     private utils: UtilsService
   ) { }
 
+  checkCategoryName(name) {
+    return this.http.get(`/admin/categories?filters=name=${name}&fields=_id`)
+      .pipe(map(dataset => dataset['metadata']?.total));
+  }
+
+  getCategoryById(id) {
+    return this.http.get(`/admin/categories/${id}`);
+  }
   getManyCategories(query) {
     const querystring = this.utils.serialize(query).replace('filters', 'regexes');
-    
     return this.http.get('/admin/categories?populate&' + querystring);
+  }
+
+  _prepareNewCategory(data) {
+    if ('parent' in data && !data['parent']) {
+      delete data['parent'];
+    }
+
+    return data;
+  }
+
+  createCategory(formData) {
+    return this.http.post('/admin/categories', this._prepareNewCategory(formData));
+  }
+
+  _prepareUpdateCategory(data) {
+    return {
+      name: data.name,
+      parent: data.parent || null,
+      order: data.order,
+      description: data.description
+    }
+  }
+
+  updateCategories(id, formData) {
+    return this.http.patch(`/admin/categories/${id}`,this. _prepareUpdateCategory(formData));
+  }
+
+  deleteCategories(ids) {
+    return this.http.delete('/admin/categories?ids=' + ids.join(','),{
+      observe: 'response'
+    });
   }
 }

@@ -1,1 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
+
+.datatable {
+  .row-btn {
+    border: none;
+    background: rgba(0,0,0,0);
+
+    &:focus { outline: none; }
+    i { font-size: 20px; }
+  }
+
+  .row-add-btn {
+    color: #27c46b;
+  }
+  .row-view-btn {
+    color: #717a75;
+  }
+  .row-edit-btn {
+    color: #2d18d8;
+  }
+  .row-delete-btn {
+    color: #e34724;
+  }
+}

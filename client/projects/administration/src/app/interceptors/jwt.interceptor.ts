@@ -6,7 +6,7 @@ import {
   HttpInterceptor
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from '../services';
+import { AuthService, CdnService } from '../services';
 import { catchError, mergeMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
@@ -16,7 +16,8 @@ export class JWTInterceptor implements HttpInterceptor {
 
   constructor(
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private cdn: CdnService
   ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
@@ -34,14 +35,22 @@ export class JWTInterceptor implements HttpInterceptor {
       return this.auth.refreshToken() 
         .pipe(mergeMap(accessToken => {
           request = request.clone({ setHeaders: { 'Authorization': `Bearer ${accessToken}` } });
+
           return next.handle(request);
         }))
         .pipe(catchError(response => {
           const error = response.error;
 
           if (error && error.code === 'CREDENTIALS_HAVE_CHANGED') {
-            //TODO: notify to user;
-            alert('Username or password has been changed');
+            this.cdn.swal({
+              title: 'Unauthenticated!',
+               text: 'Your password has changed',
+               icon: 'warning',
+               buttons: {
+                 cancel: 'Close'
+               }
+             })
+             .then(() => this.router.navigate(['/login']));
           }
 
           this.auth.logout();

@@ -1,0 +1,45 @@
+.dropdown-toggle-split {
+  border-radius: 0;
+  padding-right: .6625rem;
+  padding-left: .6625rem;
+}
+
+.form-control {
+  border-radius: 0;
+}
+
+.btn:focus {
+  box-shadow: none!important;
+}
+
+.modal-lg, .modal-xl {
+  @media (min-width: 992px) {
+    max-width: 600px;
+  }
+}
+
+.modal-dialog {
+  width: 100%;
+}
+
+.modal-header {
+  padding: 0.7em 1em;
+  background: #039be5;
+  color: white;
+
+  .close {
+    color: #fff;
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.modal-body {
+  overflow: auto;
+  max-height: 500px;
+
+  li {
+    padding-top: 0.5rem!important;
+  }
+}

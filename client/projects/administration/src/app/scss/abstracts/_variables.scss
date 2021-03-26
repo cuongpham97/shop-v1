@@ -1,0 +1,40 @@
+$primary-legacy: #321fdb;
+$secondary-legacy: #ced2d8;
+$success-legacy: #2eb85c;
+$info-legacy: #39f;
+$warning-legacy: #f9b115;
+$danger-legacy: #e55353;
+$light-legacy: #ebedef;
+$dark-legacy: #636f83;
+$primary-dark: #4638c2;
+$secondary-dark: #4c4f54;
+$success-dark: #45a164;
+$info-dark: #4799eb;
+$warning-dark: #e1a82d;
+$danger-dark: #d16767;
+$light-dark: #20202a;
+$dark-dark: #181924;
+
+.bg-gradient-primary {
+  background: #1f1498;
+  background: linear-gradient(45deg, #321fdb 0%, #1f1498 100%);
+  border-color: #1f1498;
+}
+
+.bg-gradient-info {
+  background: #2982cc;
+  background: linear-gradient(45deg, #39f 0%, #2982cc 100%);
+  border-color: #2982cc;
+}
+
+.bg-gradient-warning {
+  background: #f6960b;
+  background: linear-gradient(45deg, #f9b115 0%, #f6960b 100%);
+  border-color: #f6960b;
+}
+
+.bg-gradient-danger {
+  background: #d93737;
+  background: linear-gradient(45deg, #e55353 0%, #d93737 100%);
+  border-color: #d93737;
+}

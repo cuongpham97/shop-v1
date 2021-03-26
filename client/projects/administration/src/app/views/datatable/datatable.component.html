@@ -1,13 +1,18 @@
+<ng-template #defaultHeaderButtons>
+  <button class="btn btn-header-add"><i class="fa fa-plus"></i></button>
+  <button class="btn btn-header-delete"><i class="fa fa-trash"></i></button>
+</ng-template>
+
 <ng-template #defaultHeader let-column="column">
   {{ column.name }}
 </ng-template>
 
-<ng-template #defaultCell let-value="value">
+<ng-template #defaultCell let-value="value" let-root="root">
   {{ value }}
 </ng-template>
 
-<ng-template #defaultFooter let-selected="selectedCount" let-total="total">
-  <span *ngIf="checkbox">{{ selected }} selected / </span>{{ total }} total
+<ng-template #defaultFooter let-selected="selectedCount" let-total="total" let-loading="loading">
+  <span *ngIf="checkbox">{{ selected }} selected / </span>{{ total }} total <span class="text-success" *ngIf="loading"> loading...</span>
 </ng-template>
 
 <ng-template #defaultFilterForm let-submit="onFilterChange">
@@ -17,11 +22,10 @@
 <div class="table-wrapper pb-2">
   <div class="table-header clearfix p-2">
     <div class="title">
-      <h3>{{ name }}<span class="small"> table</span></h3>
+      <h3><i class="far fa-list small ml-2 mr-1"></i> {{ name }}<span class="small"> table</span></h3>
     </div>
     <div class="controls">
-      <button class="btn btn-add"><i class="fa fa-plus"></i></button>
-      <button class="btn btn-delete"><i class="fa fa-trash"></i></button>
+      <ng-template *ngTemplateOutlet="headerButtons?.template || defaultHeaderButtons; context: this"></ng-template>
     </div>
   </div>
 
@@ -99,7 +103,7 @@
           <td *ngFor="let column of columns" class="align-middle">
             <ng-template 
               [ngTemplateOutlet]="column.cell?.template || defaultCell"
-              [ngTemplateOutletContext]="{ value: getCellValue(row, column) }"
+              [ngTemplateOutletContext]="{ root: row, value: getCellValue(row, column) }"
             ></ng-template>
           </td>
         </tr>
@@ -112,7 +116,7 @@
     <div class="status">
       <ng-template 
         [ngTemplateOutlet]="footer?.template || defaultFooter"
-        [ngTemplateOutletContext]="{ selectedCount: selectedCount, total: pagination.total }"
+        [ngTemplateOutletContext]="{ selectedCount: selectedCount, total: pagination.total, loading: loading }"
       ></ng-template>
     </div>
     <pagination-controls (pageChange)="onPageChange($event)" class="pagination" [responsive]="true">

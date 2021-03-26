@@ -1,16 +1,19 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SpinerComponent } from './spiner/spiner.component';
-
-
+import { TraceCategoryPathPipe } from './pipes/trace-category-path.pipe';
+import { CategoryPickerComponent } from './components/category-picker/category-picker.component';
 
 @NgModule({
-  declarations: [SpinerComponent],
+  declarations: [
+    CategoryPickerComponent,
+    TraceCategoryPathPipe
+  ],
   imports: [
     CommonModule
   ],
   exports: [
-    SpinerComponent
+    CategoryPickerComponent,
+    TraceCategoryPathPipe
   ]
 })
 export class SharedModule { }

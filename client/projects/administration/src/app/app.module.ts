@@ -5,24 +5,29 @@ import { AppComponent } from './app.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { APIInterceptor } from './interceptors/api.interceptor';
 import { JWTInterceptor } from './interceptors/jwt.interceptor';
-import { AuthService, MenuService, UtilsService } from './services';
+import { AuthService, MenuService, UtilsService, CdnService } from './services';
 import { ReactiveFormsModule } from '@angular/forms';
-import { LoginComponent } from './views/login/login.component';
+import { SignInComponent } from './views/sign-in/sign-in.component';
 import { SharedModule } from './shared/shared.module';
 import { AuthGuard } from './guards/auth.guard';
 import { LayoutComponent } from './views/containers/layout/layout.component';
 import { BreadcrumbComponent } from './views/containers/breadcrumb/breadcrumb.component';
+import { NotFoundComponent } from './views/not-found/not-found.component';
+import { ErrorPageComponent } from './views/error-page/error-page.component';
 
 const APP_COMPONENTS = [
-  LoginComponent,
+  SignInComponent,
   LayoutComponent,
-  BreadcrumbComponent
+  BreadcrumbComponent,
+  NotFoundComponent,
+  ErrorPageComponent
 ];
 
 const APP_SERVICES = [
   AuthService,
   MenuService,
-  UtilsService
+  UtilsService,
+  CdnService
 ];
 
 const APP_GUARDS = [
@@ -32,9 +37,7 @@ const APP_GUARDS = [
 @NgModule({
   declarations: [
     AppComponent,
-    ...APP_COMPONENTS,
-    LayoutComponent,
-    BreadcrumbComponent
+    ...APP_COMPONENTS
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,67 @@
+.card-custom {
+  .card-header {
+    background: rgb(98,23,163);
+    background: linear-gradient(90deg, #6217a3 0%, #7b16ac 50%, #ab09bf 100%);
+    color: #fff;
+
+    .title h3 {
+      font-weight: normal;
+      line-height: 30px;
+      margin-bottom: 0;
+      float: left;
+      font-size: 1.53em;
+    }
+
+    .controls {
+      float: right;
+
+      .btn {
+        width: 40px;
+        height: 35px;
+        font-size: 14px;
+        margin-left: 6px;
+
+        &:focus {
+          box-shadow: none;
+        }
+      }
+
+      .btn-cancel {
+        background: #fff;
+        color: #000;
+        border: 1px solid #fff;
+        &:hover {
+          background-color: #ddd;
+        }
+      }
+
+      .btn-save {
+        background: #1e91cf;
+        color: #fff;
+        border: 1px solid #fff;
+        &:hover {
+          background-color: #4223b1;
+        }
+      }
+
+      .btn-add {
+        background: #27c46b;
+        color: #fff;
+        border: 1px solid #fff;
+        &:hover {
+          background-color: #45a164;
+        }
+      }
+
+      .btn-delete {
+        background: #d80b0b;
+        color: #fff;
+        border: 1px solid #fff;
+        &:hover {
+          background-color: #960909;
+        }
+      }
+
+    }
+  }
+}

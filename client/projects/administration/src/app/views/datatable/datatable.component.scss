@@ -1,11 +1,5 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i,900,900i");
 
-.btn {
-  &:active, &:focus {
-    box-shadow: none!important;
-  }
-}
-
 .table-wrapper {
   background: #fff;
 }
@@ -26,47 +20,6 @@
 
   .controls {
     float: right;
-
-    .btn {
-      font-size: 14px;
-      margin-left: 6px;
-
-      &:focus {
-        box-shadow: none;
-      }
-    }
-
-    .btn-cancel {
-      background: #fff;
-      color: #000;
-      &:hover {
-        background-color: #ddd;
-      }
-    }
-
-    .btn-save {
-      background: #1e91cf;
-      color: #fff;
-      &:hover {
-        background-color: #30178a;
-      }
-    }
-
-    .btn-add {
-      background: #27c46b;
-      color: #fff;
-      &:hover {
-        background-color: #45a164;
-      }
-    }
-
-    .btn-delete {
-      background: #d80b0b;
-      color: #fff;
-      &:hover {
-        background-color: #960909;
-      }
-    }
   }
 }
 

@@ -15,6 +15,7 @@ import { first } from "rxjs/operators";
 import { ColumnComponent } from "./components/column.component";
 import { FilterFormDirective } from "./directives/filter-form.directive";
 import { FooterDirective } from "./directives/footer.directive";
+import { HeaderButtonsDirective } from "./directives/header-buttons.directive";
 
 @Component({
   selector: "datatable",
@@ -26,6 +27,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @ViewChild("selectAllCheckbox") selectAllCheckbox: ElementRef;
   @ViewChild('filtersPanel') filtersPanel: ElementRef;
 
+  @ContentChild(HeaderButtonsDirective) headerButtons: HeaderButtonsDirective;
   @ContentChildren(ColumnComponent) columns: QueryList<ColumnComponent>;
   @ContentChild(FilterFormDirective) filterForm: FilterFormDirective;
   @ContentChild(FooterDirective) footer: FooterDirective;
@@ -37,6 +39,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @Input("selected") selected;
 
   data = [];
+  loading = false;
 
   filters = {};
 
@@ -65,12 +68,13 @@ export class DatatableComponent implements OnInit, AfterViewInit {
       filters: this.filters
     };
 
-    return this.getData(query).pipe(first())
-      .subscribe(dataset => {
+    this.loading = true;
 
-        console.log(dataset.data);
+    return this.getData(query)
+      .subscribe(dataset => {
         this.data = dataset.data;
         this.pagination.total = dataset.metadata.total;
+        this.loading = false;
       });
   }
 
@@ -85,6 +89,8 @@ export class DatatableComponent implements OnInit, AfterViewInit {
 
   onSelectEntries(event) {
     this.pagination.pageSize = +event.target.value;
+
+    this.pagination.page = 1;
     this._refresh();
   }
 
@@ -101,11 +107,14 @@ export class DatatableComponent implements OnInit, AfterViewInit {
         break;
     }
 
+    this.pagination.page = 1;
     this._refresh();
   }
 
   _onFilterChange(form) {
     this.filters = form.value;
+
+    this.pagination.page = 1;
     this._refresh();
   }
 

@@ -5,6 +5,7 @@ export class MenuService {
   
   getMenu(): Array<any> {
     return [ 
+      { name: '', path: '/' },
       { name: 'Dashboard', path: '/dashboard', children: [] },
       { 
         name: 'Categories', path: '/categories', children: [
