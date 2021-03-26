@@ -63,6 +63,26 @@ exports.getCategoriesTreeFromCache = async function () {
   mongodb.model('category').watch().on('change', _updateCache);
 })();
 
+async function _filterCheckExistInput(input) {
+  const validation = await validate(input, {
+    'name': 'required|string|trim|min:1|max:200'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({
+      message: validation.errors.toArray()
+    });
+  }
+
+  return _.pick(validation.result, ['name']);
+}
+
+exports.checkExist = async function (data) {
+  const input = await _filterCheckExistInput(data);
+
+  return !!await Category.findOne(input, '_id');
+}
+
 function _projectDocument(category) {
   if (category.toJSON) {
     category = category.toJSON();
@@ -238,6 +258,13 @@ async function _changeParent(category, newParentId, session) {
     if (!parent) {
       throw new NotFoundException({
         message: 'Category parent ID does not exist'
+      });
+    }
+
+    const isChild = parent.ancestors.find(category._id.equals);
+    if (isChild) {
+      throw new BadRequestException({
+        message: 'Child category cannot be a parent'
       });
     }
 

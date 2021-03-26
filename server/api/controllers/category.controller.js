@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 const categoryService = require('~services/category.service');
 
+exports.checkExistCategory = async function (req, res) {
+  const isExist = await categoryService.checkExist(req.query);
+
+  return res.status(StatusCodes.OK).json({ existed: isExist });
+}
+
 exports.getCategoryById = async function (req, res) {
   const category = await categoryService.findById(req.params.id, req.query);
 

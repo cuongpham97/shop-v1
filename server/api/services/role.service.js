@@ -78,6 +78,26 @@ async function _ensureBaseRoleAlwayExist() {
   mongodb.model('role').watch().on('change', _updateCache);
 })();
 
+async function _filterCheckExistInput(input) {
+  const validation = await validate(input, {
+    'name': 'string|min:1|max:200'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ 
+      message: validation.errors.toArray() 
+    });
+  }
+
+  return _.pick(validation.result, ['name']);
+}
+
+exports.checkExist = async function (data) {
+  const input = await _filterCheckExistInput(data);
+
+  return !!Role.findOne(input, ['_id']);
+}
+
 function _projectDocument(role) {
   if (role.toJSON) {
     role = role.toJSON();

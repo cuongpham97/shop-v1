@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 const customerService  = require('~services/customer.service');
 
+exports.checkExistCustomer = async function (req, res) {
+  const isExist = await customerService.checkExist(req.query);
+
+  return res.status(StatusCodes.OK).json({ existed: isExist });
+}
+
 exports.getCustomerById = async function (req, res) {
   const customer = await customerService.findById(req.params.id, req.query.fields);
 

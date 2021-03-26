@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 const adminService  = require('~services/admin.service');
 
+exports.checkExistAdmin = async function (req, res) {
+  const isExist = await adminService.checkExist(req.query);
+
+  return res.status(StatusCodes.OK).json({ existed: isExist });
+}
+
 exports.getManyAdmins = async function (req, res) {
   const admins = await adminService.find(req.query);
 

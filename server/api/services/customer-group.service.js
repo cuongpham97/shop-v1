@@ -3,6 +3,26 @@ const { updateDocument } = require('~utils/tools');
 const { mongodb } = require('~database');
 const CustomerGroup = mongodb.model('customer-group');
 
+async function _filterCheckExistInput(input) {
+  const validation = await validate(input, { 
+    'name': 'required|string|min:1|max:200'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({ 
+      message: validation.errors.first() 
+    });
+  }
+
+  return _.pick(validation.result, ['name']);
+}
+
+exports.checkExist = async function (data) {
+  const input = await _filterCheckExistInput(data);
+
+  return !!await CustomerGroup.findOne(input, '_id');
+}
+
 function _projectDocument(group){
   if (group.toJSON) {
     group = group.toJSON();

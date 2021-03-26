@@ -7,6 +7,26 @@ const Admin = mongodb.model('admin');
 const Image = mongodb.model('image');
 const moment = require('moment');
 
+async function _filterCheckExistInput(input) {
+  const validation = await validate(input, {
+    'username': 'required|string|trim|min:1|max:200'
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({
+      message: validation.errors.toArray()
+    });
+  }
+
+  return _.pick(validation.result, ['username']);
+}
+
+exports.checkExist = async function (data) {
+  const input = await _filterCheckExistInput(data);
+
+  return !!await Admin.findOne(input, '_id');
+}
+
 function _projectDocument(admin) {
   if (admin.toJSON) {
     admin = admin.toJSON();

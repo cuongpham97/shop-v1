@@ -3,6 +3,8 @@ const auth = require('~middleware/auth');
 const tools = require('~utils/tools');
 const router = tools.createRouter();
 
+router.get('/admin/roles/exists', auth('admin').can('role.create'), roleCtrl.checkExistRole);
+
 router.get('/admin/roles', auth('admin').can('role.read'), roleCtrl.getManyRoles);
 router.get('/admin/roles/:id', auth('admin').can('role.read'), roleCtrl.getRoleById);
 router.post('/admin/roles', auth('admin').can('role.create').get('displayName'), roleCtrl.createNewRole);

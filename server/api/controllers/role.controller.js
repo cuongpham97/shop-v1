@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 const roleService  = require('~services/role.service');
 
+exports.checkExistRole = async function (req, res) {
+  const isExist = await roleService.checkExist(req.query);
+
+  return res.status(StatusCodes.OK).json({ existed: isExist });
+}
+
 exports.getManyRoles = async function (req, res) {
   const roles = await roleService.find(req.query);
 

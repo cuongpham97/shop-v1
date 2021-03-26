@@ -8,6 +8,27 @@ const Customer = mongodb.model('customer');
 const Image = mongodb.model('image');
 const moment = require('moment');
 
+async function _filterCheckExistInput(input) {
+  const validation = await validate(input, {
+    'email': 'required_one_of:email,phone|string|trim|lowercase|email',
+    'phone': 'string|trim|phone',
+  });
+
+  if (validation.errors) {
+    throw new ValidationException({
+      message: validation.errors.toArray()
+    });
+  }
+
+  return _.pick(validation.result, ['email', 'phone']);
+}
+
+exports.checkExist = async function (data) {
+  const input = await _filterCheckExistInput(data);
+
+  return !!await Customer.findOne({ 'local': input });
+}
+
 function _projectDocument(customer) {
   if (customer.toJSON) {
     customer = customer.toJSON();
@@ -430,10 +451,8 @@ exports.deleteMany = async function (ids) {
   const foundIds = customers.map(customer => customer._id);
   const result = await Customer.deleteMany({ "_id": { "$in": foundIds } });
 
-  // Unset avatar images
   await _unsetAvatars(customers);
 
-  // Decrease nCustomer of customer-groups
   for (const groups of customers.map(customer => customer.groups)) {
     await _decreaseGroupsMember(groups);
   }

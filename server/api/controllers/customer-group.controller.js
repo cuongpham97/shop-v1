@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 const groupService  = require('~services/customer-group.service');
 
+exports.checkCustomerGroupExist = async function (req, res) {
+  const isExist = await groupService.checkExist(req.query);
+
+  return res.status(StatusCodes.OK).json({ existed: isExist });
+}
+
 exports.getManyCustomerGroups = async function (req, res) {
   const groups = await groupService.find(req.query);
 
