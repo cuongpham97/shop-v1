@@ -261,7 +261,7 @@ async function _changeParent(category, newParentId, session) {
       });
     }
 
-    const isChild = parent.ancestors.find(category._id.equals);
+    const isChild = parent.ancestors.find(id => category._id.equals(id));
     if (isChild) {
       throw new BadRequestException({
         message: 'Child category cannot be a parent'

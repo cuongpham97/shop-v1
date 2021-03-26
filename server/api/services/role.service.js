@@ -43,7 +43,6 @@ exports.getPermissionByRoleNames = async function (...rolesName) {
   const roles = await this.findByNamesFromCache(...rolesName);
 
   const permission = {};
-
   for (const role of roles) {
     _mergePermission(permission, role.permission);
   }
@@ -191,7 +190,6 @@ async function _filterNewRoleInput(input) {
 
 async function _prepareNewRole(input) {
   const role = new Role(input);
-
   role.set('creator.name', input.creator.displayName);
 
   return role;
@@ -235,7 +233,7 @@ async function _filterUpdateRoleInput(input) {
 
 async function _prepareUpdateRole(role, input) {
   const clone = { ...input };
-
+  
   role.set('updator.name', clone.updator.displayName);
 
   return updateDocument(role, clone);
