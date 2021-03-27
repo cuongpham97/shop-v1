@@ -2,17 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService, CdnService, UtilsService } from '../../services';
-import { CategoriesService } from './categories.service';
+import { CustomerGroupsService } from './customer-groups.service';
 import { StatusCodes } from 'http-status-codes';
 
 @Component({
-  selector: 'app-categories',
-  templateUrl: './categories.component.html',
-  styleUrls: ['./categories.component.scss']
+  selector: 'customer-groups',
+  templateUrl: './customer-groups.component.html',
+  styleUrls: ['./customer-groups.component.scss']
 })
-export class CategoriesComponent implements OnInit {
+export class CustomerGroupsComponent implements OnInit {
   constructor(
-    private service: CategoriesService,
+    private service: CustomerGroupsService,
     private auth: AuthService,
     private cdn: CdnService,
     private router: Router,
@@ -25,7 +25,7 @@ export class CategoriesComponent implements OnInit {
   selected = [];
 
   getData(query): Observable<any> {
-    return this.service.getManyCategories(query);
+    return this.service.getManyGroups(query);
   }
 
   checkPermission(permission) {
@@ -45,26 +45,26 @@ export class CategoriesComponent implements OnInit {
   }
 
   onEditBtnClick(id) {
-    if (this.checkPermission('category.update')) {
-      this.router.navigate(['/catalog/categories/edit', id]);
+    if (this.checkPermission('customer-group.update')) {
+      this.router.navigate(['/customers/customer-groups/edit', id]);
     }
   }
 
   onAddBtnClick() {
-    if (this.checkPermission('category.create')) {
-      this.router.navigate(['/catalog/categories/new']);
+    if (this.checkPermission('customer-group.create')) {
+      this.router.navigate(['/customers/customer-groups/new']);
     }
   }
 
   onDeleteBtnClick() {
-    if (!this.checkPermission('category.delete')) {
+    if (!this.checkPermission('customer-group.delete')) {
       return;
     }
 
     if (!this.selected.length) {
       return this.cdn.swal({
         title: 'Error!',
-        text: 'You must select at least one category to delete',
+        text: 'You must select at least one group to delete',
         icon: 'warning',
         button: {
           text: 'Accept',
@@ -95,11 +95,10 @@ export class CategoriesComponent implements OnInit {
           button: false
         });
     
-        this.service.deleteCategories(ids).subscribe(
+        this.service.deleteGroups(ids).subscribe(
           response => {
             if (response.status === StatusCodes.OK) {
-              const message = `${response.body['deletedCount']}\
-                categories and subcategories has been deleted`;
+              const message = `${response.body['deletedCount']} customer groups has been deleted`;
 
               this.cdn.swal({
                title: 'Success',
@@ -119,7 +118,7 @@ export class CategoriesComponent implements OnInit {
             if (error.code === 'RESOURCE_NOT_FOUND') {
               return this.cdn.swal({
                 title: 'Warning!',
-                text: 'Categories are missing',
+                text: 'Customer groups are missing',
                 icon: 'warning',
                 button: {
                   text: 'Accept',

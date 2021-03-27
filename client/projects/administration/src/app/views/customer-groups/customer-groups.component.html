@@ -1,0 +1,33 @@
+<div class="p-1 p-md-3 wrap">
+  <datatable name="Customer groups" [getData]="getData.bind(this)" [selected]="selected" [checkbox]="true" [filterable]="true">
+
+    <ng-template headerButtons>
+      <button (click)="onAddBtnClick()" class="btn btn-header-add"><i class="fa fa-plus"></i></button>
+      <button (click)="onDeleteBtnClick()" class="btn btn-header-delete"><i class="fa fa-trash"></i></button>
+    </ng-template>
+
+    <column name="name" [sortable]="true"></column>
+    <column name="Date Added" prop="createdAt" [sortable]="true">
+      <ng-template cell let-value="value">{{ value | date:'dd/MM/yyyy' }}</ng-template>
+    </column>
+    <column name="Action" prop="_id">
+      <ng-template cell let-value="value"> 
+        <button href="#" (click)="onEditBtnClick(value)" class="row-btn row-edit-btn"><i class="material-icons">&#xE254;</i></button>
+      </ng-template>
+    </column>
+
+    <ng-template filterForm let-submit="onFilterChange">
+      <form #form="ngForm" (submit)="submit(form)" class="px-4 py-2">
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label text-sm-right">Name</label>
+          <div class="col-9 col-sm-4">
+            <input ngModel pattern="[^&?$!%#]*" name="name" type="input" class="form-control form-control-sm">
+          </div>
+          <div class="col-3 col-sm-1 text-left">
+            <input type="submit" value="Apply" class="btn btn-sm btn-success px-3">
+          </div>
+        </div>
+      </form>
+    </ng-template>
+  </datatable>
+</div>

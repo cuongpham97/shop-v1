@@ -14,44 +14,46 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
 
   breadcrumbList: Array<any> = [];
 
-  constructor(private _router: Router, private menu: MenuService) { }
+  constructor(
+    private router: Router,  
+    private menuService: MenuService
+  ) { }
 
   ngOnInit(): void {
-    this.listenRouting();
-  }
+    this._traceRoutePath(this.router.url);
 
-  listenRouting() {
-    let routerUrl: string, routerList: Array<any>, target: any;
-
-    this._router.events
+    this.router.events
       .pipe(takeUntil(this.alive))
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((router: any) => {
-        routerUrl = router.urlAfterRedirects;
+      .subscribe(router => this._traceRoutePath(router['urlAfterRedirects']));
+  }
 
-        if (routerUrl && typeof routerUrl === 'string') {
+  _traceRoutePath(url) {
+    if (!url && typeof url !== 'string') return;
 
-          target = this.menu.getMenu();
-          this.breadcrumbList.length = 0;
+    let menu = this.menuService.getMenu();
+    if (!menu) return;
 
-          routerList = routerUrl.slice(1).split('/');
+    this.breadcrumbList = [];
+    let fragments = url.replace(/^\//, '').split('/');
 
-          routerList.forEach((router, index) => {
-            if (!target.length) return;
-            
-            target = target.find(menuItem => menuItem.path.slice(1) === router);
+    for (const [index, route] of fragments.entries()) {
+      const match = menu.find(item => item.path.replace(/^\//, '') === route);
+      if (!match) {
+        return;
 
-            this.breadcrumbList.push({
-              name: target.name,
-              path: (index === 0) ? target.path : `${this.breadcrumbList[index-1].path}/${target.path.slice(1)}`
-            });
+      } else {
+        this.breadcrumbList.push({
+          name: match.name,
+          path: (index === 0) ? match.path : `${this.breadcrumbList[index - 1].path}/${match.path.slice(1)}`,
+          link: match.link
+        });
 
-            if (index + 1 !== routerList.length) {
-              target = target.children;
-            }
-          });
+        if (index + 1 !== fragments.length) {
+          menu = match.children;
         }
-      });
+      }
+    }
   }
 
   ngOnDestroy() {

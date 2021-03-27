@@ -19,10 +19,24 @@ const routes: Routes = [
         canActivate: [AuthGuard]
       },
       { 
-        path: 'categories', loadChildren: () => import('./views/categories/categories.module').then(m => m.CategoriesModule),
-        data: { permission: 'category.read' },
-        canActivate: [AuthGuard]
+        path: 'catalog', children: [
+          { 
+            path: 'categories', loadChildren: () => import('./views/categories/categories.module').then(m => m.CategoriesModule),
+            data: { permission: 'category.read' },
+            canActivate: [AuthGuard]
+          }
+        ] 
+      },
+      {
+        path: 'customers', children: [
+          { 
+            path: 'customer-groups', loadChildren: () => import('./views/customer-groups/customer-groups.module').then(m => m.CustomerGroupsModule),
+            data: { permission: 'customer-group.read' },
+            canActivate: [AuthGuard]
+          }
+        ]
       }
+     
     ] 
   },
   { path: '**', component: NotFoundComponent }

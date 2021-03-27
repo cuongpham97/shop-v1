@@ -2,17 +2,17 @@ import { Injectable } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn } from '@angular/forms';
 import { Observable, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { CategoriesService } from './categories.service';
+import { CustomerGroupsService } from './customer-groups.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CategoriesValidators {
-  constructor(private service: CategoriesService) { }
+export class CustomerGroupsValidators {
+  constructor(private service: CustomerGroupsService) { }
 
-  checkCategoryName(name) {
+  checkGroupName(name) {
     return timer(300)
-      .pipe(switchMap(() => this.service.checkCategoryName(name)));
+      .pipe(switchMap(() => this.service.checkGroupName(name)));
   }
 
   checkNameTaken(oldName?): AsyncValidatorFn {
@@ -24,7 +24,7 @@ export class CategoriesValidators {
         });
       }
 
-      return this.checkCategoryName(control.value)
+      return this.checkGroupName(control.value)
         .pipe(map((isExist: boolean) => {
           if (isExist) {
             return { exists: true };

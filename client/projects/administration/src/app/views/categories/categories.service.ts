@@ -14,8 +14,8 @@ export class CategoriesService {
   ) { }
 
   checkCategoryName(name) {
-    return this.http.get(`/admin/categories?filters=name=${name}&fields=_id`)
-      .pipe(map(dataset => dataset['metadata']?.total));
+    return this.http.get(`/admin/categories/exists?name=${name}`)
+      .pipe(map(response => response['existed']));
   }
 
   getCategoryById(id) {
@@ -47,7 +47,7 @@ export class CategoriesService {
     }
   }
 
-  updateCategories(id, formData) {
+  updateCategory(id, formData) {
     return this.http.patch(`/admin/categories/${id}`,this. _prepareUpdateCategory(formData));
   }
 

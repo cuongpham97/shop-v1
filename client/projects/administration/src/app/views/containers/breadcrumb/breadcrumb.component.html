@@ -1,11 +1,15 @@
 <nav class="breadcrumb-wrapper" aria-label="breadcrumb">
   <ol class="breadcrumb m-0 b-white">
     <li class="breadcrumb-item active"><i class="fas fa-home"> </i> Home</li>
-    <li class="breadcrumb-item" 
-      *ngFor="let item of breadcrumbList; let i = index"
-      [class.active]="i == breadcrumbList.length - 1">
-      <a  [routerLink]="item.path" *ngIf="i != breadcrumbList.length - 1">{{ item.name }}</a>
-      <span *ngIf="i == breadcrumbList.length - 1"> {{ item.name }} </span>
+    <li 
+      class="breadcrumb-item" 
+      *ngFor="let item of breadcrumbList; let index = index"
+      [class.active]="!item.link || index == breadcrumbList.length - 1"
+    >
+      <span *ngIf="!item.link || index == breadcrumbList.length - 1">{{ item.name }}</span>
+      <span *ngIf="item.link && index != breadcrumbList.length - 1">
+        <a [routerLink]="item.path">{{ item.name }}</a>
+      </span>
     </li>
   </ol>
 </nav>
