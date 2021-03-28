@@ -7,6 +7,7 @@ const slugify = require('~utils/slugify');
 const { mongodb } = require('~database');
 const Product = mongodb.model('product');
 const Image = mongodb.model('image');
+const pricing = require('~libraries/pricing');
 
 function _projectDocument(product) {
   if (product.toJSON) {
@@ -41,7 +42,19 @@ async function _filterFindQueryInput(input) {
 
 exports.find = async function (query) {
   query = await _filterFindQueryInput(query);
-  return Product.paginate(query, _projectDocument);
+
+  const dataset = await Product.paginate(query, product => {
+
+    product.skus = product.skus.map(sku => {
+      sku.pricing = pricing.previewProduct(product, sku);
+
+      return sku;
+    });
+
+    return _projectDocument(product);
+  });
+
+  return dataset;
 }
 
 async function _filterFindByIdInput(input) {
