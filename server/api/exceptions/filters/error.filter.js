@@ -18,6 +18,7 @@ class ErrorFilter {
     return {
       httpStatus: StatusCodes.INTERNAL_SERVER_ERROR,
       name: 'UncaughtException',
+      code: 'INTERNAL_SERVER_ERROR',
       message: 'Something went wrong, an error has occurred'
     };
   }
