@@ -1,5 +1,3 @@
-const validate = require('~utils/validate');
-
 function _makeSearchQuery(text) {
   return text ? { "$match": { "$text": { "$search": text } } } : [];
 }
@@ -10,6 +8,10 @@ function _makeRegexQuery(regexes) {
   _.forEach(regexes, (value, key) => fields[key] = { "$regex": value, "$options": "im" });
 
   return !_.isEmpty(fields) ? { "$match": fields } : [];
+}
+
+function _makeIdsQuery(ids) {
+  return ids.length ? { "$match": { "_id": { "$in": ids } } } : [];
 }
 
 function _makeMatchQuery(filters) {
@@ -51,7 +53,8 @@ function _makeProjectQuery(fields) {
 function _buildQuery(options) {
   
   const search = _makeSearchQuery(options.search);
-  const regexes = _makeRegexQuery(options.regexes); 
+  const regexes = _makeRegexQuery(options.regexes);
+  const ids = _makeIdsQuery(options.ids); 
   const query = _makeMatchQuery(options.filters);
   const skip = _makeSkipQuery(options.page, options.pageSize);
   const limit = _makeLimitQuery(options.pageSize);
@@ -61,6 +64,7 @@ function _buildQuery(options) {
   return [
     ... []
       .concat(search)
+      .concat(ids)
       .concat(regexes)
       .concat(query)
       .concat(sort),

@@ -93,6 +93,8 @@ function _projectDocument(category) {
 
 async function _filterFindQuery(query) {
   const validation = await validate(query, {
+    'ids': 'to:array',
+    'ids.*': 'mongo_id',
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
     'filters': 'object|mongo_guard',
