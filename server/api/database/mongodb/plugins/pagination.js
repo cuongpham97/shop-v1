@@ -11,7 +11,7 @@ function _makeRegexQuery(regexes) {
 }
 
 function _makeIdsQuery(ids) {
-  return ids.length ? { "$match": { "_id": { "$in": ids } } } : [];
+  return ids && ids.length ? { "$match": { "_id": { "$in": ids } } } : [];
 }
 
 function _makeMatchQuery(filters) {
