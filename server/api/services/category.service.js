@@ -27,7 +27,10 @@ function _isCached() {
 }
 
 async function _updateCache() {
-  const categories = await mongodb.model('category').find();
+  const categories = await mongodb.model('category')
+    .find({})
+    .sort({ order: 1 });
+    
   cacheService.set('categories', categories);
 
   const categoriesTree = _buildCategoriesTree(categories);
