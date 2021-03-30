@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef, OnInit } from '@angular/core';
+import { Component, Input, forwardRef, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { 
   ControlValueAccessor, 
   NG_VALUE_ACCESSOR, 
@@ -7,7 +7,6 @@ import {
   Validator 
 } from '@angular/forms';
 import { CategoryPickerService } from './category-picker.service';
-import { CdnService } from '../../../services';
 
 @Component({
   selector: 'category-picker',
@@ -27,67 +26,88 @@ import { CdnService } from '../../../services';
   ]
 })
 export class CategoryPickerComponent implements OnInit, ControlValueAccessor, Validator {
-  @Input('ignore') ignoreId;
+  @ViewChildren('checkboxes') checkboxes: QueryList<ElementRef>;
+  
   @Input() required;
-  @Input('selected') selectedId;
+  @Input('multiple') multiple = false;
+
+  @Input('selected') 
+  set _select(value) {
+    if (value) {
+      this.selectedIds = [].concat(value);
+    }
+  }
+
+  @Input('ignore')
+  set _ignore(value) {
+    if (value) {
+      this.ignore = [].concat(value);
+    }
+  }
+
+  selectedIds: Array<any> = [];
+  ignore: Array<any> = [];
+
+  selected = [];
+  selecting = [];
 
   categoriesTree;
-  selected = null;
-  loading = false;
 
-  constructor(
-    private service: CategoryPickerService,
-    private cdn: CdnService
-  ) { }
+  constructor(private service: CategoryPickerService) { }
 
   ngOnInit() {
     this.service.getCategoriesTree()
       .subscribe(response => {
+        this.selecting = [...this.selectedIds];
         this.categoriesTree = response['categories'];
-
-        if (this.selectedId) {
-          this.loading = true;
-
-          this.service.getCategoryById(this.selectedId)
-             .subscribe(category => {
-               this.selected = category;
-               this.loading = false;
-             });
-        }
-      }, _error => {
-        this.selectedId = null;
-        this.selected = null;
+        
+        this.getSelected();
       });
   }
 
-  onCheck(event, item) {
-    if (event.target.checked) {
-      this.loading = true;
-
-      this.service.getCategoryById(item._id)
-        .subscribe(category => {
-          this.selected = category;
-          this.loading = false;
-        }, error => {
-          this.loading = false;
-          this.selected = null;
-        });
-      
-      this.propagateChange(item._id);
-
-      this.cdn.$('#category input').prop('checked', false);
-      event.target.checked = true;
+  getSelected() {
+    if (this.selectedIds.length) {
+      this.service.getCategories(this.selectedIds)
+        .subscribe(categories => this.selected = categories);
     } else {
-
-      this.selected = null;
-      this.propagateChange(null);
+      this.selected = [];
     }
   }
 
-  //form control action
-  public writeValue(id: any) {
-    if (id) {
-      this.selectedId = id;
+  onCheck(target, id) {
+    if (target.checked) {
+      if (!this.multiple) {
+        this.checkboxes.forEach(e => e.nativeElement.checked = false);
+        target.checked = true;
+        this.selecting = [];
+      }
+
+      this.selecting.push(id);
+
+    } else {
+      this.selecting = this.selecting.filter(item => item != id);
+    }
+  }
+
+  onAcceptBtnClick() {
+    this.selectedIds = [...this.selecting];
+    this.getSelected();
+
+    if (this.multiple) {
+      this.propagateChange(this.selectedIds); 
+    } else {
+      this.propagateChange(this.selectedIds[0]);
+    }
+  }
+
+  onCloseBtnClick() {
+    this.selecting = [...this.selectedIds];
+  }
+
+  // Form control action
+  public writeValue(ids: any) {
+    if (ids) {
+      this.selectedIds = [].concat(ids);
     }
   }
 
@@ -95,7 +115,7 @@ export class CategoryPickerComponent implements OnInit, ControlValueAccessor, Va
     this.propagateChange = fn;
   }
 
-  public validate(c: FormControl) {
+  public validate(_c: FormControl) {
     return (!this.required) ? null : {
       required: {
         valid: false,

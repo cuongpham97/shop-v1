@@ -27,11 +27,36 @@ $sidebar-width: 240px;
       }
     }
 
-    .avatar {
-      width: 30px;
-      height: 30px;
-      vertical-align: middle;
-      border-radius: 50%;
+    .navbar-right {
+
+      .avatar {
+        width: 35px;
+        height: 35px;
+        vertical-align: middle;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+
+      ul {
+        font-size: 14px;
+        line-height: 38px;
+        color: #6D6D6D;
+        margin-bottom: 0;
+
+        li {
+          margin: -10px 0;
+          padding: 10px 15px;
+          display: inline-block;
+        }
+
+        a {
+          cursor: pointer;
+        }
+
+        li:not(:first-child) {
+          border-left: 1px solid #ddd;
+        }
+      }
     }
   }
 }

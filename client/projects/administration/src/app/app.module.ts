@@ -13,14 +13,12 @@ import { AuthGuard } from './guards/auth.guard';
 import { LayoutComponent } from './views/containers/layout/layout.component';
 import { BreadcrumbComponent } from './views/containers/breadcrumb/breadcrumb.component';
 import { NotFoundComponent } from './views/not-found/not-found.component';
-import { ErrorPageComponent } from './views/error-page/error-page.component';
 
 const APP_COMPONENTS = [
   SignInComponent,
   LayoutComponent,
   BreadcrumbComponent,
-  NotFoundComponent,
-  ErrorPageComponent
+  NotFoundComponent
 ];
 
 const APP_SERVICES = [

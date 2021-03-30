@@ -11,7 +11,6 @@ import {
   ElementRef
 } from "@angular/core";
 import * as _ from "lodash";
-import { first } from "rxjs/operators";
 import { ColumnComponent } from "./components/column.component";
 import { FilterFormDirective } from "./directives/filter-form.directive";
 import { FooterDirective } from "./directives/footer.directive";

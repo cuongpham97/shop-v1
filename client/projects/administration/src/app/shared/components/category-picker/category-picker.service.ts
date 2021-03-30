@@ -10,8 +10,9 @@ export class CategoryPickerService {
 
   constructor(private http: HttpClient) { }
 
-  getCategoryById(id) {
-    return this.http.get(`/admin/categories/${id}?populate`);
+  getCategories(ids) {
+    return this.http.get(`/admin/categories?ids=${ids}&populate&orders=name`)
+      .pipe(map(dataset => dataset['data']));
   }
 
   getCategoriesTree() {

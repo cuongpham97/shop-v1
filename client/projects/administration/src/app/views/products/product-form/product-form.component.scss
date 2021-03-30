@@ -1,0 +1,20 @@
+label {
+  font-weight: bold;
+}
+
+.tab-pane {
+ padding-top: 20px;
+}
+
+.nav-item {
+  .nav-link {
+    color: #a5a5a5;
+    font-size: 14px;
+  }
+
+  .nav-link.active {
+    font-weight: 500;
+    color: #222;
+  }
+}
+

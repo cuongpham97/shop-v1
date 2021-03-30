@@ -51,7 +51,7 @@ export class SignInComponent implements OnInit {
             this.message = '';
             this.loading = false;
 
-            const redirectUrl = this.route.snapshot.queryParamMap.get('redirect') || '/dasboard';
+            const redirectUrl = this.route.snapshot.queryParamMap.get('redirect') || '/dashboard';
             this.router.navigateByUrl(redirectUrl);
           }
         }, response => {

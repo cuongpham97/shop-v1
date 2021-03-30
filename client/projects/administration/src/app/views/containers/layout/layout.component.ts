@@ -35,6 +35,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     });
   }
 
+  onLogoutBtnClick() {
+    this.auth.logout();
+  }
+
   ngOnDestroy(): void {
     this.alive.next();
     this.alive.complete();

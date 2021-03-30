@@ -1,0 +1,132 @@
+.file-upload {
+  background-color: #fff;
+  width: 100px;
+  margin: 10px;
+
+  .upload-wrap {
+    border: 2px dashed #ddd;
+    position: relative;
+
+    .upload-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .drag-text {
+      text-align: center;
+
+      h3 {
+        font-weight: 100;
+        text-transform: uppercase;
+        color: #222;
+        padding: 40px 0;
+      }
+    }
+  }
+
+  .upload-content {
+    position: relative;
+    text-align: center;
+
+    .upload-image {
+      height: 120px;
+      padding: 2px;
+      width: 100px;
+      margin: auto;
+      outline: 1px solid #ddd;
+    }
+
+    .remove {
+      display: none;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      line-height: 19px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      color: #222;
+      background: #ddd;
+
+      &:focus {
+        outline: 0;
+      }
+    }
+
+    &:hover {
+      .remove {
+        display: block;
+      }
+    }
+  }
+}
+
+.preview {
+  position: relative;
+
+  .result {
+    width: 100%;
+    height: 400px;
+    text-align: center;
+    border: 1px solid #ddd;
+
+    img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+  }
+}
+
+.controls {
+  margin-top: 5px;
+  text-align: center;
+
+  .group {
+    padding-left: 5px;
+    padding-right: 5px;
+    display: inline-block;
+    background: #444;
+    margin-top: 5px;
+    border-radius: 3px;
+  }
+
+  .group:not(:last-child) {
+    margin-right: 5px;
+  }
+
+  button {
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    background: transparent;
+
+    &:hover {
+      background: #555;
+    }
+
+    i {
+      font-weight: normal;
+    }
+  }
+
+  .btn-blue {
+    color:#33b5e5;
+  }
+
+  .btn-green {
+    color: #99cc00;
+  }
+
+  .btn-red {
+    color:#FF4444;
+  }
+}

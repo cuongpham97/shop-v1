@@ -19,7 +19,6 @@ export class CustomerGroupFormComponent implements OnInit {
 
   constructor( 
     private route: ActivatedRoute,
-    private router: Router,
     private fb: FormBuilder,
     private service: CustomerGroupsService,
     private utils: UtilsService,
@@ -35,8 +34,27 @@ export class CustomerGroupFormComponent implements OnInit {
         .subscribe(group => {
           this._prepareForm(group);
 
-        }, _error => {
-          this.router.navigate(['/error-page']);
+        }, response => {
+          const error = response.error;
+          if (error.code === 'RESOURCE_NOT_FOUND') {
+            return this.cdn.swal({
+              title: 'Error!',
+              text: 'Group is missing',
+              icon: 'warning',
+              button: {
+                text: 'Accept',
+                className: 'sweet-warning'
+              }
+            });
+          } else {
+            this.cdn.swal({
+              title: 'Error!',
+              text: 'Something went wrong',
+              buttons: {
+                cancel: true
+              }
+            });
+          }
         });
 
     } else {
@@ -79,12 +97,15 @@ export class CustomerGroupFormComponent implements OnInit {
            buttons: {
              cancel: 'Close'
            }
-         })
-         .then(() => this.reload());
-
-      }, _error => {
-        this.router.navigate(['/error-page']);
-        this.cdn.swal.close();
+         });
+      }, _response => {
+        this.cdn.swal({
+          title: 'Error!',
+          text: 'Something went wrong',
+          buttons: {
+            cancel: true
+          }
+        });
       });
   }
 
@@ -103,12 +124,16 @@ export class CustomerGroupFormComponent implements OnInit {
            buttons: {
              cancel: 'Close'
            }
-         })
-         .then(() => this.reload());
+         });
 
-      }, _error => {
-        this.router.navigate(['/error-page']);
-        this.cdn.swal.close();
+      }, _response => {
+        this.cdn.swal({
+          title: 'Error!',
+          text: 'Something went wrong',
+          buttons: {
+            cancel: true
+          }
+        });
       });
   }
 
@@ -123,9 +148,5 @@ export class CustomerGroupFormComponent implements OnInit {
     } else {
       this.createGroup();
     }
-  }
-
-  reload() {
-    return this.utils.reload();
   }
 }

@@ -4,12 +4,9 @@ import { AuthGuard } from './guards/auth.guard';
 import { LayoutComponent } from './views/containers/layout/layout.component';
 import { SignInComponent } from './views/sign-in/sign-in.component';
 import { NotFoundComponent } from './views/not-found/not-found.component';
-import { ErrorPageComponent } from './views/error-page/error-page.component';
 
 const routes: Routes = [
   { path: 'login', component: SignInComponent, pathMatch: 'full' },
-  { path: 'page-not-found', component: NotFoundComponent, pathMatch: 'full' },
-  { path: 'error-page', component: ErrorPageComponent, pathMatch: 'full' },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { 
     path: '', component: LayoutComponent, 
@@ -24,6 +21,11 @@ const routes: Routes = [
             path: 'categories', loadChildren: () => import('./views/categories/categories.module').then(m => m.CategoriesModule),
             data: { permission: 'category.read' },
             canActivate: [AuthGuard]
+          },
+          { 
+            path: 'products', loadChildren: () => import('./views/products/products.module').then(m => m.ProductsModule),
+            data: { permission: 'product.read' },
+            canActivate: [AuthGuard]
           }
         ] 
       },
@@ -35,11 +37,11 @@ const routes: Routes = [
             canActivate: [AuthGuard]
           }
         ]
-      }
-     
+      },
+      { path: 'page-not-found', component: NotFoundComponent },
+      { path: '**', component: NotFoundComponent }
     ] 
-  },
-  { path: '**', component: NotFoundComponent }
+  }
 ];
 
 @NgModule({

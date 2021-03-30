@@ -1,0 +1,81 @@
+<div class="card p-1 p-md-2 card-custom">
+  <div class="card-header p-2">
+    <div class="title">
+      <h3><span class="small"> <i class="far fa-pencil small ml-1 mr-2"></i>{{ productId? 'Edit' : 'New' }} product</span></h3>
+    </div>
+    <div class="controls">
+      <button (click)="onSaveBtnClick()" class="btn btn-save"><i class="fal fa-save"></i></button>
+      <button routerLink="/catalog/products" class="btn btn-cancel"><i class="far fa-reply"></i></button>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div *ngIf="isFormReady">
+
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general"
+            aria-selected="true">General</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="attributes-tab" data-toggle="tab" href="#attributes" role="tab" aria-controls="attributes"
+            aria-selected="false">Attribute</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="special-tab" data-toggle="tab" href="#special" role="tab"
+            aria-controls="special" aria-selected="false">Special</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="discount-tab" data-toggle="tab" href="#discount" role="tab"
+            aria-controls="discount" aria-selected="false">Discount</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="skus-tab" data-toggle="tab" href="#skus" role="tab"
+            aria-controls="skus" aria-selected="false">Skus</a>
+        </li>
+      </ul>
+    
+      <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+          <ng-template [ngTemplateOutlet]="generalTpl"></ng-template>
+        </div>
+    
+        <!-- tab2 -->
+        <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
+          <ng-template [ngTemplateOutlet]="attributesTpl"></ng-template>
+        </div>
+    
+    
+        <!-- tab3 -->
+        <div class="tab-pane fade" id="special" role="tabpanel" aria-labelledby="special-tab">
+          <ng-template [ngTemplateOutlet]="specialTpl"></ng-template>
+        </div>
+
+        <!-- tab4 -->
+        <div class="tab-pane fade" id="discount" role="tabpanel" aria-labelledby="discount-tab">
+          <ng-template [ngTemplateOutlet]="discountTpl"></ng-template>
+        </div>
+
+        <!-- tab5 -->
+        <div class="tab-pane fade" id="skus" role="tabpanel" aria-labelledby="skus-tab">
+          <ng-template [ngTemplateOutlet]="skusTpl"></ng-template>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- GENERAL_FORM -->
+<ng-template #generalTpl>
+  <image></image>
+</ng-template>
+
+<ng-template #attributesTpl></ng-template>
+
+<ng-template #specialTpl></ng-template>
+
+<ng-template #discountTpl></ng-template>
+
+<ng-template #skusTpl></ng-template>

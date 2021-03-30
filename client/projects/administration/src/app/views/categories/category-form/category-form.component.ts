@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CdnService, UtilsService } from '../../../services';
 import { CategoriesService } from '../categories.service';
 import { CategoriesValidators } from '../categories.validators';
@@ -11,15 +11,14 @@ import { CategoriesValidators } from '../categories.validators';
   styleUrls: ['./category-form.component.scss']
 })
 export class CategoryFormComponent implements OnInit {
-  
+
   categoryId;
 
   form: FormGroup
   isFormReady = false;
 
-  constructor( 
+  constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private fb: FormBuilder,
     private service: CategoriesService,
     private utils: UtilsService,
@@ -29,14 +28,34 @@ export class CategoryFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.categoryId = this.route.snapshot.paramMap.get('id');
-    
+
     if (this.categoryId) {
       this.service.getCategoryById(this.categoryId)
         .subscribe(category => {
           this._prepareForm(category);
 
-        }, _error => {
-          this.router.navigate(['/error-page']);
+        }, response => {
+          const error = response.error;
+          if (error.code === 'RESOURCE_NOT_FOUND') {
+            return this.cdn.swal({
+              title: 'Error!',
+              text: 'Category is missing',
+              icon: 'warning',
+              button: {
+                text: 'Accept',
+                className: 'sweet-warning'
+              }
+            });
+
+          } else {
+            this.cdn.swal({
+              title: 'Error!',
+              text: 'Something went wrong',
+              buttons: {
+                cancel: true
+              }
+            });
+          }
         });
 
     } else {
@@ -47,13 +66,13 @@ export class CategoryFormComponent implements OnInit {
   _prepareForm(data) {
     this.form = this.fb.group({
       name: [
-        '', 
+        '',
         Validators.compose([Validators.required, Validators.maxLength(100)]),
         this.validator.checkNameTaken(data && data.name)
       ],
       parent: null,
       order: [100, Validators.required],
-      description: ['', Validators.maxLength(2000)]      
+      description: ['', Validators.maxLength(2000)]
     });
 
     if (data) {
@@ -78,17 +97,21 @@ export class CategoryFormComponent implements OnInit {
       .subscribe(_category => {
         this.cdn.swal({
           title: 'Success!',
-           text: 'Category has been created',
-           icon: 'success',
-           buttons: {
-             cancel: 'Close'
-           }
-         })
-         .then(() => this.reload());
+          text: 'Category has been created',
+          icon: 'success',
+          buttons: {
+            cancel: 'Close'
+          }
+        });
 
-      }, _error => {
-        this.router.navigate(['/error-page']);
-        this.cdn.swal.close();
+      }, _response => {
+        this.cdn.swal({
+          title: 'Error!',
+          text: 'Something went wrong',
+          buttons: {
+            cancel: true
+          }
+        });
       });
   }
 
@@ -102,23 +125,26 @@ export class CategoryFormComponent implements OnInit {
       .subscribe(_category => {
         this.cdn.swal({
           title: 'Success!',
-           text: 'Category has been updated',
-           icon: 'success',
-           buttons: {
-             cancel: 'Close'
-           }
-         })
-         .then(() => this.reload());
-
-      }, _error => {
-        this.router.navigate(['/error-page']);
-        this.cdn.swal.close();
+          text: 'Category has been updated',
+          icon: 'success',
+          buttons: {
+            cancel: 'Close'
+          }
+        });
+      }, _response => {
+        this.cdn.swal({
+          title: 'Error!',
+          text: 'Something went wrong',
+          buttons: {
+            cancel: true
+          }
+        });
       });
   }
 
   onSaveBtnClick() {
     this.utils.markFormControlTouched(this.form);
-    if (this.form.invalid){
+    if (this.form.invalid) {
       return;
     }
 
@@ -127,9 +153,5 @@ export class CategoryFormComponent implements OnInit {
     } else {
       this.createCategory();
     }
-  }
-
-  reload() {
-    return this.utils.reload();
   }
 }

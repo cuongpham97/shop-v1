@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import {  Router } from '@angular/router';
+import { EMPTY, Observable } from 'rxjs';
 import { AuthService, CdnService, UtilsService } from '../../services';
 import { CategoriesService } from './categories.service';
-import { StatusCodes } from 'http-status-codes';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-categories',
@@ -16,7 +16,6 @@ export class CategoriesComponent implements OnInit {
     private auth: AuthService,
     private cdn: CdnService,
     private router: Router,
-    private route: ActivatedRoute,
     private utils: UtilsService
   ) { }
 
@@ -25,7 +24,18 @@ export class CategoriesComponent implements OnInit {
   selected = [];
 
   getData(query): Observable<any> {
-    return this.service.getManyCategories(query);
+    return this.service.getManyCategories(query)
+      .pipe(catchError(() => {
+        this.cdn.swal({
+          title: 'Error!',
+          text: 'Something went wrong',
+          buttons: {
+            cancel: true
+          }
+        });
+
+        return EMPTY;
+      }));
   }
 
   checkPermission(permission) {
@@ -97,22 +107,16 @@ export class CategoriesComponent implements OnInit {
     
         this.service.deleteCategories(ids).subscribe(
           response => {
-            if (response.status === StatusCodes.OK) {
-              const message = `${response.body['deletedCount']}\
-                categories and subcategories has been deleted`;
+            const message = `${response.body['deletedCount']}\
+              categories and subcategories have been deleted`;
 
-              this.cdn.swal({
-               title: 'Success',
-                text: message,
-                icon: 'success',
-                buttons: { cancel: 'Close' }
-              })
-              .then(() => this.reload());
-
-            } else {
-              this.router.navigate(['/error-page']);
-              this.cdn.swal.close();
-            }
+            this.cdn.swal({
+              title: 'Success',
+              text: message,
+              icon: 'success',
+              buttons: { cancel: 'Close' }
+            })
+            .then(() => this.reload());
           },
           response => {
             const error = response.error;
@@ -127,6 +131,15 @@ export class CategoriesComponent implements OnInit {
                 }
               })
               .then(() => this.reload());
+
+            } else {
+              this.cdn.swal({
+                title: 'Error!',
+                text: 'Something went wrong',
+                buttons: {
+                  cancel: true
+                }
+              });
             }
           }
         );
