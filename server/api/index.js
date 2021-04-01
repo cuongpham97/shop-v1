@@ -57,9 +57,12 @@ function _createApp() {
   api.use(checkout);
   api.use(permission);
   
-  api.all('*', () => { 
-    throw new NotFoundException({ message: 'Request does not match any route' });
-  });
+  // api.all('*', () => { 
+  //   throw new NotFoundException({ 
+  //     code: 'UNKNOWN_ROUTE',
+  //     message: 'Request does not match any route' 
+  //   });
+  // });
   
   api.use(exceptionHandler);
 
