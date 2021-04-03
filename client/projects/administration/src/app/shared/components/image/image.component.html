@@ -1,13 +1,13 @@
-<div class="file-upload">
-  <div class="upload-wrap">
+<div  [style.width.px]="controlWidth" class="file-upload">
+  <div *ngIf="!src" class="upload-wrap">
     <input class="upload-input" (change)="onSelectImage($event)" type='file' accept="image/*" />
     <div class="drag-text">
-      <h3>+</h3>
+      <h3 [style.padding-top.px]="(controlHeight - 33) / 2" [style.padding-bottom.px]="(controlHeight - 33) / 2"><i class="far fa-plus"></i></h3>
     </div>
   </div>
-  <div class="upload-content">
-    <img class="upload-image" />
-    <button type="button" class="remove">&times;</button>
+  <div *ngIf="src" class="upload-content">
+    <img [style.width.px]="controlWidth" [style.height.px]="controlHeight" [src]="src" class="upload-image"/>
+    <button (click)="onRemoveBtnClick()" type="button" class="remove">&times;</button>
   </div>
 </div>
 
@@ -25,12 +25,15 @@
 
         <div *ngIf="isDone" class="preview">
           <div class="result">
-            <img #preview [src]="cropping" >
+            <img #preview [src]="croppingImage" >
+          </div>
+          <div *ngIf="progress > 0" class="progress">
+            <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" [style.width.%]="progress" [attr.aria-valuenow]="progress" aria-valuemin="0" aria-valuemax="100">{{progress}}%</div>
           </div>
         </div>
     
         <div class="crop-area">
-          <img #cropArea [src]="cropping" style="width: 400px; height: 400px; display: none;">
+          <img #cropArea [src]="croppingImage" style="width: 400px; height: 400px; display: none;">
         
           <div *ngIf="!isDone" class="controls">
             <div class="group">
@@ -44,12 +47,19 @@
               <button (click)="cropper.scaleX(flipX = -flipX)" class="btn"><i class="far fa-arrows-h"></i></button>
               <button (click)="cropper.scaleY(flipY = -flipY)" class="btn"><i class="far fa-arrows-v"></i></button>
             </div>
-          
+
             <div class="group">
               <button (click)="cropper.move(-10, 0)" class="btn btn-blue"><i class="far fa-arrow-left"></i></button>
               <button (click)="cropper.move(10, 0)" class="btn btn-blue"><i class="far fa-arrow-right"></i></button>
               <button (click)="cropper.move(0, 10)" class="btn btn-blue"><i class="far fa-arrow-up"></i></button>
               <button (click)="cropper.move(0, -10)" class="btn btn-blue"><i class="far fa-arrow-down"></i></button>
+            </div>
+
+            <div class="group">
+              <button (click)="cropper.setAspectRatio(1)" class="btn btn-blue">1:1</button>
+              <button (click)="cropper.setAspectRatio(3/4)" class="btn btn-blue">3:4</button>
+              <button (click)="cropper.setAspectRatio(16/9)" class="btn btn-blue">16:9</button>
+              <button (click)="cropper.setAspectRatio(0/0)" class="btn btn-blue">Free</button>
             </div>
           
             <div class="group">
@@ -66,9 +76,9 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cancel</button>
-        <button *ngIf="isDone" (click)="onEditBtnClick()" type="button" class="btn btn-sm btn-success">Edit image</button>
-        <button type="button" class="btn btn-sm btn-danger">Upload and close</button>
+        <button *ngIf="!progress" type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cancel</button>
+        <button *ngIf="isDone && !progress" (click)="onEditBtnClick()" type="button" class="btn btn-sm btn-success">Edit image</button>
+        <button *ngIf="isDone && !progress" (click)="onUploadBtnClick()" type="button" class="btn btn-sm btn-danger">Upload and close</button>
       </div>
     </div>
   </div>

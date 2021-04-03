@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as moment from 'moment';
 import { CdnService, UtilsService } from '../../../services';
 import { ProductsService } from '../products.service';
 
@@ -57,21 +58,21 @@ export class ProductFormComponent implements OnInit {
         });
 
     } else {
-      this._prepareProductForm(null);
+      this._prepareProductForm();
     }
   }
 
-  _prepareProductForm(data) {
+  _prepareProductForm(data?) {
     this.form = this.fb.group({
       name: ['', Validators.required],
       title: ['', Validators.maxLength(1000)],
       categories: [],
       model: ['', Validators.max(200)],
       brand: ['', Validators.maxLength(200)],
-      description: ['', Validators.maxLength(4000)],
+      description: '',
       warranty: ['', Validators.maxLength(100)],
       order: 1,
-      dataAvailable: '',
+      dateAvailable: '',
       active: true,
 
       attributes: this.fb.array([]),
@@ -86,7 +87,9 @@ export class ProductFormComponent implements OnInit {
     });
 
     if (data) {
-      data.categories = ['605e0bcd50ddfd0015a3fc8d'] //data.categories.map(cat => cat._id);
+      data.categories = data.categories.map(cat => cat._id);
+      data.dateAvailable = moment.utc(data.dateAvailable).format('DD/MM/YYYY');
+
       this.form.patchValue(data);
       
       data.attributes.forEach(attr => {
@@ -101,7 +104,7 @@ export class ProductFormComponent implements OnInit {
     this.isFormReady = true;
   }
 
-  createAttribute(data) {
+  createAttribute(data?) {
     const newAttribute = this.fb.group({
       name: ['', Validators.compose([Validators.required, Validators.maxLength(200)])],
       value: ['', Validators.maxLength(200)]
@@ -136,7 +139,9 @@ export class ProductFormComponent implements OnInit {
   }
 
   onSaveBtnClick() {
-    console.log(this.form.value);
+    this.utils.markFormControlTouched(this.form);
+    
+    console.log(this.form.value, this.form.valid);
   }
 
   reload() {

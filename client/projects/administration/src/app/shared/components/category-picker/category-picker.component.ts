@@ -118,7 +118,7 @@ export class CategoryPickerComponent implements OnInit, ControlValueAccessor, Va
   public validate(_c: FormControl) {
     return (!this.required) ? null : {
       required: {
-        valid: false,
+        valid: false
       },
     };
   }

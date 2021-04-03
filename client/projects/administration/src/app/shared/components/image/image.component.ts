@@ -1,6 +1,8 @@
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
 import { CdnService } from '../../../services';
+import { ImageService } from './image.service';
 
 @Component({
   selector: 'image',
@@ -24,26 +26,54 @@ export class ImageComponent implements OnInit, ControlValueAccessor, Validator {
   @ViewChild('cropArea', { static: true }) cropArea: ElementRef<any>;
 
   @Input('required') required;
-  url;
+  @Input('name') name;
+  @Input('description') description;
+  @Input('width') width;
+  @Input('height') height;
 
-  cropper;
-  originData;
-  cropping;
+  src;
+  controlWidth;
+  controlHeight;
 
   isDone = true;
+  croppingImage = null;
+  cropper = null;
+  originData = null;
+  
+  flipX = 1;
+  flipY = 1;
+
+  progress = 0;
 
   constructor(
+    private service: ImageService,
     private cdn: CdnService
   ) { }
 
-  ngOnInit(): void { 
+  ngOnInit(): void {
+    this.controlWidth = this.width < this.height ? 100 : 100 * (this.width / this.height); 
+    this.controlHeight = this.width < this.height ? 100 : 100 * (this.width / this.height); 
+
+    if (this.width > this.height) {
+      this.controlHeight = 100;
+      this.controlWidth = this.width / this.height * 100;
+    
+    } else {
+      this.controlWidth = 100;
+      this.controlHeight = this.height / this.width * 100;
+    }
+
+    this.cdn.$(this.modal.nativeElement).on('show.bs.modal', () => {
+      this.progress = 0;
+    });
+
     this.cdn.$(this.modal.nativeElement).on('hidden.bs.modal', () => {
       if (this.cropper) {
         this.cropper.destroy();
       }
 
       this.isDone = true;
-      this.cropping = null;
+      this.croppingImage = null;
       this.originData = null;
     });
   }
@@ -57,7 +87,7 @@ export class ImageComponent implements OnInit, ControlValueAccessor, Validator {
 
     reader.addEventListener("load", () => {
       this.originData = reader.result;
-      this.cropping = this.originData;
+      this.croppingImage = reader.result;
 
       this.cdn.$(this.modal.nativeElement).modal('show');
     }, false);
@@ -72,17 +102,21 @@ export class ImageComponent implements OnInit, ControlValueAccessor, Validator {
 
     const cropArea = this.cropArea.nativeElement;
 
-    const cropper = new this.cdn.Cropper(cropArea, {
+    this.cropper = new this.cdn.Cropper(cropArea, {
       responsive: true,
       viewMode: 0,
-      aspectRatio: 2/3,
+      aspectRatio: this.width / this.height,
       minContainerWidth: 300,
       minContainerHeight: 300,
 
       movable: true
     });
+  }
 
-    this.cropper = cropper;
+  onRemoveBtnClick() {
+    this.src = '';
+
+    this.propagateChange(null);
   }
 
   onEditBtnClick() {
@@ -90,19 +124,49 @@ export class ImageComponent implements OnInit, ControlValueAccessor, Validator {
     this._createCropArea();
   }
 
+  onUploadBtnClick() {
+    return this.service.uploadImage({
+      name: this.name,
+      image: this.croppingImage,
+      description: this.description
+    })
+    .subscribe(event => {
+      if (event.type === HttpEventType.UploadProgress) {
+        const percent = Math.round(100 * event.loaded / event.total);
+        this.progress = percent - 1;
+      
+      } else if (event instanceof HttpResponse) {
+        this.src = (event as any).body.url;
+        this.progress = 100;
+
+        this.propagateChange(event.body);
+        this.cdn.$(this.modal.nativeElement).modal('hide');
+      }
+    }, _response => {
+      this.cdn.swal({
+        title: 'Error!',
+        text: 'Something went wrong',
+        buttons: {
+          cancel: true
+        }
+      });
+    });
+  }
 
   // Action button
-  flipX = 1;
-  flipY = 1;
 
   crop() {
-    this.cropping = this.cropper.getCroppedCanvas().toDataURL('image/jpeg');
+    this.croppingImage = this.cropper.getCroppedCanvas({
+      width: this.width,
+      height: this.height
+    }).toDataURL('image/jpeg');
+    
     this.cropper.destroy();
     this.isDone = true;
   }
 
   reset() {
-    this.cropping = this.originData;
+    this.croppingImage = this.originData;
     this.cropper.replace(this.originData);
   }
 
@@ -112,9 +176,9 @@ export class ImageComponent implements OnInit, ControlValueAccessor, Validator {
   }
 
   // Form control action
-  public writeValue(url: any) {
-    if (url) {
-      this.url = url;
+  public writeValue(imageObj: any) {
+    if (imageObj) {
+      this.src = imageObj.url;
     }
   }
 
@@ -125,7 +189,7 @@ export class ImageComponent implements OnInit, ControlValueAccessor, Validator {
   public validate(_c: FormControl) {
     return (!this.required) ? null : {
       required: {
-        valid: false,
+        valid: false
       },
     };
   }

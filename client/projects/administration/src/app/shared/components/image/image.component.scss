@@ -1,6 +1,6 @@
 .file-upload {
   background-color: #fff;
-  width: 100px;
+  //width: 100px;
   margin: 10px;
 
   .upload-wrap {
@@ -26,8 +26,9 @@
       h3 {
         font-weight: 100;
         text-transform: uppercase;
-        color: #222;
-        padding: 40px 0;
+        color: #aaa;
+        //padding: 40px 0;
+        margin: 0;
       }
     }
   }
@@ -84,6 +85,10 @@
       object-fit: contain;
     }
   }
+
+  .progress {
+    height: 12px;
+  }
 }
 
 .controls {
@@ -104,9 +109,9 @@
   }
 
   button {
-    width: 40px;
     height: 40px;
     color: #fff;
+    text-align: center;
     background: transparent;
 
     &:hover {

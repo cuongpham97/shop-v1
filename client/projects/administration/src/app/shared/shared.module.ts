@@ -4,13 +4,15 @@ import { TraceCategoryPathPipe } from './pipes/trace-category-path.pipe';
 import { CategoryPickerComponent } from './components/category-picker/category-picker.component';
 import { CurrencyPipe } from './pipes/currency.pipe';
 import { ImageComponent } from './components/image/image.component';
+import { DatetimeComponent } from './components/datetime/datetime.component';
 
 @NgModule({
   declarations: [
     CategoryPickerComponent,
     TraceCategoryPathPipe,
     CurrencyPipe,
-    ImageComponent
+    ImageComponent,
+    DatetimeComponent
   ],
   imports: [
     CommonModule
@@ -19,7 +21,8 @@ import { ImageComponent } from './components/image/image.component';
     CategoryPickerComponent,
     ImageComponent,
     TraceCategoryPathPipe,
-    CurrencyPipe
+    CurrencyPipe,
+    DatetimeComponent
   ]
 })
 export class SharedModule { }

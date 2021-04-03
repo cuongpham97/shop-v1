@@ -21,11 +21,11 @@
           <a class="nav-link" id="attributes-tab" data-toggle="tab" href="#attributes" role="tab" aria-controls="attributes"
             aria-selected="false">Attribute</a>
         </li>
-        <li class="nav-item">
+        <li *ngIf="form.get('pricingTemplate').value === 'PRODUCT'" class="nav-item">
           <a class="nav-link" id="special-tab" data-toggle="tab" href="#special" role="tab"
             aria-controls="special" aria-selected="false">Special</a>
         </li>
-        <li class="nav-item">
+        <li *ngIf="form.get('pricingTemplate').value === 'PRODUCT'" class="nav-item">
           <a class="nav-link" id="discount-tab" data-toggle="tab" href="#discount" role="tab"
             aria-controls="discount" aria-selected="false">Discount</a>
         </li>
@@ -44,7 +44,6 @@
         <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
           <ng-template [ngTemplateOutlet]="attributesTpl"></ng-template>
         </div>
-    
     
         <!-- tab3 -->
         <div class="tab-pane fade" id="special" role="tabpanel" aria-labelledby="special-tab">
@@ -66,15 +65,168 @@
   </div>
 </div>
 
-
 <!-- GENERAL_FORM -->
 <ng-template #generalTpl>
-  <image></image>
+  <form [formGroup]="form" class="mt-md-3 form-custom">
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">* Name</label>
+      <div class="col-sm-9">
+        <input formControlName="name" type="text" class="form-control" [ngClass]="{ 
+          'is-invalid': form.get('name').touched && form.get('name').invalid
+        }">
+        <!-- validate -->
+        <div *ngIf="form.get('name').touched" class="form-text text-danger">
+          <small *ngIf="form.get('name').errors?.required">Name is required</small>
+        </div>
+        <!-- ./validate -->   
+      </div>
+    </div> 
+
+    <div class="row form-group">
+      <label class="col-sm-2 col-form-label">Category</label>
+      <div class="col-sm-9">
+        <category-picker formControlName="categories" [multiple]="true"></category-picker>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Title</label>
+      <div class="col-sm-9">
+        <textarea formControlName="title" class="form-control" rows="3" [ngClass]="{ 
+          'is-invalid': form.get('title').touched && form.get('title').invalid
+        }"></textarea>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Brand</label>
+      <div class="col-sm-9">
+        <input formControlName="brand" type="text" class="form-control" [ngClass]="{ 
+          'is-invalid': form.get('brand').touched && form.get('brand').invalid
+        }">
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Model</label>
+      <div class="col-sm-9">
+        <input formControlName="model" type="text" class="form-control">
+      </div>
+    </div>
+    
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Pricing template</label>
+      <div class="col-sm-9">
+        <select formControlName="pricingTemplate" class="form-control">
+          <option value="PRODUCT">Product</option>
+          <option value="VARIANT">Variants</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="form.get('pricingTemplate').value === 'PRODUCT'" class="form-group row">
+      <label class="col-sm-2 col-form-label">Price</label>
+      <div class="col-sm-9">
+        <input formControlName="price" type="number" class="form-control">
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Warranty</label>
+      <div class="col-sm-9">
+        <input formControlName="warranty" type="text" class="form-control" [ngClass]="{ 
+          'is-invalid': form.get('warranty').touched && form.get('warranty').invalid
+        }">
+      </div>
+    </div>
+    
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Date available</label>
+      <div class="col-sm-9">
+        <datetime formControlName="dateAvailable" format="DD/MM/YYYY" placeholder="Date available" [ngClass]="{ 
+          'is-invalid': form.get('dateAvailable').touched && form.get('dateAvailable').invalid
+        }"></datetime>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Active</label>
+      <div class="col-sm-9 pt-1">
+        <div class="pretty p-default p-round">
+          <input type="radio" [value]="true" name="active" formControlName="active">
+          <div class="state p-success">
+              <label>True</label>
+          </div>
+        </div>
+    
+        <div class="pretty p-default p-round">
+          <input type="radio" [value]="false" name="active" formControlName="active">
+          <div class="state p-danger">
+            <label>False</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-sm-2 col-form-label">Description</label>
+      <div class="col-sm-9">
+        <ckeditor formControlName="description"></ckeditor>
+      </div>
+    </div>
+  </form>
+
 </ng-template>
 
-<ng-template #attributesTpl></ng-template>
+<ng-template #attributesTpl>
+  <form [formGroup]="form">
+    <div class="row mb-3">
+      <div class="col-8">
+      </div>
+      <div class="col-4 text-right">
+        <button type="button" (click)="createAttribute()" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> Add</button>
+      </div>
+    </div>
 
-<ng-template #specialTpl></ng-template>
+    <div class="table-responsive">
+      <table class="table table-bordered table-custom">
+        <thead>
+          <tr>
+            <th>* Name</th>
+            <th>Value</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="attributes">
+          <tr *ngFor="let attribute of form.get('attributes').controls; let index=index" [formGroupName]="index">
+            <td>
+              <input formControlName="name" type="text" class="form-control" [ngClass]="{ 
+                'is-invalid': attribute.get('name').touched && attribute.get('name').invalid
+              }">
+              <!-- validate -->
+              <div *ngIf="attribute.get('name').touched" class="form-text text-danger">
+                <small *ngIf="attribute.get('name').errors?.required"><i>Name is required</i></small>
+              </div>
+              <!-- ./validate -->
+            </td>
+            <td>
+              <input formControlName="value" type="text" class="form-control">
+            </td>
+            <td>
+              <a (click)="removeAttribute(index)" class="row-btn row-delete-btn"><i class="material-icons">&#xE872;</i></a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </form>
+  <!-- ./productForm -->
+</ng-template>
+
+<ng-template #specialTpl>
+  
+</ng-template>
 
 <ng-template #discountTpl></ng-template>
 

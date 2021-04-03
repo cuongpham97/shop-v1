@@ -7,6 +7,7 @@ import { DatatableModule } from '../datatable/datatable.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from '../../shared/shared.module';
 import { ProductFormComponent } from './product-form/product-form.component';
+import { CKEditorModule } from 'ckeditor4-angular';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { ProductFormComponent } from './product-form/product-form.component';
     DatatableModule,
     FormsModule,
     ReactiveFormsModule,
+    CKEditorModule,
     SharedModule
   ]
 })

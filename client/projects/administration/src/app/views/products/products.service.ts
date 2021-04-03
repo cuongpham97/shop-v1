@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UtilsService } from '../../services';
+import { DatePipe } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -23,8 +24,8 @@ export class ProductsService {
   }
 
   _prepareNewProduct(data) {
-    
-    //TODO;
+
+    data.dataAvailable = new DatePipe('en-US').transform(data.dataAvailable, 'yyyy/mm/dd');
     return data;
   }
 

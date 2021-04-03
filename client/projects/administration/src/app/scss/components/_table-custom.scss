@@ -1,0 +1,33 @@
+.table-custom {
+
+  th {
+    font-weight: bold;
+    color: #545480;
+    font-size: 14px;
+  }
+
+  .row-btn {
+    cursor: pointer;
+    border: none;
+    background: rgba(0,0,0,0);
+
+    &:focus { outline: none; }
+    i { 
+      font-size: 20px; 
+      line-height: 38px;
+    }
+  }
+
+  .row-add-btn {
+    color: #27c46b!important;
+  }
+  .row-view-btn {
+    color: #717a75!important;
+  }
+  .row-edit-btn {
+    color: #2d18d8!important;
+  }
+  .row-delete-btn {
+    color: #e34724!important;
+  }
+}
