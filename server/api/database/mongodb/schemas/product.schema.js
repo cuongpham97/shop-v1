@@ -119,12 +119,6 @@ const Sku = new Schema({
       default: 0
     }
   },
-  price: {
-    type: Number,
-    min: 0
-  },
-  special: [Special],
-  discount: [Discount],
   order: {
     type: Number,
     default: 0
@@ -197,17 +191,10 @@ const ProductSchema = new Schema({
     maxLength: 200
   },
   description: {
-    type: String,
-    maxLength: 4000
+    type: String
   },
   warranty: String,
   attributes: [Attribute],
-  pricingTemplate: {
-    type: String,
-    uppercase: true,
-    enum: ['PRODUCT', 'VARIANT'],
-    required: true
-  },
   price: {
     type: Number,
     min: 0

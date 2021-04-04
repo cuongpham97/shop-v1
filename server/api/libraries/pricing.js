@@ -1,21 +1,13 @@
 const moment = require('moment');
 
-function _additionPrice(product, sku) {
-  if (product.template === 'VARIANT') {
-    return 0;
-  }
-
+function _additionPrice(sku) {
   const { sign, value } = sku.additionPrice;
-
+  
   return (sign === '-' ? -1 : 1) * value;
 }
 
 function _nomarlPrice(product, sku) {
-  let nomarlPrice = product.pricingTemplate === 'PRODUCT' 
-    ? product.price 
-    : sku.price 
-
-  return nomarlPrice + _additionPrice(product, sku);
+  return product.price + _additionPrice(sku);
 }
 
 function _hasGroup(customer, groupId) {
@@ -29,10 +21,7 @@ function _inTime(effectiveDate, expiryDate) {
 }
 
 function _salePrice(product, sku, customer) {
-
-  let special = product.pricingTemplate === 'PRODUCT' ? product.special : sku.special;
-
-  special = special.filter(line => _hasGroup(customer, line.customerGroup) && _inTime(line.effectiveDate, line.expiryDate));
+  let special = product.special.filter(line => _hasGroup(customer, line.customerGroup) && _inTime(line.effectiveDate, line.expiryDate));
 
   if (!special.length) {
     return undefined;
@@ -40,7 +29,7 @@ function _salePrice(product, sku, customer) {
 
   special = special.sort((a, b) => a.priority - b.priority);
   
-  return special[0].salePrice + _additionPrice(product, sku);
+  return special[0].salePrice + _additionPrice(sku);
 }
 
 function _percentageSale(price, salePrice) {
@@ -48,15 +37,14 @@ function _percentageSale(price, salePrice) {
   return percent.toFixed(2);
 }
 
-function _discountQueue(product, sku, customer) {
-  let discount = product.pricingTemplate === 'PRODUCT' ? product.discount : sku.discount;
-  discount = discount.filter(line => _hasGroup(customer, line.customerGroup) && _inTime(line.effectiveDate, line.expiryDate));
-  discount.sort((a, b) => a.quantity - b.quantity || a.priority - b.priority);
-  return discount;
+function _discountQueue(product, customer) {
+  let discount = product.discount.filter(line => _hasGroup(customer, line.customerGroup) && _inTime(line.effectiveDate, line.expiryDate));
+
+  return discount.sort((a, b) => a.quantity - b.quantity || a.priority - b.priority);
 }
 
-function _discount(product, sku, quantity, customer) {
-  const discount = _discountQueue(product, sku, customer).find(line => line.quantity === quantity);
+function _discount(product, quantity, customer) {
+  const discount = _discountQueue(product, customer).find(line => line.quantity === quantity);
   return discount ? discount.value : 0;
 }
 

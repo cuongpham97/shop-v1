@@ -94,7 +94,8 @@ async function _filterNewProductInput(input) {
     'categories.*': 'mongo_id',
     'model': 'string|min:1|max:200',
     'brand': 'string|min:1|max:200',
-    'description': 'string|max:4000',
+    'price': 'required_if:pricingTemplate,PRODUCT|numeric|min:0',
+    'description': 'string',
     'warranty': 'string',
     'dateAvailable': 'date:YYYY/MM/DD',
     'active': 'boolean',
@@ -104,17 +105,14 @@ async function _filterNewProductInput(input) {
     'attributes.*.name': 'required|string|min:1|max:200',
     'attributes.*.value': 'string|max:200',
 
-    'pricingTemplate': 'required|string|uppercase|enum:PRODUCT,VARIANT',
-    'price': 'required_if:pricingTemplate,PRODUCT|numeric|min:0',
-    
-    'special': 'not_allow_if:pricingTemplate,VARIANT|to:array',
+    'special': 'to:array',
     'special.*.customerGroup': 'mongo_id',
     'special.*.priority': 'integer',
     'special.*.salePrice': 'required|numeric|min:0',
     'special.*.effectiveDate': 'required|date:YYYY/MM/DD',
     'special.*.expiryDate': 'date:YYYY/MM/DD',
     
-    'discount': 'not_allow_if:pricingTemplate,VARIANT|to:array',
+    'discount': 'to:array',
     'discount.*.customerGroup': 'mongo_id',
     'discount.*.quantity': 'required|integer|min:1',
     'discount.*.priority': 'integer|min:0',
@@ -137,25 +135,9 @@ async function _filterNewProductInput(input) {
     'skus.*.attributes.*.name': 'required|string|min:1|max:200',
     'skus.*.attributes.*.value': 'string|max:200',
 
-    'skus.*.additionPrice': 'not_allow_if:pricingTemplate,VARIANT|object',
+    'skus.*.additionPrice': 'object',
     'skus.*.additionPrice.sign': 'string|enum:-,+',
-    'skus.*.additionPrice.value': 'numeric|min:0',
-    'skus.*.price': 'not_allow_if:pricingTemplate,PRODUCT|numeric|min:0',
-    
-    'skus.*.special': 'not_allow_if:pricingTemplate,PRODUCT|to:array',
-    'skus.*.special.*.customerGroup': 'mongo_id',
-    'skus.*.special.*.priority': 'integer',
-    'skus.*.special.*.salePrice': 'required|numeric|min:0',
-    'skus.*.special.*.effectiveDate': 'required|date:YYYY/MM/DD',
-    'skus.*.special.*.expiryDate': 'date:YYYY/MM/DD',
-
-    'skus.*.discount': 'not_allow_if:pricingTemplate,PRODUCT|to:array',
-    'skus.*.discount.*.customerGroup': 'mongo_id',
-    'skus.*.discount.*.quantity': 'required|integer|min:1',
-    'skus.*.discount.*.priority': 'integer|min:0',
-    'skus.*.discount.*.value': 'required|numeric|min:0',
-    'skus.*.discount.*.effectiveDate': 'requrired|date:YYYY/MM/DD',
-    'skus.*.discount.*.expiryDate': 'date:YYYY/MM/DD',
+    'skus.*.additionPrice.value': 'numeric|min:0'
   });
 
   if (validation.errors) {
@@ -254,7 +236,8 @@ async function _filterUpdateProductInput(input) {
     'categories.*': 'mongo_id',
     'model': 'string|min:1|max:200',
     'brand': 'string|min:1|max:200',
-    'description': 'string|max:4000',
+    'price': 'numeric|min:0',
+    'description': 'string',
     'warranty': 'string',
     'dateAvailable': 'date:YYYY/MM/DD',
     'active': 'boolean',
@@ -263,18 +246,15 @@ async function _filterUpdateProductInput(input) {
     'attributes': 'to:array',
     'attributes.*.name': 'required|string|min:1|max:200',
     'attributes.*.value': 'string|max:200',
-
-    'pricingTemplate': 'string|uppercase|enum:PRODUCT,VARIANT',
-    'price': 'numeric|min:0',
     
-    'special': 'not_allow_if:pricingTemplate,VARIANT|to:array',
+    'special': 'to:array',
     'special.*.customerGroup': 'mongo_id',
     'special.*.priority': 'integer',
     'special.*.salePrice': 'required|numeric|min:0',
     'special.*.effectiveDate': 'required|date:YYYY/MM/DD',
     'special.*.expiryDate': 'date:YYYY/MM/DD',
     
-    'discount': 'not_allow_if:pricingTemplate,VARIANT|to:array',
+    'discount': 'to:array',
     'discount.*.customerGroup': 'mongo_id',
     'discount.*.quantity': 'required|integer|min:1',
     'discount.*.priority': 'integer|min:0',
@@ -297,25 +277,9 @@ async function _filterUpdateProductInput(input) {
     'skus.*.attributes.*.name': 'required|string|min:1|max:200',
     'skus.*.attributes.*.value': 'string|max:200',
 
-    'skus.*.additionPrice': 'not_allow_if:pricingTemplate,VARIANT|object',
+    'skus.*.additionPrice': 'object',
     'skus.*.additionPrice.sign': 'string|enum:-,+',
-    'skus.*.additionPrice.value': 'numeric|min:0',
-    'skus.*.price': 'not_allow_if:pricingTemplate,PRODUCT|numeric|min:0',
-    
-    'skus.*.special': 'not_allow_if:pricingTemplate,PRODUCT|to:array',
-    'skus.*.special.*.customerGroup': 'mongo_id',
-    'skus.*.special.*.priority': 'integer',
-    'skus.*.special.*.salePrice': 'required|numeric|min:0',
-    'skus.*.special.*.effectiveDate': 'required|date:YYYY/MM/DD',
-    'skus.*.special.*.expiryDate': 'date:YYYY/MM/DD',
-
-    'skus.*.discount': 'not_allow_if:pricingTemplate,PRODUCT|to:array',
-    'skus.*.discount.*.customerGroup': 'mongo_id',
-    'skus.*.discount.*.quantity': 'required|integer|min:1',
-    'skus.*.discount.*.priority': 'integer|min:0',
-    'skus.*.discount.*.value': 'required|numeric|min:0',
-    'skus.*.discount.*.effectiveDate': 'requrired|date:YYYY/MM/DD',
-    'skus.*.discount.*.expiryDate': 'date:YYYY/MM/DD',
+    'skus.*.additionPrice.value': 'numeric|min:0'
   });
 
   if (validation.errors) {
