@@ -331,7 +331,7 @@ function max(_attribute, value, args, done) {
       : done(false, null, { max: max });
   }
 
-  return max > value.length
+  return max >= value.length
     ? done()
     : done(false, null, { max: max });
 }
