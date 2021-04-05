@@ -106,14 +106,14 @@ async function _filterNewProductInput(input) {
     'attributes.*.value': 'string|max:200',
 
     'special': 'to:array',
-    'special.*.customerGroup': 'mongo_id',
+    'special.*.customerGroup': 'mongo_id|nullabe',
     'special.*.priority': 'integer',
     'special.*.salePrice': 'required|numeric|min:0',
     'special.*.effectiveDate': 'required|date:DD/MM/YYYY',
     'special.*.expiryDate': 'date:DD/MM/YYYY',
     
     'discount': 'to:array',
-    'discount.*.customerGroup': 'mongo_id',
+    'discount.*.customerGroup': 'mongo_id|nullable',
     'discount.*.quantity': 'required|integer|min:1',
     'discount.*.priority': 'integer|min:0',
     'discount.*.value': 'required|numeric|min:0',
@@ -248,14 +248,14 @@ async function _filterUpdateProductInput(input) {
     'attributes.*.value': 'string|max:200',
     
     'special': 'to:array',
-    'special.*.customerGroup': 'mongo_id',
+    'special.*.customerGroup': 'mongo_id|nullable',
     'special.*.priority': 'integer',
     'special.*.salePrice': 'required|numeric|min:0',
     'special.*.effectiveDate': 'required|date:DD/MM/YYYY',
     'special.*.expiryDate': 'date:DD/MM/YYYY',
     
     'discount': 'to:array',
-    'discount.*.customerGroup': 'mongo_id',
+    'discount.*.customerGroup': 'mongo_id|nullable',
     'discount.*.quantity': 'required|integer|min:1',
     'discount.*.priority': 'integer|min:0',
     'discount.*.value': 'required|numeric|min:0',
