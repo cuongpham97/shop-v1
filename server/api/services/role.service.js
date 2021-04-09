@@ -237,7 +237,8 @@ async function _prepareUpdateRole(role, input) {
   role.set('updator.name', clone.updator.displayName);
 
   if ('permission' in input) {
-    role.set('permission', {});
+    role.set('permission', clone.permission);
+    delete clone.permission;
   }
 
   return updateDocument(role, clone);

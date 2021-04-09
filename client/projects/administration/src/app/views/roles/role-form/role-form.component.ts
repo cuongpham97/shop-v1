@@ -97,6 +97,8 @@ export class RoleFormComponent implements OnInit {
       button: false
     });
 
+    console.log(this.form.value)
+
     return this.service.updateRole(this.roleId, this.form.value)
       .subscribe(_role => {
         this.cdn.swal({
@@ -138,7 +140,6 @@ export class RoleFormComponent implements OnInit {
       return;
     }
 
-    console.log(this.form.value);
     if (this.roleId) {
       this.updateRole();
     } else {
