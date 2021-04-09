@@ -233,8 +233,12 @@ async function _filterUpdateRoleInput(input) {
 
 async function _prepareUpdateRole(role, input) {
   const clone = { ...input };
-  
+
   role.set('updator.name', clone.updator.displayName);
+
+  if ('permission' in input) {
+    role.set('permission', {});
+  }
 
   return updateDocument(role, clone);
 }
