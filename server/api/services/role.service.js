@@ -94,7 +94,7 @@ async function _filterCheckExistInput(input) {
 exports.checkExist = async function (data) {
   const input = await _filterCheckExistInput(data);
 
-  return !!Role.findOne(input, ['_id']);
+  return !!await Role.findOne(input, ['_id']);
 }
 
 function _projectDocument(role) {
