@@ -28,7 +28,7 @@
               "projects/administration/src/assets"
             ],
             "styles": [
-              "projects/administration/src/styles.scss"
+              "projects/administration/src/app/scss/styles.scss"
             ],
             "scripts": []
           },
@@ -92,7 +92,7 @@
               "projects/administration/src/assets"
             ],
             "styles": [
-              "projects/administration/src/styles.scss"
+              "projects/administration/src/app/scss/styles.scss"
             ],
             "scripts": []
           }

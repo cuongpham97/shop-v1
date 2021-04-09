@@ -29,11 +29,39 @@ const routes: Routes = [
           }
         ] 
       },
+      { 
+        path: 'sales', children: [
+          { 
+            path: 'orders', loadChildren: () => import('./views/orders/orders.module').then(m => m.OrdersModule),
+            data: { permission: 'order.read' },
+            canActivate: [AuthGuard]
+          }
+        ] 
+      },
       {
         path: 'customers', children: [
           { 
+            path: 'customers', loadChildren: () => import('./views/customers/customers.module').then(m => m.CustomersModule),
+            data: { permission: 'customer.read' },
+            canActivate: [AuthGuard]
+          },
+          { 
             path: 'customer-groups', loadChildren: () => import('./views/customer-groups/customer-groups.module').then(m => m.CustomerGroupsModule),
             data: { permission: 'customer-group.read' },
+            canActivate: [AuthGuard]
+          }
+        ]
+      },
+      {
+        path: 'admins', children: [
+          { 
+            path: 'admins', loadChildren: () => import('./views/admins/admins.module').then(m => m.AdminsModule),
+            data: { permission: 'admin.read' },
+            canActivate: [AuthGuard]
+          },
+          { 
+            path: 'roles', loadChildren: () => import('./views/roles/roles.module').then(m => m.RolesModule),
+            data: { permission: 'role.read' },
             canActivate: [AuthGuard]
           }
         ]

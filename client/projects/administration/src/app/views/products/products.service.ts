@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UtilsService } from '../../services';
-import { DatePipe } from '@angular/common';
+import { map } from 'rxjs/operators';
+import * as _ from 'lodash';
 
 @Injectable({
   providedIn: 'root'
@@ -23,29 +24,36 @@ export class ProductsService {
     return this.http.get('/admin/products?fields=-description&' + querystring);
   }
 
-  _prepareNewProduct(data) {
+  _prepareProduct(data) {
+    const product = _.cloneDeep(data);
 
-    data.dataAvailable = new DatePipe('en-US').transform(data.dataAvailable, 'yyyy/mm/dd');
-    return data;
+    product.skus.forEach(sku => {
+      sku.images = sku.images.filter(Boolean).map(image => image._id);
+    });
+    
+    console.log(product);
+
+    return product;
   }
 
   createProduct(formData) {
-    return this.http.post('/admin/products', this._prepareNewProduct(formData));
+    return this.http.post('/admin/products', this._prepareProduct(formData));
   }
 
-  _prepareUpdateProduct(data) {
-    return {
-      //TODO;
-    }
-  }
+
 
   updateProduct(id, formData) {
-    return this.http.patch(`/admin/products/${id}`,this. _prepareUpdateProduct(formData));
+    return this.http.patch(`/admin/products/${id}`,this. _prepareProduct(formData));
   }
 
   deleteProducts(ids) {
-    return this.http.delete('/admin/products?ids=' + ids.join(','),{
+    return this.http.delete('/admin/products?ids=' + ids.join(','), {
       observe: 'response'
     });
+  }
+
+  getAllCustomerGroups() {
+    return this.http.get('/admin/customer-groups')
+      .pipe(map(dataset => dataset['data']));
   }
 }

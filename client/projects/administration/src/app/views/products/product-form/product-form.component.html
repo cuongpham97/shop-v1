@@ -1,7 +1,8 @@
 <div class="card p-1 p-md-2 card-custom">
   <div class="card-header p-2">
     <div class="title">
-      <h3><span class="small"> <i class="far fa-pencil small ml-1 mr-2"></i>{{ productId? 'Edit' : 'New' }} product</span></h3>
+      <h3><span class="small"> <i class="far fa-pencil small ml-1 mr-2"></i>{{ productId? 'Edit' : 'New' }}
+          product</span></h3>
     </div>
     <div class="controls">
       <button (click)="onSaveBtnClick()" class="btn btn-save"><i class="fal fa-save"></i></button>
@@ -14,37 +15,37 @@
 
       <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general"
-            aria-selected="true">General</a>
+          <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab"
+            aria-controls="general" aria-selected="true">General</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="attributes-tab" data-toggle="tab" href="#attributes" role="tab" aria-controls="attributes"
-            aria-selected="false">Attribute</a>
-        </li>
-        <li *ngIf="form.get('pricingTemplate').value === 'PRODUCT'" class="nav-item">
-          <a class="nav-link" id="special-tab" data-toggle="tab" href="#special" role="tab"
-            aria-controls="special" aria-selected="false">Special</a>
-        </li>
-        <li *ngIf="form.get('pricingTemplate').value === 'PRODUCT'" class="nav-item">
-          <a class="nav-link" id="discount-tab" data-toggle="tab" href="#discount" role="tab"
-            aria-controls="discount" aria-selected="false">Discount</a>
+          <a class="nav-link" id="attributes-tab" data-toggle="tab" href="#attributes" role="tab"
+            aria-controls="attributes" aria-selected="false">Attribute</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="skus-tab" data-toggle="tab" href="#skus" role="tab"
-            aria-controls="skus" aria-selected="false">Skus</a>
+          <a class="nav-link" id="special-tab" data-toggle="tab" href="#special" role="tab" aria-controls="special"
+            aria-selected="false">Special</a>
+        </li>
+        <li  class="nav-item">
+          <a class="nav-link" id="discount-tab" data-toggle="tab" href="#discount" role="tab" aria-controls="discount"
+            aria-selected="false">Discount</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="skus-tab" data-toggle="tab" href="#skus" role="tab" aria-controls="skus"
+            aria-selected="false">Skus</a>
         </li>
       </ul>
-    
+
       <div class="tab-content" id="myTabContent">
         <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
           <ng-template [ngTemplateOutlet]="generalTpl"></ng-template>
         </div>
-    
+
         <!-- tab2 -->
         <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
           <ng-template [ngTemplateOutlet]="attributesTpl"></ng-template>
         </div>
-    
+
         <!-- tab3 -->
         <div class="tab-pane fade" id="special" role="tabpanel" aria-labelledby="special-tab">
           <ng-template [ngTemplateOutlet]="specialTpl"></ng-template>
@@ -79,9 +80,9 @@
         <div *ngIf="form.get('name').touched" class="form-text text-danger">
           <small *ngIf="form.get('name').errors?.required">Name is required</small>
         </div>
-        <!-- ./validate -->   
+        <!-- ./validate -->
       </div>
-    </div> 
+    </div>
 
     <div class="row form-group">
       <label class="col-sm-2 col-form-label">Category</label>
@@ -114,18 +115,8 @@
         <input formControlName="model" type="text" class="form-control">
       </div>
     </div>
-    
-    <div class="form-group row">
-      <label class="col-sm-2 col-form-label">Pricing template</label>
-      <div class="col-sm-9">
-        <select formControlName="pricingTemplate" class="form-control">
-          <option value="PRODUCT">Product</option>
-          <option value="VARIANT">Variants</option>
-        </select>
-      </div>
-    </div>
 
-    <div *ngIf="form.get('pricingTemplate').value === 'PRODUCT'" class="form-group row">
+    <div class="form-group row">
       <label class="col-sm-2 col-form-label">Price</label>
       <div class="col-sm-9">
         <input formControlName="price" type="number" class="form-control">
@@ -140,7 +131,7 @@
         }">
       </div>
     </div>
-    
+
     <div class="form-group row">
       <label class="col-sm-2 col-form-label">Date available</label>
       <div class="col-sm-9">
@@ -156,10 +147,10 @@
         <div class="pretty p-default p-round">
           <input type="radio" [value]="true" name="active" formControlName="active">
           <div class="state p-success">
-              <label>True</label>
+            <label>True</label>
           </div>
         </div>
-    
+
         <div class="pretty p-default p-round">
           <input type="radio" [value]="false" name="active" formControlName="active">
           <div class="state p-danger">
@@ -185,7 +176,8 @@
       <div class="col-8">
       </div>
       <div class="col-4 text-right">
-        <button type="button" (click)="createAttribute()" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> Add</button>
+        <button type="button" (click)="createAttribute()" class="btn btn-sm btn-success"><i
+            class="fa fa-plus"></i> Add</button>
       </div>
     </div>
 
@@ -214,20 +206,292 @@
               <input formControlName="value" type="text" class="form-control">
             </td>
             <td>
-              <a (click)="removeAttribute(index)" class="row-btn row-delete-btn"><i class="material-icons">&#xE872;</i></a>
+              <a (click)="form.get('attributes').removeAt(index)" class="row-btn row-delete-btn"><i
+                  class="material-icons">&#xE872;</i></a>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </form>
-  <!-- ./productForm -->
 </ng-template>
 
 <ng-template #specialTpl>
-  
+  <form [formGroup]="form">
+    <div class="row mb-3">
+      <div class="col-8">
+      </div>
+      <div class="col-4 text-right">
+        <button type="button" (click)="createSpecial()" class="btn btn-sm btn-success"><i
+            class="fa fa-plus"></i> Add</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-custom">
+        <thead>
+          <tr>
+            <th>Groups</th>
+            <th>Priority</th>
+            <th>* Price</th>
+            <th>Date start</th>
+            <th>Date end</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="special">
+          <tr *ngFor="let line of form.get('special').controls; let index=index" [formGroupName]="index">
+            <td>
+              <select formControlName="customerGroup" class="form-control">
+                <option [value]="null">Không</option>
+                <option [value]="group._id" *ngFor="let group of customerGroups">{{ group.name }}</option>
+              </select>
+            </td>
+            <td>
+              <input formControlName="priority" type="number" class="form-control">
+            </td>
+            <td>
+              <input formControlName="salePrice" type="number" class="form-control">
+            </td>
+            <td>
+              <datetime formControlName="effectiveDate" format="DD/MM/YYYY" placeholder="Date start"></datetime>
+            </td>
+            <td>
+              <datetime formControlName="expiryDate" format="DD/MM/YYYY" placeholder="Date end"></datetime>
+            </td>
+            <td>
+              <a (click)="form.get('special').removeAt(index)" class="row-btn row-delete-btn"><i
+                  class="material-icons">&#xE872;</i></a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </form>
 </ng-template>
 
-<ng-template #discountTpl></ng-template>
+<ng-template #discountTpl>
+  <form [formGroup]="form">
+    <div class="row mb-3">
+      <div class="col-8">
+      </div>
+      <div class="col-4 text-right">
+        <button type="button" (click)="createDiscount()" class="btn btn-sm btn-success"><i
+            class="fa fa-plus"></i> Add</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-custom">
+        <thead>
+          <tr>
+            <th>Groups</th>
+            <th>Priority</th>
+            <th>Quantity</th>
+            <th>* Value</th>
+            <th>Date start</th>
+            <th>Date end</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="discount">
+          <tr *ngFor="let line of form.get('discount').controls; let index=index" [formGroupName]="index">
+            <td>
+              <select formControlName="customerGroup" class="form-control">
+                <option [value]="null">Không</option>
+                <option [value]="group._id" *ngFor="let group of customerGroups">{{ group.name }}</option>
+              </select>
+            </td>
+            <td>
+              <input formControlName="priority" type="number" class="form-control">
+            </td>
+            <td>
+              <input formControlName="quantity" type="number" class="form-control">
+            </td>
+            <td>
+              <input formControlName="value" type="number" class="form-control">
+            </td>
+            <td>
+              <datetime formControlName="effectiveDate" format="DD/MM/YYYY" placeholder="Date start"></datetime>
+            </td>
+            <td>
+              <datetime formControlName="expiryDate" format="DD/MM/YYYY" placeholder="Date end"></datetime>
+            </td>
+            <td>
+              <a (click)="form.get('discount').removeAt(index)" class="row-btn row-delete-btn"><i
+                  class="material-icons">&#xE872;</i></a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </form>
+</ng-template>
 
-<ng-template #skusTpl></ng-template>
+<ng-template #skusTpl>
+  <div class="row m-0">
+    <div class="col-8">
+      <h6>Sku attributes</h6>
+    </div>
+    <div class="col-4">
+      <button (click)="createVariant()" [disabled]="form.get('variants').controls.length == 2" type="button"
+        class="btn btn-sm btn-success"><i class="fa fa-plus"></i> Add
+      </button>
+    </div>
+  </div>
+
+  <!-- productForm -->
+  <form [formGroup]="form">
+    <div formArrayName="variants">
+      <div *ngFor="let variant of form.get('variants').controls; let index = index" [formGroupName]="index">
+        <div class="row py-3">
+          <div class="col-5">
+            <input formControlName="name" type="text" class="form-control" placeholder="Name" [ngClass]="{ 
+              'is-invalid': variant.get('name').touched && variant.get('name').invalid
+            }">
+            <!-- validate -->
+            <div *ngIf="variant.get('name').touched" class="form-text text-danger">
+              <small *ngIf="variant.get('name').errors?.required">Not be empty</small>
+            </div>
+            <!-- ./validate -->
+          </div>
+          <div class="col-sm-3 col-5">
+            <select formControlName="control" class="form-control">
+              <option value="MULTIPLE_CHOICE">Multiple select</option>
+              <option value="DROP_DOWN">Dropdown</option>
+              <option value="COLOR_PICKER">Color</option>
+            </select>
+          </div>
+          <div class="col-2 p-2 text-left">
+            <a (click)="form.get('variants').removeAt(index)" class="row-btn row-delete-btn"><i
+                class="material-icons">&#xE872;</i></a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+  <!-- ./productForm -->
+
+  <br>
+  <hr>
+
+  <div class="row table-title m-0">
+    <div class="col-8">
+      <h6>Skus list</h6>
+    </div>
+    <div class="col-4 mb-3 text-right">
+      <button (click)="openModal()" type="button" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> Add</button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-custom">
+      <thead>
+        <tr>
+          <th>SKU Code</th>
+          <th>Images</th>
+          <th>Attributes</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sku of form.get('skus').value; let index = index">
+          <td>{{ sku.code }}</td>
+          <td>
+            <span *ngFor="let image of sku.images">
+              <img *ngIf="image" [src]="image.url" class="small-image">
+            </span>
+          </td>
+          <td class="join-item"><span *ngFor="let attribute of sku.attributes">{{ attribute.value }}</span></td>
+          <td>{{ sku.additionPrice.sign }}{{ sku.additionPrice.value | currency: 'đ'}}</td>
+          <td class="text-right">{{sku.quantity}}</td>
+          <td>
+            <a (click)="openModal(index)" class="row-btn row-edit-btn"><i class="material-icons">&#xE254;</i></a>
+            <a (click)="form.get('skus').removeAt(index)" class="row-btn row-delete-btn"><i
+                class="material-icons">&#xE872;</i></a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-template>
+
+<!-- The Modal -->
+<div #modal class="modal fade">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Add SKU</h5>
+        <button type="button" class="close" data-dismiss="modal">×</button>
+      </div>
+
+      <!-- Modal body -->
+      <div *ngIf="skuForm" class="modal-body">
+        <form [formGroup]="skuForm" class="mt-md-3 form-custom">
+
+          <div class="form-group row">
+            <label class="col-sm-2 col-form-label">SKU code</label>
+            <div class="col-sm-9">
+              <input formControlName="code" type="text" class="form-control" [ngClass]="{ 
+                'is-invalid': skuForm.get('code').touched && skuForm.get('code').invalid
+              }">
+              <!-- validate -->
+              <div *ngIf="skuForm.get('code').touched" class="form-text text-danger">
+                <small *ngIf="skuForm.get('code').errors?.required">SKU code is required</small>
+              </div>
+              <!-- ./validate --> 
+            </div>
+          </div>
+
+          <ng-container formArrayName="attributes" *ngFor="let attribute of skuForm.get('attributes').controls; let index = index">
+            <div [formGroupName]="index" class="form-group row">
+              <label class="col-sm-2 col-form-label">* {{attribute.value.name}}</label>
+              <div class="col-sm-9">
+                <input formControlName="value" type="text" class="form-control">
+              </div>
+            </div>
+          </ng-container>
+
+          <div formGroupName="additionPrice" class="form-group row">
+            <label class="col-sm-2 col-form-label">Price</label>
+            <div class="col-sm-9">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <select formControlName="sign" class="form-control">
+                    <option value="-">+</option>
+                    <option value="+">-</option>
+                  </select>
+                </div>
+                <input formControlName="value" type="text" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Quantity</label>
+            <div class="col-sm-9">
+              <input formControlName="quantity" type="number" class="form-control">
+            </div>
+          </div>
+         
+          <div formArrayName="images" class="form-group d-flex justify-content-center flex-wrap">
+            <image formControlName="0" width="600" height="800" name="Product image"></image>
+            <image formControlName="1" width="600" height="800" name="Product image"></image>
+            <image formControlName="2" width="600" height="800" name="Product image"></image>
+            <image formControlName="3" width="600" height="800" name="Product image"></image>
+            <image formControlName="4" width="600" height="800" name="Product image"></image>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button (click)="onDoneBtnClick()" type="button" class="btn btn-sm btn-success"> Done</button>
+      </div>
+
+    </div>
+  </div>
+</div>

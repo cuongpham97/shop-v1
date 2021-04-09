@@ -37,6 +37,22 @@ export class MenuService {
             ] 
           },
         ]
+      },
+      {
+        name: 'admins', path: '/admins', link: false, children: [
+          { 
+            name: 'admins', path: '/admins', link: true,  children: [
+              { name: 'new admin', path: '/new', link: true, children: [] },
+              { name: 'edit admin', path: '/edit', link: true, children: [] }
+            ] 
+          },
+          { 
+            name: 'roles', path: '/roles', link: true, children: [
+              { name: 'new role', path: '/new', link: true, children: [] },
+              { name: 'edit role', path: '/edit', link: true, children: [] }
+            ] 
+          },
+        ]
       }
     ];
   }

@@ -6,10 +6,15 @@
     font-size: 14px;
   }
 
+  td {
+    vertical-align: middle;
+  }
+
   .row-btn {
     cursor: pointer;
     border: none;
     background: rgba(0,0,0,0);
+    margin-left: 10px;
 
     &:focus { outline: none; }
     i { 

@@ -6,13 +6,24 @@
       <button (click)="onDeleteBtnClick()" class="btn btn-header-delete"><i class="fa fa-trash"></i></button>
     </ng-template>
 
-    <column name="name" [sortable]="true"></column>
+    <column name="Image" prop="avatar.url">
+      <ng-template cell let-value="value">
+        <img [src]="value" class="small-image"> {{value}}
+      </ng-template>
+    </column>
 
-    <column name="customers" prop="nCustomer" [sortable]="true"></column>
-
+    <column name="Customer name" prop="displayName" [sortable]="true"></column>
+    
+    <column name="Status" prop="active" [sortable]="true">
+      <ng-template cell let-value="value">
+        {{ value ? 'Enabled' : 'Disabled' }}
+      </ng-template>
+    </column>
+    
     <column name="Date Added" prop="createdAt" [sortable]="true">
       <ng-template cell let-value="value">{{ value | date:'dd/MM/yyyy' }}</ng-template>
     </column>
+    
     <column name="Action" prop="_id">
       <ng-template cell let-value="value"> 
         <button href="#" (click)="onEditBtnClick(value)" class="row-btn row-edit-btn"><i class="material-icons">&#xE254;</i></button>

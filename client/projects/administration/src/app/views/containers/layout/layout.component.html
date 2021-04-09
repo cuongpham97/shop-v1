@@ -42,9 +42,19 @@
         </li>
 
         <li [routerLinkActive]="'active'" class="parent"> 
-          <a data-toggle="collapse" href="#submenu2" class="collapsed"><i class="fas fa-user"></i> Customers</a>
+          <a data-toggle="collapse" href="#submenu2" class="collapsed"><i class="fas fa-shopping-cart"></i> Sales</a>
          
           <ul type="none" id="submenu2" class="collapse">
+            <li [routerLinkActive]="'active'" [class.d-none]="!auth.can('order.read')">
+              <a routerLink="/sales/orders">Orders</a>
+            </li>
+          </ul>
+        </li>
+
+        <li [routerLinkActive]="'active'" class="parent"> 
+          <a data-toggle="collapse" href="#submenu3" class="collapsed"><i class="fas fa-user"></i> Customers</a>
+         
+          <ul type="none" id="submenu3" class="collapse">
             <li [routerLinkActive]="'active'" [class.d-none]="!auth.can('customer.read')">
               <a routerLink="/customers/customers">Customers</a>
             </li>
@@ -54,15 +64,32 @@
           </ul>
         </li>
 
-        <li [routerLinkActive]="['active']"  [class.d-none]="!auth.can('category.read')">
-          <a routerLink="/categories"><i class="fas fa-tags"></i>Categories</a>
+        <li [routerLinkActive]="'active'" class="parent"> 
+          <a data-toggle="collapse" href="#submenu4" class="collapsed"><i class="fas fa-user-lock"></i> Admins</a>
+         
+          <ul type="none" id="submenu4" class="collapse">
+            <li [routerLinkActive]="'active'" [class.d-none]="!auth.can('admin.read')">
+              <a routerLink="/admins/admins">Admins</a>
+            </li>
+            <li [routerLinkActive]="'active'" [class.d-none]="!auth.can('admin.read')">
+              <a routerLink="/admins/roles">Roles</a>
+            </li>
+          </ul>
         </li>
-        <li [routerLinkActive]="['active']" [class.d-none]="!auth.can('product.read')">
-          <a routerLink="/products"><i class="fas fa-tshirt"></i>Products</a>
+
+        <li [routerLinkActive]="'active'" class="parent"> 
+          <a data-toggle="collapse" href="#submenu5" class="collapsed"><i class="fas fa-cog"></i> System</a>
+         
+          <ul type="none" id="submenu5" class="collapse">
+            <li [routerLinkActive]="'active'" [class.d-none]="false">
+              <a routerLink="/system/settings">Settings</a>
+            </li>
+            <li [routerLinkActive]="'active'" [class.d-none]="!auth.can('admin.read')">
+              <a routerLink="/system/errors">Error logs</a>
+            </li>
+          </ul>
         </li>
-        <li [routerLinkActive]="['active']">
-          <a routerLink="/orders"><i class="fas fa-shopping-cart"></i>Sales</a>
-        </li>
+
         <li>
           <a><i class="fas fa-chart-bar"></i>Reports</a>
         </li>

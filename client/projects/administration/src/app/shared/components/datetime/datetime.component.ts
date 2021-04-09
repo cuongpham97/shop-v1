@@ -25,7 +25,7 @@ export class DatetimeComponent implements OnInit, ControlValueAccessor, Validato
   
   @Input('ngClass') ngClass;
 
-  @Input('value') value;
+  @Input('value') value = '';
   @Input('format') format: string;
   @Input('placeholder') placeholder: string;
    

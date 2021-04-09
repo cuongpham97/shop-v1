@@ -18,3 +18,37 @@ label {
   }
 }
 
+.join-item {
+  span:not(:last-child):after {
+    display: inline-block;
+    content: '';
+    border-radius: 50%;
+    background: #0094ec;
+    width: 5px;
+    height: 5px;
+    margin: 10px;
+    margin-bottom: 4px;
+  }
+}
+
+.small-image {
+  display: inline-block;
+  width: 46px;
+  height: 50px;
+  padding: 1px;
+}
+
+.row-btn {
+  cursor: pointer;
+  border: none;
+  background: rgba(0,0,0,0);
+
+  &:focus { outline: none; }
+  i { 
+    font-size: 20px;
+  }
+}
+
+.row-delete-btn {
+  color: #e34724!important;
+}

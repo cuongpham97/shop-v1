@@ -5,6 +5,8 @@ import { CategoryPickerComponent } from './components/category-picker/category-p
 import { CurrencyPipe } from './pipes/currency.pipe';
 import { ImageComponent } from './components/image/image.component';
 import { DatetimeComponent } from './components/datetime/datetime.component';
+import { PermissionFormComponent } from './components/permission-form/permission-form.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -12,17 +14,20 @@ import { DatetimeComponent } from './components/datetime/datetime.component';
     TraceCategoryPathPipe,
     CurrencyPipe,
     ImageComponent,
-    DatetimeComponent
+    DatetimeComponent,
+    PermissionFormComponent
   ],
   imports: [
-    CommonModule
+    CommonModule,
+    ReactiveFormsModule
   ],
   exports: [
     CategoryPickerComponent,
     ImageComponent,
     TraceCategoryPathPipe,
     CurrencyPipe,
-    DatetimeComponent
+    DatetimeComponent,
+    PermissionFormComponent
   ]
 })
 export class SharedModule { }

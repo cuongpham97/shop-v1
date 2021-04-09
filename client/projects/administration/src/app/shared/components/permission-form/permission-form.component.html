@@ -1,0 +1,19 @@
+<form *ngIf="isFormReady" [formGroup]="form" (change)="onChange()" class="form-custom">
+  <ng-container *ngFor="let collection of keys(allPermission); let index = index">
+    <div class="form-group col-6 col-lg-3 d-inline-block">
+      <label class="col-form-label text-left"> {{ index + 1 }}. {{ collection | titlecase }}:</label>
+      <div [formGroupName]="collection" class="pl-3">
+        <ng-container *ngFor="let action of allPermission[collection]">
+          <div class="pretty p-icon p-smooth">
+            <input [formControlName]="action" type="checkbox">
+            <div class="state p-danger">
+              <i class="icon material-icons">done</i>
+              <label>{{ action | titlecase }}</label>
+            </div>
+          </div>
+          <br>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
+</form>
