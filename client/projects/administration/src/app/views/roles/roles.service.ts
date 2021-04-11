@@ -27,29 +27,16 @@ export class RolesService {
     return this.http.get('/admin/roles?&' + querystring);
   }
 
-  _prepareNewRole(data) {
-    if ('parent' in data && !data['parent']) {
-      delete data['parent'];
-    }
-
+  _prepareRole(data) {
     return data;
   }
 
   createRole(formData) {
-    return this.http.post('/admin/roles', this._prepareNewRole(formData));
-  }
-
-  _prepareUpdateRole(data) {
-    return {
-      name: data.name,
-      parent: data.parent || null,
-      order: data.order,
-      description: data.description
-    }
+    return this.http.post('/admin/roles', this._prepareRole(formData));
   }
 
   updateRole(id, formData) {
-    return this.http.patch(`/admin/roles/${id}`,this. _prepareUpdateRole(formData));
+    return this.http.patch(`/admin/roles/${id}`,this. _prepareRole(formData));
   }
 
   deleteRoles(ids) {

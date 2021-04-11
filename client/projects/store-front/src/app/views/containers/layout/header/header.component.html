@@ -1,0 +1,281 @@
+<header class="header">
+  <!-- Top Bar -->
+  <div class="top_bar">
+    <div class="container">
+      <div class="row">
+        <div class="col d-flex flex-row">
+          <div class="top_bar_contact_item"><i class="fas fa-mobile-alt mr-2"> </i> 0300-00-1234</div>
+          <div class="top_bar_contact_item"><i class="far fa-envelope mr-2"> </i><a
+              href="mailto:abc@gmail.com"> materialize@gmail.com</a></div>
+              
+          <div class="top_bar_content ml-auto">
+            <div class="top_bar_menu">
+              <ul class="standard_dropdown top_bar_dropdown">
+                <li>
+                  <a href="#">Ngôn ngữ<i class="fas fa-chevron-down"></i></a>
+                  <ul>
+                    <li><a href="#">Tiếng Việt</a></li>
+                    <li><a href="#">English</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div *ngIf="customer" class="top_bar_menu">
+              <ul class="standard_dropdown top_bar_dropdown user_menu_dropdown">
+                <li>
+                  <a href="#">{{ customer.name }}<i class="fas fa-chevron-down"></i></a>
+                  <ul>
+                    <li class="user_info text-center">
+                      <img class="rounded-circle" [src]="customer.avatar">
+                      <p class="text-secondary m-0">{{ customer.name }}</p>
+                    </li>
+                    <li><a class="pl-4" routerLink="/profile/customer" href="#"><i class="fas fa-edit mr-2"></i> Thông tin khách hàng</a></li>
+                    <li><a class="pl-4" routerLink="/profile/orders" href="#"><i class="fas fa-tag mr-2"></i> Theo dõi đơn hàng</a></li>
+                    <li><a class="pl-4" routerLink="" (click)="onLogoutButtonClick()" href="#"><i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div *ngIf="!customer" class="top_bar_user">
+              <i class="far fa-user mr-2" style="font-size: 13px;"> </i>
+              <div> <a href="#" (click)="loginTab = false;" data-toggle="modal" data-target="#loginModal"> Đăng kí</a></div>
+              <div><a href="#" (click)="loginTab = true;" data-toggle="modal" data-target="#loginModal"> Đăng nhập</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Main -->
+
+  <div class="header_main">
+    <div class="container">
+      <div class="row">
+
+        <!-- Logo -->
+        <div class="col-lg-2 col-sm-3 col-3 order-1">
+          <div class="logo_container">
+            <div class="logo"><a routerLink=""><img src="assets/img/logo.png" width="100%" height="100%"></a></div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="col-lg-8 col-12 order-lg-2 order-3 text-lg-left text-right">
+          <div class="header_search">
+            <div class="header_search_content">
+              <div class="header_search_form_container">
+                <form #f="ngForm" action="#" class="header_search_form clearfix">
+                  <input ngModel name="text" type="search" required="required" class="header_search_input"
+                    placeholder="Tìm kiếm sản phẩm...">
+                  <button type="submit" (click)="search(f)" class="header_search_button trans_300" value="Submit"><img
+                      src="assets/img/search.png" alt=""></button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wishlist -->
+        <div class="col-lg-2 col-9 order-lg-3 order-2 text-lg-left text-right">
+          <div class="wishlist_cart d-flex flex-row align-items-center justify-content-end">
+
+            <!-- Cart -->
+            <div class="cart">
+              <div class="cart_container d-flex flex-row align-items-center justify-content-end">
+                <div class="cart_icon">
+                  <img src="assets/img/cart.png" alt="">
+                  <div class="cart_count"><span>{{cartNumber}}</span></div>
+                </div>
+                <div class="cart_content">
+                  <div class="cart_text"><a routerLink="/cart">Giỏ hàng</a></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+
+  <nav class="main_nav">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+
+          <div class="main_nav_content d-flex flex-row">
+
+            <!-- Categories Menu -->
+            <category-menu></category-menu>
+
+            <!-- Main Nav Menu -->
+
+            <div class="main_nav_menu mr-auto ml-5">
+              <ul class="standard_dropdown main_nav_dropdown">
+                <li><a routerLink="">Trang chủ<i class="fas fa-chevron-down"></i></a></li>
+                <li class="hassubs">
+                  <a href="#">Khách hàng<i class="fas fa-chevron-down"></i></a>
+                  <ul>
+                    <li>
+                      <a href="#">Menu Item<i class="fas fa-chevron-down"></i></a>
+                      <ul>
+                        <li><a href="#">Menu Item<i class="fas fa-chevron-down"></i></a></li>
+                        <li><a href="#">Menu Item<i class="fas fa-chevron-down"></i></a></li>
+                        <li><a href="#">Menu Item<i class="fas fa-chevron-down"></i></a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">Menu Item<i class="fas fa-chevron-down"></i></a></li>
+                    <li><a href="#">Menu Item<i class="fas fa-chevron-down"></i></a></li>
+                    <li><a href="#">Menu Item<i class="fas fa-chevron-down"></i></a></li>
+                  </ul>
+                </li>
+                <li><a href="blog.html">Hướng dẫn<i class="fas fa-chevron-down"></i></a></li>
+                <li><a href="contact.html">Liên hệ<i class="fas fa-chevron-down"></i></a></li>
+              </ul>
+            </div>
+
+            <!-- Menu Trigger -->
+
+            <div class="menu_trigger_container ml-auto">
+              <div class="menu_trigger d-flex flex-row align-items-center justify-content-end">
+                <div class="menu_burger">
+                  <div class="menu_trigger_text">menu</div>
+                  <div class="cat_burger menu_burger_inner"><span></span><span></span><span></span></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Menu -->
+
+  <div class="page_menu">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+
+          <div class="page_menu_content">
+
+            <div class="page_menu_search">
+              <form action="#">
+                <input type="search" required="required" class="page_menu_search_input"
+                  placeholder="Search for products...">
+              </form>
+            </div>
+            <ul class="page_menu_nav">
+              <li class="page_menu_item has-children">
+                <a href="#">Language<i class="fa fa-angle-down"></i></a>
+                <ul class="page_menu_selection">
+                  <li><a href="#">English<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Italian<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Spanish<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Japanese<i class="fa fa-angle-down"></i></a></li>
+                </ul>
+              </li>
+              <li class="page_menu_item">
+                <a href="#">Home<i class="fa fa-angle-down"></i></a>
+              </li>
+              <li class="page_menu_item has-children">
+                <a href="#">Super Deals<i class="fa fa-angle-down"></i></a>
+                <ul class="page_menu_selection">
+                  <li><a href="#">Super Deals<i class="fa fa-angle-down"></i></a></li>
+                  <li class="page_menu_item has-children">
+                    <a href="#">Menu Item<i class="fa fa-angle-down"></i></a>
+                    <ul class="page_menu_selection">
+                      <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                      <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                      <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                      <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                </ul>
+              </li>
+              <li class="page_menu_item has-children">
+                <a href="#">Featured Brands<i class="fa fa-angle-down"></i></a>
+                <ul class="page_menu_selection">
+                  <li><a href="#">Featured Brands<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                </ul>
+              </li>
+              <li class="page_menu_item has-children">
+                <a href="#">Trending Styles<i class="fa fa-angle-down"></i></a>
+                <ul class="page_menu_selection">
+                  <li><a href="#">Trending Styles<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                  <li><a href="#">Menu Item<i class="fa fa-angle-down"></i></a></li>
+                </ul>
+              </li>
+              <li class="page_menu_item"><a href="blog.html">blog<i class="fa fa-angle-down"></i></a></li>
+              <li class="page_menu_item"><a href="contact.html">contact<i class="fa fa-angle-down"></i></a></li>
+            </ul>
+
+            <div class="menu_contact">
+              <div class="menu_contact_item">
+                <div class="menu_contact_icon"><img src="assets/img/phone_white.png" alt=""></div>+38 068 005 3570
+              </div>
+              <div class="menu_contact_item">
+                <div class="menu_contact_icon"><img src="assets/img/mail_white.png" alt=""></div><a
+                  href="mailto:fastsales@gmail.com">fastsales@gmail.com</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div #modal class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="d-none d-md-block col-md-6 p-0 pr-md-2">
+              <div class="image">
+                <h3>Đăng nhập</h3>
+                <p class="text-secondary">Đăng nhập để theo dõi đơn hàng, nhận
+                  nhiều ưu đãi hấp dẫn.</p>
+                <img src="assets/img/login.png">
+              </div>
+            </div>
+            <div class="col-12 col-md-6 p-0">
+              <div class="form-wrap">
+                <nav>
+                  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <a class="nav-item nav-link" (click)="loginTab = true;" [class.active]="loginTab" id="nav-signin-tab" data-toggle="tab" href="#nav-signin" role="tab" aria-controls="nav-signin" [attr.aria-selected]="loginTab">Đăng nhập</a>
+                    <a class="nav-item nav-link" (click)="loginTab = false;" [class.active]="!loginTab" id="nav-register-tab" data-toggle="tab" href="#nav-register" role="tab" aria-controls="nav-register" [attr.aria-selected]="!loginTab">Đăng kí</a>
+                  </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                  <div class="tab-pane fade" [ngClass]="{ 'show active': loginTab }" id="nav-signin" role="tabpanel" aria-labelledby="nav-signin-tab">
+                    <!-- signin form -->
+                    <app-signin *ngIf="loginTab" (success)="loginSuccess()"></app-signin>
+                    <!-- ./signin form-->
+                  </div>
+                  <div class="tab-pane fade" [ngClass]="{ 'show active': !loginTab }" id="nav-register" role="tabpanel" aria-labelledby="nav-register-tab">
+                    <!-- register form -->
+                    <app-register *ngIf="!loginTab"></app-register>
+                    <!-- ./register-form -->
+                  </div>
+                </div>  
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="signin-form pb-5 pt-5">
+  <form #signInForm="ngForm" (change)="onFormChange()">
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text"><i class="fas fa-user-alt"></i></span>
+      </div>
+      <input ngModel required minlength="5" maxlength="100" #username="ngModel" name="username" type="text"
+        class="form-control" placeholder="Email hoặc số điện thoại">
+    </div>
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <span class="input-group-text"><i class="fas fa-key"></i></span>
+      </div>
+      <input ngModel required minlength="5" maxlength="20" #password="ngModel" name="password" autocomplete="false"
+        type="password" class="form-control" placeholder="mật khẩu">
+    </div>
+    <div *ngIf="errorMessage" class="form-text text-danger" style="font-size: 14px">{{ errorMessage }}</div>
+    <div class="text-right forgot"><a href="">Quên mật khẩu?</a></div>
+    <button (click)="onLoginButtonClick(signInForm)" class="btn btn-danger w-100"> Đăng nhập</button>
+  </form>
+  <p class="divider-text w-100"><span class="bg-light">Hoặc</span></p>
+  <div class="text-center clearfix">
+    <button (click)="loginWith('google')" class="btn btn-google w-50 float-left"> <i class="fab fa-google"></i> Gooogle </button>
+    <button (click)="loginWith('facebook')" class="btn  btn-facebook w-50 float-right"> <i class="fab fa-facebook-f"></i>
+      faceboook</button>
+  </div>
+</div>

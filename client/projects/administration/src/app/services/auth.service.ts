@@ -1,7 +1,7 @@
 import { HttpBackend, HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, first } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import { Router } from '@angular/router';
@@ -61,7 +61,7 @@ export class AuthService {
     localStorage.setItem('admin', JSON.stringify(user));
   }
 
-  createBasicAuthHeader(username: string, password: string): string {
+  _createBasicAuthHeader(username: string, password: string): string {
     const hash = btoa(`${username}:${password}`);
 
     return `Basic ${hash}`;
@@ -71,9 +71,9 @@ export class AuthService {
     const self = this;
 
     return this.http.get(this.API_URL + '/admin/auth/token', {
-      headers: { 'Authorization':  this.createBasicAuthHeader(username, password) }
+      headers: { 'Authorization':  this._createBasicAuthHeader(username, password) }
     })
-    .pipe(first(), map(user => {
+    .pipe(map(user => {
       user['expiresIn'] = moment().add(1, 'hours').format();
       self.setCurrentUser(user as IUser);
       
@@ -137,7 +137,6 @@ export class AuthService {
     }
 
     return this.http.post(this.API_URL + '/admin/auth/token/refresh', { refreshToken })
-      .pipe(first())
       .pipe(map(response => {
         const user = this.getCurrentUser();
 

@@ -1,0 +1,38 @@
+<div class="cat_menu_container">
+  <div class="cat_menu_title d-flex flex-row align-items-center justify-content-start">
+    <div class="cat_burger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="cat_menu_text">Danh mục</div>
+  </div>
+
+  <ul class="cat_menu">
+    <li *ngFor="let root of categoryTree" [class.hassubs]="root.children.length">
+      <a [routerLink]="['/search']" [queryParams]="{ category: root.name }">{{ root.name }}<i
+          (click)="ignoreEvent($event)" class="fas fa-chevron-right"></i></a>
+    
+      <ng-template #recursive let-level>
+        <ul *ngIf="level.length">
+          <li *ngFor="let item of level" [class.hassubs]="item.children.length">
+
+            <a [routerLink]="['/search']" [queryParams]="{ category: item.name }">{{ item.name }}<i
+                (click)="ignoreEvent($event)" class="fas fa-chevron-right"></i></a>
+
+            <ng-template *ngIf="item.children.length"
+              [ngTemplateOutlet]="recursive"
+              [ngTemplateOutletContext]="{ $implicit: item.children }"
+            ></ng-template>
+          </li>
+        </ul>
+      </ng-template>
+
+      <ng-template 
+        [ngTemplateOutlet]="recursive"
+        [ngTemplateOutletContext]="{ $implicit: root.children }"
+      ></ng-template>
+    </li>
+  </ul>
+
+</div>

@@ -1,0 +1,18 @@
+.register-form {
+  background: #fff;
+  padding: 20px;
+}
+
+form {
+  label {
+    font-size: 0.9em;
+  }
+  
+  .pretty label {
+    font-size: 1em;
+  }
+  
+  .form-control:focus {
+    box-shadow: none;
+  }
+}
