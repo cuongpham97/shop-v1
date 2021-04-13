@@ -37,7 +37,7 @@ function required_with(_attribute, value, args, done) {
 }
 
 function required_without(_attribute, value, args, done) {
-  if (this._isAcceptable(value)) return done(); 
+  if (_isAcceptable(value)) return done(); 
 
   const without = args.split(',').find(i => !this.hasInputAttribute(i));
 
