@@ -61,7 +61,7 @@ function _createApp() {
   api.use(exceptionHandler);
 
   api.all('*', function (_req, res) {
-    return res.status(StatusCodes.NOT_FOUND)({
+    return res.status(StatusCodes.NOT_FOUND).json({
       error: 'RESOURCE_NOT_FOUND',
       code: 'UNKNOWN_ROUTE',
       message: 'Request does not match any route' 
