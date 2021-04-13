@@ -11,7 +11,7 @@
   <ul class="cat_menu">
     <li *ngFor="let root of categoryTree" [class.hassubs]="root.children.length">
       <a [routerLink]="['/search']" [queryParams]="{ category: root.name }">{{ root.name }}<i
-          (click)="ignoreEvent($event)" class="fas fa-chevron-right"></i></a>
+          (click)="ignoreEvent($event)" class="far fa-angle-right"></i></a>
     
       <ng-template #recursive let-level>
         <ul *ngIf="level.length">

@@ -15,4 +15,8 @@ form {
   .form-control:focus {
     box-shadow: none;
   }
+
+  small {
+    font-style: italic;
+  }
 }

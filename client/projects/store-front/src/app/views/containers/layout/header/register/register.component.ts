@@ -31,17 +31,18 @@ export class RegisterComponent implements OnInit {
         Validators.pattern(/^[a-zA-Z_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]{1,100}$/)
       ])],
       email: ['',
-        Validators.pattern(/^[a-z][a-z0-9_\.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/),
-        this.registerValidators.UniqueEmail()
+        Validators.pattern(/^[a-zA-Z][\w\_\.]{5,32}@\w{2,}(\.\w{2,4}){1,2}$/),
+        this.registerValidators.uniqueEmail()
       ],
       phone: ['',
         Validators.compose([
           Validators.required,
           Validators.pattern(/^\d{9,12}$/)
         ]),
-        this.registerValidators.UniquePhone()
+        this.registerValidators.uniquePhone()
       ],
       gender: ['', Validators.required],
+      birthday: ['', Validators.required],
       password: ['', Validators.compose([
         Validators.required,
         Validators.minLength(8),
@@ -57,6 +58,8 @@ export class RegisterComponent implements OnInit {
 
   register() {
     this.utils.markFormControlTouched(this.form);
+
+    console.log(this.form.value);
 
     if (this.form.valid) {
       const customer = this.prepaireCustomer(this.form.value);

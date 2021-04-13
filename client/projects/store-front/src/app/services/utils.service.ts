@@ -31,7 +31,7 @@ export class UtilsService {
 
     for (const [key, value] of Object.entries(o)) {
       if (!value) continue;
-
+    
       if (Array.isArray(value)) {
         if (!value.length) continue;
         

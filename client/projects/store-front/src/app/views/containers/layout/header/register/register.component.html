@@ -1,7 +1,7 @@
 <div class="register-form">
   <form [formGroup]="form">
     <div class="form-group">
-      <label>Họ và tên</label>
+      <label>* Họ và tên</label>
       <input formControlName="name" type="text" class="form-control" [ngClass]="{ 
                     'is-valid': form.get('name').touched && form.get('name').valid,
                     'is-invalid': form.get('name').touched && form.get('name').invalid
@@ -15,7 +15,7 @@
     </div>
     
     <div class="form-group">
-      <label>Số điện thoại</label>
+      <label>* Số điện thoại</label>
       <input formControlName="phone" type="text" class="form-control" [ngClass]="{ 
                 'is-valid': form.get('phone').touched && form.get('phone').valid,
                 'is-invalid': form.get('phone').touched && form.get('phone').invalid
@@ -47,6 +47,20 @@
     </div>
 
     <div class="form-group">
+      <label class="w-100">* Ngày sinh</label>
+
+      <datetime formControlName="birthday" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" [ngClass]="{ 
+        'is-invalid': form.get('birthday').touched && form.get('birthday').invalid
+      }"></datetime>
+
+      <div *ngIf="form.get('birthday').birthday" class="form-text text-danger">
+        <small *ngIf="form.get('birthday').errors?.required">Chọn ngày sinh</small>
+      </div>
+    </div>
+
+    
+
+    <div class="form-group">
       <label>Email</label>
       <input formControlName="email" type="text" class="form-control" [ngClass]="{ 
                 'is-valid': form.get('email').touched && form.get('email').valid,
@@ -57,14 +71,14 @@
         <small>Đang kiểm tra...</small>
       </div>
       <div *ngIf="form.get('email').touched" class="form-text text-danger">
-        <small *ngIf="form.get('email').errors?.emailExists">Email này đã được sử dụng</small>
         <small *ngIf="form.get('email').errors?.pattern">Email chưa đúng</small>
+        <small *ngIf="form.get('email').errors?.emailExists">Email này đã được sử dụng</small>
       </div>
       <!-- ./validate -->
     </div>
 
     <div class="form-group">
-      <label>Mật khẩu</label>
+      <label>* Mật khẩu</label>
       <input formControlName="password" type="password" autocomplete="false" class="form-control" [ngClass]="{ 
                 'is-valid': form.get('password').touched && form.get('password').valid,
                 'is-invalid': form.get('password').touched && form.get('password').invalid

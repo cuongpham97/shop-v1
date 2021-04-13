@@ -8,7 +8,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { APIInterceptor } from './interceptors/api.interceptor';
 import { JWTInterceptor } from './interceptors/jwt.interceptor';
 import { AuthService, CartService, CdnService, UtilsService } from './services';
-import { SharedModule } from './shared/shared/shared.module';
+import { SharedModule } from './shared/shared.module';
 import { LayoutComponent } from './views/containers/layout/layout.component';
 import { HeaderComponent } from './views/containers/layout/header/header.component';
 import { FooterComponent } from './views/containers/layout/footer/footer.component';

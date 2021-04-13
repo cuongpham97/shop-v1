@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn } from '@angular/forms';
-import { Observable, timer } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { HeaderService } from '../header.service';
 
@@ -15,8 +15,11 @@ export class RegisterValidators {
       .pipe(switchMap(() => this.service.checkUniqueCustomer({ email: email })));
   }
 
-  UniqueEmail(): AsyncValidatorFn {
+  uniqueEmail(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<{ [key: string]: any } | null> => {
+
+      if (!control.value) return of(null);
+
       return this.checkEmail(control.value)
         .pipe(map(isExisted => {
           if (isExisted) {
@@ -31,8 +34,11 @@ export class RegisterValidators {
       .pipe(switchMap(() => this.service.checkUniqueCustomer({ phone: phone })));
   }
 
-  UniquePhone(): AsyncValidatorFn {
+  uniquePhone(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<{ [key: string]: any } | null> => {
+
+      if (!control.value) return of(null);
+
       return this.checkPhone(control.value)
         .pipe(map(isExisted => {
           if (isExisted) {
