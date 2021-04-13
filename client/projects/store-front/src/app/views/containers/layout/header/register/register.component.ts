@@ -41,7 +41,7 @@ export class RegisterComponent implements OnInit {
         ]),
         this.registerValidators.uniquePhone()
       ],
-      gender: ['', Validators.required],
+      gender: ['Nam', Validators.required],
       birthday: ['', Validators.required],
       password: ['', Validators.compose([
         Validators.required,
@@ -52,19 +52,11 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  prepaireCustomer(formValue) {
-    return null;
-  }
-
   register() {
     this.utils.markFormControlTouched(this.form);
 
-    console.log(this.form.value);
-
     if (this.form.valid) {
-      const customer = this.prepaireCustomer(this.form.value);
-
-      this.service.registerNewCustomerAccount(customer)
+      this.service.registerNewCustomerAccount(this.form.value)
         .subscribe(customer => {
 
           // TODO: alert register success;

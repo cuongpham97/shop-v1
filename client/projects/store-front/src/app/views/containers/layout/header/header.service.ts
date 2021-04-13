@@ -18,8 +18,27 @@ export class HeaderService {
       .pipe(map(response => response['categories']));
   }
 
-  registerNewCustomerAccount(user) {
-    return this.http.post(`/users`, user);
+  _prepareCustomer(data) {
+    const customer = {
+      displayName: data.name,
+      gender: data.gender,
+      birthday: data.birthday,
+      local: {
+        email: data.email,
+        phone: data.phone,
+        password: data.password
+      }
+    }
+
+    if (!data.email) {
+      delete customer.local.email;
+    }
+
+    return customer;
+  }
+
+  registerNewCustomerAccount(formData) {
+    return this.http.post(`/customers`, this._prepareCustomer(formData));
   }
 
   checkUniqueCustomer(emailOrPhone: object) {

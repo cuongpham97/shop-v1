@@ -107,8 +107,7 @@ async function _filterNewCustomerInput(input, provider) {
     'avatar': 'mongo_id',
     'addresses': 'array',
     'addresses.*': 'location',
-    'groups': 'array|unique|max:20',
-    'groups.*': 'mongo_id',
+    'groups': 'not_allow',
     'active': 'not_allow'
   };
 
@@ -159,23 +158,11 @@ async function _setAvatar(customer, imageId, session) {
   customer.set('avatar', image);
 }
 
-async function _increaseGroupsMember(groups, session) {
-  await CustomerGroup.updateMany(
-    { "_id": { "$in": groups } },
-    { "$inc": { "nCustomer": 1 } },
-    { session }
-  );
-}
-
 async function _prepareNewCustomer(input, session) {
   const customer = new Customer(input);
 
   if (input.avatar) {
     await _setAvatar(customer, input.avatar, session);
-  }
-
-  if (input.groups.length) {
-    await _increaseGroupsMember(input.groups);
   }
 
   return customer;
