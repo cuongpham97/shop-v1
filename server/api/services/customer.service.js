@@ -101,7 +101,7 @@ async function _filterNewCustomerInput(input, provider) {
     'name.last': 'string|trim|min:1|max:20',
     'displayName': 'required|string|trim|min:2|max:100',
     'gender': ['required', 'lowercase', 'regex:' + regexes.GENDER],
-    'birthday': 'date:YYYY/MM/DD',
+    'birthday': 'date:DD/MM/YYYY',
     'phones': 'array',
     'phones.*': 'string|trim|phone',
     'avatar': 'mongo_id',
@@ -114,9 +114,9 @@ async function _filterNewCustomerInput(input, provider) {
 
   const providerRules = {
     local: {
-      'local': 'required|object|required_one_of:local.email,local.phone',
-      'local.email': 'string|trim|lowercase|email',
-      'local.phone': 'string|trim|phone',
+      'local': 'required|object',
+      'local.email': 'required_without:local.phone|string|trim|lowercase|email',
+      'local.phone': 'required_without:local.email|string|trim|phone',
       'local.password': 'required|string|min:6|max:16',
       'google': 'not_allow',
       'facebook': 'not_allow',
@@ -200,7 +200,7 @@ async function _filterUpdateCustomerInput(input) {
     'name.last': 'string|trim|min:1|max:20',
     'displayName': 'string|trim|min:2|max:100',
     'gender': ['lowercase', 'regex:' + regexes.GENDER],
-    'birthday': 'date:YYYY/MM/DD',
+    'birthday': 'date:DD/MM/YYYY',
     'phones': 'array',
     'phones.*': 'string|trim|phone',
     'avatar': 'mongo_id|nullable',
