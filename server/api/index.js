@@ -6,7 +6,7 @@ const cors = require('cors');
 const config = require('~config');
 const { unflatten } = require('~middleware/flat-query');
 const { exceptionHandler } = require('~exceptions');
-const { StatusCode } = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 
 function _createApp() {
   
@@ -61,7 +61,7 @@ function _createApp() {
   api.use(exceptionHandler);
 
   api.all('*', function (_req, res) {
-    return res.status(StatusCode.NOT_FOUND)({
+    return res.status(StatusCodes.NOT_FOUND)({
       error: 'RESOURCE_NOT_FOUND',
       code: 'UNKNOWN_ROUTE',
       message: 'Request does not match any route' 
