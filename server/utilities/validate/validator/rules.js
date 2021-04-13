@@ -177,14 +177,18 @@ function _enum(_attribute, value, args, done) {
 
 Object.defineProperty(_enum, 'name', { value: 'enum' });
 
-function date(_attribute, value, args, done) {
+function date(attribute, value, args, done) {
   if (this.notPresentOrAcceptNullable()) return done();
 
   const format = args || 'YYYY/MM/DD';
 
-  return moment(value, format, true).isValid()
-    ? done()
-    : done(false, null, { format: format });
+  if (!moment(value, format, true).isValid()) {
+    return done(false, null, { format: format });
+  }
+
+  this.setInputAttribute(attribute, moment(value, format, true));
+
+  return done();
 }
 
 function regex(_attribute, value, args, done) {
