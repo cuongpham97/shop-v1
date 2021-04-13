@@ -243,6 +243,7 @@ export class ProductFormComponent implements OnInit {
         this.cdn.swal({
           title: 'Error!',
           text: 'Something went wrong',
+          icon: 'warning',
           buttons: {
             cancel: true
           }

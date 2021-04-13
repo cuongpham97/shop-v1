@@ -3,7 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import * as _ from 'lodash';
 import { RegisterValidators } from './register.async-validators';
 import { HeaderService } from '../header.service';
-import { CdnService, UtilsService } from 'projects/store-front/src/app/services';
+import { AuthService, CdnService, UtilsService } from 'projects/store-front/src/app/services';
 
 @Component({
   selector: 'app-register',
@@ -19,7 +19,8 @@ export class RegisterComponent implements OnInit {
     private registerValidators: RegisterValidators,
     private cdn: CdnService,
     private utils: UtilsService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private auth: AuthService
   ) { }
 
   ngOnInit() {
@@ -59,12 +60,25 @@ export class RegisterComponent implements OnInit {
       this.service.registerNewCustomerAccount(this.form.value)
         .subscribe(customer => {
 
-          // TODO: alert register success;
-
-          this.utils.reload();
+          this.cdn.swal({
+            title: 'Success!',
+            text: 'Đăng kí thành công',
+            icon: 'success',
+            buttons: {
+              cancel: 'Đóng'
+            }
+          })
+          .then(() => this.auth.forceLogin());
         
-        }, response => {
-          // TODO: alert error;
+        }, _response => {
+          this.cdn.swal({
+            title: 'Error!',
+            text: 'Có lỗi xảy ra',
+            icon: 'warning',
+            buttons: {
+              cancel: true
+            }
+          });
         });
     }
   }
