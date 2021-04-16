@@ -61,6 +61,8 @@ function _buildQuery(options) {
   const sort = _makeSortQuery(options.orders);
   const project = _makeProjectQuery(options.fields);
 
+  console.log(query);
+  
   return [
     ... []
       .concat(search)

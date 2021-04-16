@@ -43,6 +43,7 @@ function _createApp() {
   const category = require('~routes/category.routes');
   const checkout = require('~routes/checkout.routes');
   const permission = require('~routes/permission.routes');
+  const collection = require('~routes/collection.routes');
 
   api.use(customerGroup);
   api.use(customer);
@@ -57,6 +58,7 @@ function _createApp() {
   api.use(category);
   api.use(checkout);
   api.use(permission);
+  api.use(collection);
   
   api.use(exceptionHandler);
 

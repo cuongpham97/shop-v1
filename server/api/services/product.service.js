@@ -106,7 +106,7 @@ async function _filterNewProductInput(input) {
     'attributes.*.value': 'string|max:200',
 
     'special': 'to:array',
-    'special.*.customerGroup': 'mongo_id|nullabe',
+    'special.*.customerGroup': 'mongo_id|nullable',
     'special.*.priority': 'integer',
     'special.*.salePrice': 'required|numeric|min:0',
     'special.*.effectiveDate': 'required|date:DD/MM/YYYY',

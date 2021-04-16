@@ -33,6 +33,8 @@ function _salePrice(product, sku, customer) {
 }
 
 function _percentageSale(price, salePrice) {
+  if (!salePrice) return undefined;
+
   const percent = (price - salePrice) / price * 100; 
   return percent.toFixed(2);
 }
