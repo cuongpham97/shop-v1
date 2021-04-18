@@ -41,7 +41,7 @@ async function _filterFindProductByIdInput(input) {
 exports.findProductById = async function (id, query, customer) {
   const input = await _filterFindProductByIdInput({ id, fields: query.fields || [] });
 
-  const product = await Product.findById(input.id, input.fields);
+  const product = await Product.findById(input.id, input.fields).lean();
   if (!product) {
     throw new NotFoundException({ 
       message: 'Product ID does not exist' 
