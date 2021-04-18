@@ -20,7 +20,7 @@
   }
 }
 
-.new-arrivals {
+.new-arrival {
 
   .section-title {
     font-weight: 600;
@@ -111,6 +111,10 @@
         .product-rating {
           text-align: center;
           font-size: 0.7em;
+
+          .fas {
+            font-weight: 900;
+          }
         }
         
         .product-title {
@@ -443,6 +447,10 @@
           .product-rating {
             text-align: center;
             font-size: 0.7em;
+
+            .fas {
+              font-weight: 900;
+            }
           }
           
           .product-title {

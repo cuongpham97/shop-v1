@@ -1,1 +1,225 @@
 <carousel></carousel>
+
+<section class="new-arrival pb-4">
+  <div class="container">
+    <h5 class="section-title divider-text"><span class="ml-3"> ༺ Sản phẩm mới nhất  ༻ </span></h5>
+  
+    <div class="row">
+      <div *ngFor="let item of newArrival | firstSku" class="col-6 col-md-4 col-lg-3">
+        <div class="product-box">
+          <div class="reponsive-box">
+            <div class="wrap">
+              <div class="product-image">
+                <img class="lazyload" data-src="{{ item.images[0].url }}">
+              </div>
+              <div class="product-content">
+                <div class="p-2">
+                  <p class="product-name">{{ item.name }}</p>
+                  <div class="product-rating small text-warning">
+                    <i *ngFor="let star of getRatingStarsCount(item.rating)" class="fas fa-star small"></i>
+                    <i *ngFor="let star of getRatingStarsCount(5 - item.rating)" class="far fa-star small"></i>
+                  </div>
+                  <p class="product-price">
+                    <span *ngIf="!item.pricing.salePrice">
+                      {{ item.pricing.nomarlPrice | currency: '₫' }}
+                    </span>
+
+                    <span *ngIf="!item.pricing.salePrice">
+                      <span> {{ item.pricing.salePrice | currency: '₫' }} </span>
+
+                      <span class="text-secondary small ml-2"><del>{{ item.pricing.nomarlPrice | currency: '₫' }}</del></span>
+                    </span>
+                  </p>
+                  <p class="product-title">{{ item.title }}</p>
+                </div>
+
+                <div class="text-center my-3">
+                  <button [routerLink]="'/products/'+ item.id" type="button" class="btn"><i class="fas fa-shopping-basket"></i></button>
+                  <button type="button" class="btn"><i class="fas fa-heart"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="text-center">
+      <button *ngIf="!isLoadMaxNewArrival" (click)="loadMoreNewArrival()" class="btn btn-outline-danger mb-4"><i class="fas fa-sync-alt"></i> Xem thêm</button>
+    </div>
+  </div>
+</section>
+
+<section class="hot-cat pt-4 pb-2">
+  <div class="container">
+    <!-- <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="cat-card">
+          <img src="/assets/img/cat/meal.webp"/>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="row">
+          <div class="col-12 clear-fix">
+            <div class="cat-card float-left w-50">
+              <a><img src="/assets/img/cat/cushion.webp"/></a>
+            </div>
+            <div class="cat-card float-right w-50">
+              <a><img src="/assets/img/cat/decor.webp"/></a>
+            </div>
+          </div>
+
+        </div>
+        <div class="row">
+          <div class="col-12 clear-fix">
+            <div class="cat-card float-left w-50">
+              <a><img src="/assets/img/cat/bedsheets.webp"/></a>
+            </div>
+
+            <div class="cat-card float-right w-50">
+              <a><img src="/assets/img/cat/kitchen.webp"/></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div> -->
+
+    
+    <div class="banner-block">
+      <div class="wrap">
+        <div class="banner-group">
+          <div class="first">
+            <div class="banner">
+            </div>
+          </div>
+          <div class="second">
+            <div class="banner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<section *ngIf="categories" class="big-category py-4">
+  <div class="container">
+    
+    <div class="row">
+      <div class="sidebar col-12 col-lg-3">
+
+        <div id="accordion">
+          <h5 class="section-title divider-text text-center">
+            <span class="text-center">Danh mục sản phẩm</span>
+            <span class="d-inline-block d-lg-none"data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"><i class="fas fa-angle-down"></i></span>
+          </h5>
+
+          <div id="collapseOne" class="collapse d-lg-block" aria-labelledby="headingOne" data-parent="#accordion">
+            <div class="card-body p-0 pt-lg-2">
+              <ul class="category mt-0" type="none">
+                <li 
+                  *ngFor="let category of categories" 
+                  [class.active]="selectedCategory == category" 
+                  (click)="selectedCategory = category; selectedSubCategory = null; getProductsOfCategory()"
+                >{{ category.name }}</li>
+
+                <li routerLink="/search">Xem tất cả</li>
+              </ul>
+            </div>
+      
+          </div>
+        </div>
+
+        
+      </div>
+
+      <div class="content col-12 col-lg-9">
+        <ul class="sub-category" type="none">
+          <li 
+            (click)="selectedSubCategory = null; getProductsOfCategory();" 
+            [class.active]="selectedSubCategory==null"
+          >Tất cả</li>
+
+          <li 
+            *ngFor="let subCategory of selectedCategory.children" 
+            [class.active]="selectedSubCategory == subCategory" 
+            (click)="selectedSubCategory = subCategory; getProductsOfCategory()"
+          >{{ subCategory.name }}</li>
+        </ul>
+
+        <div class="row">
+          <div class="col-12">
+            <div *ngIf="catProducts.length" #catProductsCarousel class="owl-carousel owl-theme">
+              <div *ngFor="let product of catProducts | firstSku" class="item">
+                <div class="product-wrap">
+                  <div class="product-box">
+                    <div class="product-image">
+                      <img data-src="{{ product.images[0].url }}" class="lazyload"/>
+                    </div>
+
+                    <div class="product-content">
+                      <div class="p-2 mt-lg-2">
+                        <p class="product-name">{{ product.name }}</p>
+                        <div class="product-rating small text-warning">
+                          <i *ngFor="let star of getRatingStarsCount(product.rating)" class="fas fa-star small"></i>
+                          <i *ngFor="let star of getRatingStarsCount(5 - product.rating)" class="far fa-star small"></i>
+                        </div>
+                        <p class="product-price">
+                          <span *ngIf="!product.pricing.salePrice">
+                            {{ product.pricing.nomarlPrice | currency: '₫' }}
+                          </span>
+
+                          <span *ngIf="!product.pricing.salePrice">
+                            <span> {{ product.pricing.salePrice | currency: '₫' }} </span>
+
+                            <span class="text-secondary small ml-2"><del>{{product.pricing.nomarlPrice | currency: '₫'}}</del></span>
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+ 
+  </div>
+</section>
+
+<!-- <section class="py-4 highestRating d-none d-lg-block">
+  <div class="container">
+    <div class="grid-container">
+      <div class="item i-1">
+        <div class="image">
+          <img src="http://localhost/upload/admin/5ec755bbaa43560f30f9bd2c.jpeg">
+        </div>
+      </div>
+      <div class="item i-2">
+        <div class="image">
+          <img src="http://localhost/upload/admin/5ec757cbaa43560f30f9bd2f.jpeg">
+        </div>
+      </div>
+      <div class="item i-3">
+      </div>  
+      <div class="item i-4"></div>
+      <div class="item i-5">
+        <div class="image">
+          <img src="https://vn-test-11.slatic.net/p/4c79ce73ae7ffb809ac0e125c116ac80.jpg_340x340q80.jpg_.webp">
+        </div>
+      </div>
+      <div class="item i-6">
+        <div class="image">
+          <img src="https://cdn.shopify.com/s/files/1/1832/4455/products/1153_S17_IconShirt_MendocinoBlue_FR_1024x.jpg?v=1602247592">
+        </div>
+      </div>  
+      <div class="item i-7"></div>
+    </div>
+  </div>
+</section> -->
