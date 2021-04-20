@@ -5,7 +5,7 @@ function _isAcceptable(value) {
     return false;
   }
 
-  if (typeof value === 'object' && _.isEmpty(value)) {
+  if (typeof value === 'object' && !Array.isArray(value) && _.isEmpty(value)) {
     return false;
   }
 
