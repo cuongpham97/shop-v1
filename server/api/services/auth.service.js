@@ -60,6 +60,7 @@ async function _getCustomerTokens(username, password) {
   }
 
   return {
+    _id: customer._id,
     name: customer.displayName,
     avatar: (customer.avatar && customer.avatar.url) || null,
 
@@ -97,6 +98,7 @@ async function _getAdminTokens(username, password) {
   } 
 
   return {
+    _id: admin._id,
     name: admin.displayName,
     avatar: (admin.avatar && admin.avatar.url) || null,
 
