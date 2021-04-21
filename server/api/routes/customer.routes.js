@@ -5,7 +5,7 @@ const router = tools.createRouter();
 
 router.get('/customers/exists', cusCtrl.checkExistCustomer);
 
-router.get('/customers', auth('customer').ownerId('params.id'), cusCtrl.getCustomerById);
+router.get('/customers/:id', auth('customer').ownerId('params.id'), cusCtrl.getCustomerById);
 router.post('/customers', cusCtrl.registerNewCustomerAccount);
 router.patch('/customers/:id', auth('customer').ownerId('params.id'), cusCtrl.partialUpdateCustomer);
 router.put('/customers/:id/password', auth('customer').ownerId('params.id'), cusCtrl.changeCustomerPassword);
