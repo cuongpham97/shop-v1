@@ -1157,14 +1157,14 @@ select option {
 	}
 
 	.main_nav{
-		width: calc(100% + 30px);
-		margin-right: -15px;
-		margin-left: -15px;
 		margin-top: 0px;
 	}
 
 	.main_nav_content {
 		height: 35px;
+		width: calc(100% + 30px);
+		margin-left: -15px;
+		margin-right: -15px;
 	}
 
 	.menu_trigger_container {

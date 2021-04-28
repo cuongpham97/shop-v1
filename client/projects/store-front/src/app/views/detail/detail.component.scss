@@ -1,0 +1,349 @@
+.container-fluid {
+  background: url('/assets/img/detail-background.jpg') #eee fixed;
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 100% 400px;
+}
+
+.preview {
+  font-size: 16px;
+  max-width: 1140px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+
+  .split-border {
+    border-right: 1px dashed #ddd;
+  }
+  
+  .picture {
+    position: relative;
+    width: 100%;
+    padding-bottom: 120%; 
+  }
+
+  .tab-pane {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    top: 0;
+    bottom: 0;
+  }
+
+  .nav-tabs {
+    border-bottom: none;
+  }
+
+  .thumbnail {
+    user-select: none;
+    overflow-x: auto;
+    padding: 2px;
+  }
+
+  .thumbnail .active img {
+    border: 2px solid orange;
+  }
+
+  .thumbnail img {
+    margin: 0 5px 0 5px;
+    max-width: 70px;
+    max-height: 50px;
+  }
+
+  .name {
+    font-weight: bold;
+  }
+
+  .rating .stars {
+    font-size: 0.75em;
+    margin: 20px 0 6px 0;
+  }
+
+  .rating .stars .checked {
+    color: #ff9f1a;
+  }
+
+  .rating .review-no {
+    font-size: 1em;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    margin: 12px 0 15px 0;
+    font-size: 1em;
+    text-align: justify;
+  }
+
+  .price {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-top: 22px;
+    margin-bottom: 3px;
+  }
+
+  .sale {
+    color: #666;
+    margin-bottom: 15px;
+  }
+
+  .regular {
+    text-decoration: line-through;
+  }
+
+  .price-no {
+    margin-left: 10px;
+    color: red;
+    font-size: 1.3em;
+  }
+
+  .currency {
+    font-weight: bold;
+    color: red;
+  }
+
+  .option-line {
+    margin: 15px 0 0 0;
+  }
+
+  .multiple-choice {
+    display: inline-block;
+    margin: 0 3px 5px 3px;
+    padding: 5px 20px;
+    min-width: 65px;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .dropdown {
+    height: 32px;
+    min-width: 150px;
+  }
+
+  .multiple-choice:focus {
+    outline: none;
+  }
+
+  .option-line .active {
+    color: red;
+    border: 1px solid red;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      background: url('/assets/img/select.png');
+      display: block;
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .option-label {
+    padding-left: 0;
+    padding-right: 0;
+    color: #757575;
+  }
+
+  button[disabled] {
+    cursor: not-allowed;
+    background-color: #eee;
+  }
+
+  .quantity {
+    margin-top: 40px;
+  }
+
+  .quantity-no {
+    width: 160px;
+    height: 32px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+
+  .action {
+    margin-top: 30px;
+  }
+
+  .add-to-cart {
+    border-radius: 0;
+    &:hover {
+      box-shadow: none;
+    }
+  }
+
+  .cart-icon path{
+    fill: #fff;
+  }
+}
+
+.detail {
+  margin-top: 20px !important;
+  font-size: 16px;
+  max-width: 1140px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+
+  .title {
+    background: #fafafa;
+    padding: 10px;
+    margin-bottom: 25px;
+  }
+
+  .row {
+    margin: 20px 5px;
+  }
+
+  .attribute {
+    .attribute-value {
+      color: #05a;
+    }
+  }
+
+  .description {
+    overflow: hidden;
+  }
+  .rating {
+    .heading {
+      font-size: 25px;
+      margin-right: 25px;
+    }
+
+    .fa {
+      font-size: 25px;
+    }
+
+    .checked {
+      color: #f1e129;
+    }
+
+    /* Three column layout */
+    .side {
+      float: left;
+      width: 15%;
+      margin-top: 10px;
+    }
+
+    .middle {
+      float: left;
+      width: 70%;
+      margin-top: 10px;
+    }
+
+    /* Place text to the right */
+    .right {
+      text-align: right;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    /* The bar container */
+    .bar-container {
+      width: 100%;
+      background-color: #f1f1f1;
+      text-align: center;
+      color: white;
+    }
+
+    /* Individual bars */
+    .bar-5 {
+      height: 18px;
+      background-color: #2196f3;
+    }
+    .bar-4 {
+      width: 30%;
+      height: 18px;
+      background-color: #2196f3;
+    }
+    .bar-3 {
+      width: 10%;
+      height: 18px;
+      background-color:#2196f3;
+    }
+    .bar-2 {
+      width: 4%;
+      height: 18px;
+      background-color:  #2196f3;
+    }
+    .bar-1 {
+      width: 15%;
+      height: 18px;
+      background-color: #2196f3;
+    }
+
+    /* Responsive layout - make the columns stack on top of each other instead of next to each other */
+    @media (max-width: 400px) {
+      .side,
+      .middle {
+        width: 100%;
+      }
+      /* Hide the right column on small screens */
+      .right {
+        display: none;
+      }
+    }
+  }
+
+  .review {   
+    .fa-star {
+      margin-right: 5px;
+      font-size: 0.75em;
+      color: #ddd
+    }
+
+    .checked {
+      color: darkorange;
+    }
+
+    .name {
+      color: grey;
+    }
+
+    .time {
+      font-size: 0.7em;
+      color: grey;
+    }
+
+    .comment {
+      word-break: break-word;
+      font-size: 15px;
+    }
+
+    .pagination {
+      margin-top: 15px;
+    
+      ::ng-deep .current {
+        color: #2196f3;
+        background: #fff!important; 
+      }
+    
+      ::ng-deep li {
+        font-size: 15px;
+        margin-right: 4px;
+    
+        a {
+          &:hover {
+            color:#2196f3;;
+            background: #fff;
+            text-decoration: none;
+          }
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+    }    
+  }
+}

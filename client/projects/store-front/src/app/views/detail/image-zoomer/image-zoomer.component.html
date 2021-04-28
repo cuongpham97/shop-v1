@@ -1,0 +1,4 @@
+<div class="wrap-image" (mouseenter)="resize()">
+  <img #image [attr.data-src]="src" class="lazyload"/>
+  <div #zoom class="zoom" [style.backgroundImage]="'url(' + src + ')'" (mousemove)="zoomImage($event)"></div>
+</div>

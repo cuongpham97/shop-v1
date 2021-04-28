@@ -1,7 +1,17 @@
+html * {
+  font-family: 'Segoe UI', Roboto, Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .btn:focus {
   box-shadow: none!important;
 }
 
 .form-control:focus {
   box-shadow: none!important;
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1200px;
+  }
 }

@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { Router } from '@angular/router';
 
 interface IUser {
+  uid: string,
   name: string,
   avatar: string,
   accessToken: string,
@@ -34,7 +35,7 @@ export class AuthService {
   }
 
   retrieve() {
-    const keys = ['name', 'avatar', 'accessToken', 'refreshToken', 'scopes'];
+    const keys = ['uid', 'name', 'avatar', 'accessToken', 'refreshToken', 'scopes'];
 
     try {
       const user: IUser = JSON.parse(localStorage.getItem('admin'));

@@ -1,0 +1,113 @@
+.jumbotron {
+  margin-bottom: 0;
+  border-radius: 0!important;
+  background: url('/assets/img/register-background.jpg');
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+}
+
+.cart {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 3px;
+}
+
+.title {
+  text-align: left;
+  background: #fafafa;
+  padding: 10px;
+  margin-bottom: 25px;
+}
+
+.empty-image {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 250px;
+}
+
+.table-bordered thead th {
+  border-bottom-width: 1px;
+}
+
+.table {
+  min-width: 700px;
+
+  th {
+    font-family: "roboto", "Segeo UI";
+    background: #f9f9f9;
+  }
+
+  .quantity {
+    margin: 0 auto;
+    width: 60px;
+    height: 30px;
+  }
+
+  .image {
+    width: 60px !important;
+    height: 70px;
+    margin: 0 auto;
+    position: relative;
+
+    img {
+      height: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .join-item {
+    span:not(:last-child):after {
+      display: inline-block;
+      content: "";
+      border-radius: 50%;
+      background: #0094ec;
+      width: 5px;
+      height: 5px;
+      margin: 10px;
+      margin-bottom: 4px;
+    }
+  }
+
+  .name {
+    color: #000;
+  }
+
+  .name:hover {
+    color: red;
+    text-decoration: none;
+  }
+
+  .type {
+    font-size: 15px;
+    color: #96979d;
+  }
+
+  .regularPrice {
+    text-decoration: line-through;
+    color: #96979d;
+    font-size: 0.8em;
+  }
+
+  .total {
+    font-weight: bold;
+    color: orange;
+    font-size: 1.2em;
+  }
+
+  td:nth-child(2) {
+    width: 120px;
+  }
+}
+
+.pretty {
+  margin-right: 0;
+  user-select: none;
+}

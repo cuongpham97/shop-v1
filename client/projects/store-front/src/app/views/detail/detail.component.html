@@ -1,0 +1,221 @@
+<div *ngIf="selectedSku" class="container-fluid p-2 p-md-4">
+  <div class="preview">
+    <div class="row">
+      <div class="col-md-4 py-md-4 split-border">
+
+        <div class="picture tab-content">
+
+          <ng-container *ngFor="let image of selectedSku.images; let index = index">
+            <div class="tab-pane" [class.active]="index == 0" [id]="'picture-' + index">
+              <zoomer [src]="image.url"></zoomer>
+            </div>
+          </ng-container>
+        </div>
+
+        <ul class="thumbnail d-flex flex-nowrap justify-content-center nav nav-tabs my-2">
+          <ng-container *ngFor="let image of selectedSku.images; let index = index">
+            <li class="align-self-center">
+              <a [attr.data-target]="'#picture-' + index" data-toggle="tab" [class.active]="index===0"><img
+                  [attr.data-src]="image.url" class="lazyload" /></a>
+            </li>
+          </ng-container>
+        </ul>
+
+      </div>
+      <div class="col-md-8 p-4">
+        <h4 class="name">{{ product.name }}</h4>
+        <div class="rating">
+          <div class="stars">
+            <span *ngFor="let star of getRatingStarsCount(product.rating?.average)" class="fa fa-star checked"></span>
+            <span *ngFor="let star of getRatingStarsCount(5 - product.rating?.average)" class="fa fa-star"></span>
+          </div>
+          <span class="review-no">{{ product.rating?.count }} đánh giá</span>
+        </div>
+        <p class="title">{{ product.title }}</p>
+        <p class="price">Giá hiện tại:
+          <span class="price-no">{{ selectedSku.pricing.salePrice || selectedSku.pricing.nomarlPrice  | currency: ' ₫' }}</span>
+        </p>
+        <p *ngIf="selectedSku.pricing.salePrice" class="sale">
+          <span class="regular">{{ selectedSku.pricing.normalPrice | currency: 'đ'}}</span>
+          <span>{{ selectedSku.pricing.percentageSale }}</span>
+        </p>
+        <div class="options">
+          <h6 *ngFor="let variant of product.variants" class="option-line row">
+            <label class="option-label col-sm-3">{{ variant.name }}:</label>
+
+            <!-- DROP_DOWN -->
+            <span *ngIf="variant.control == 'DROP_DOWN'" class="col-sm-9">
+              <select (click)="onSelectedOption($event, 'DROP_DOWN', variant.name)" class="dropdown">
+                <option class="d-none" disabled value="" selected>Chọn...</option>
+                <option *ngFor="let value of fullOptions[variant.name]; let index = index"
+                  [disabled]="activeOptions[variant.name].indexOf(value) == -1">{{ value }}</option>
+              </select>
+            </span>
+            <!-- ./DROP_DOWN -->
+
+            <!-- MULTIPLE_CHOICE -->
+            <span *ngIf="variant.control == 'MULTIPLE_CHOICE' || 'COLOR_PICKER'" class="col-sm-9">
+              <button *ngFor="let value of fullOptions[variant.name]; let index = index"
+                [disabled]="activeOptions[variant.name].indexOf(value) == -1"
+                (click)="onSelectedOption($event, 'MULTIPLE_CHOICE', variant.name, value)" class="multiple-choice">{{
+                value }}</button>
+            </span>
+            <!-- ./MULTIPLE_CHOICE -->
+
+          </h6>
+        </div>
+        <div class="quantity">
+          <div class="row">
+            <label class="col-sm-3">Số lượng:</label>
+            <div class="col-sm-6">
+              <input value="1" (change)="onQuantityChange()" [(ngModel)]="quantity" name="quantity" class="quantity-no"
+                type="number"><br>
+              <span *ngIf="selectedSku.quantity">(còn {{ selectedSku.quantity }} sản phẩm)</span>
+              <span *ngIf="!selectedSku.quantity">(hết hàng)</span>
+            </div>
+          </div>
+        </div>
+        <div class="action form-text text-left">
+          <button (click)="addToCart()" class="btn btn-danger add-to-cart ml-2 waves-effect waves-light">
+            <svg class="cart-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path
+                d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+            </svg>
+            Thêm vào giỏ hàng
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="detail">
+    <h4 class="title">Đặc tính sản phẩm</h4>
+    <div *ngIf="product" class="container attribute">
+      <div *ngIf="category" class="row">
+        <div class="col-2">
+          Danh mục
+        </div>
+        <div class="col-10 attribute-value">
+          <!-- {{ category | categoryPath }} -->
+        </div>
+      </div>
+
+      <div *ngIf="product.brand" class="row">
+        <div class="col-2">
+          Thương hiệu
+        </div>
+        <div class="col-10 attribute-value">
+          {{ product.brand }}
+        </div>
+      </div>
+
+      <div *ngFor="let attr of product.attributes" class="row">
+        <div class="col-2">
+          {{ attr.name }}
+        </div>
+        <div class="col-10 attribute-value">
+          {{ attr.value }}
+        </div>
+      </div>
+    </div>
+
+    <h4 class="title mt-5">Mô tả sản phẩm</h4>
+    <div *ngIf="product && product.description" class="container">
+      <div class="row">
+        <div [innerHTML]="product.description | sanitizeHtml" class="col-12 description">
+        </div>
+      </div>
+    </div>
+
+    <h4 class="title mt-5">Đánh giá</h4>
+    <!-- <div *ngIf="product" class="container rating">
+      <div class="row">
+        <div class="col-md-9">
+          <span class="heading">{{ product.rating.average | number: '1.0-1' }} / 5</span>
+          <span *ngFor="let star of getRatingStarsCount(product.rating.average)" class="fa fa-star checked"></span>
+          <span *ngFor="let star of getRatingStarsCount(5 - product.rating.average)" class="fa fa-star"></span>
+          <p>{{product.rating.count}} đánh giá.</p>
+
+          <div class="row">
+            <div class="side">
+              <div>5 star</div>
+            </div>
+            <div class="middle">
+              <div class="bar-container">
+                <div class="bar-5" [style.width.%]="product.rating | countRating: 5"></div>
+              </div>
+            </div>
+            <div class="side right">
+              <div>{{product.rating[5]}}</div>
+            </div>
+            <div class="side">
+              <div>4 star</div>
+            </div>
+            <div class="middle">
+              <div class="bar-container">
+                <div class="bar-4" [style.width.%]="product.rating | countRating: 4"></div>
+              </div>
+            </div>
+            <div class="side right">
+              <div>{{product.rating[4]}}</div>
+            </div>
+            <div class="side">
+              <div>3 star</div>
+            </div>
+            <div class="middle">
+              <div class="bar-container">
+                <div class="bar-3" [style.width.%]="product.rating | countRating: 3"></div>
+              </div>
+            </div>
+            <div class="side right">
+              <div>{{product.rating[3]}}</div>
+            </div>
+            <div class="side">
+              <div>2 star</div>
+            </div>
+            <div class="middle">
+              <div class="bar-container">
+                <div class="bar-2" [style.width.%]="product.rating | countRating: 2"></div>
+              </div>
+            </div>
+            <div class="side right">
+              <div>{{product.rating[2]}}</div>
+            </div>
+            <div class="side">
+              <div>1 star</div>
+            </div>
+            <div class="middle">
+              <div class="bar-container">
+                <div class="bar-1" [style.width.%]="product.rating | countRating: 1"></div>
+              </div>
+            </div>
+            <div class="side right">
+              <div>{{product.rating[1]}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review container mt-4">
+      <div *ngFor="let review of review$ | async | paginate: config" class="row mb-3">
+        <div class="col-12">
+          <p class="mb-0 mt-2"><span *ngFor="let star of arrayStar; let index = index" class="fa fa-star"
+              [class.checked]="review.rating > index"></span></p>
+          <p class="mb-1"><span class="name"> {{ review.reviewer.name }} </span> <small
+              class="time">({{ review.updatedAt | diffTime }})</small></p>
+          <p class="mb-1 comment" [innerHTML]="review.review | sanitizeHtml"></p>
+        </div>
+      </div>
+      <pagination-controls           
+        class="pagination"         
+        autoHide="true"
+        previousLabel=""
+        nextLabel=""
+        responsive="true"  
+        (pageChange)="getReviewPage($event)">
+      </pagination-controls>
+    </div> -->
+  </div>
+</div>

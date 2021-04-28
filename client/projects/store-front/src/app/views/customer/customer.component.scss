@@ -1,0 +1,20 @@
+.customer {
+  background: #ddd;
+  margin-top: -15px;
+
+  .nav-custom {
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+
+    .nav-link {
+      color: #aaa;
+      border-bottom: 1px solid transparent;
+
+      &.active {
+        color: #405D9D;
+        border: 0;
+        border-bottom: 4px solid #405D9D;
+      }
+    }
+  }
+}

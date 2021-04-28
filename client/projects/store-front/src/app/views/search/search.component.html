@@ -1,0 +1,200 @@
+<div class="container">
+  <div class="row pt-4">
+    <div class="col-12 col-lg-3 d-none d-lg-block filters-form">
+      <h5>Bộ lọc</h5>
+      <p class="small">Giúp lọc nhanh sản phẩm bạn tìm kiếm</p>
+
+      <form #f="ngForm" class="my-4">
+
+        <div class="form-group">
+          <label>Tên sản phẩm</label>
+          <div class="row">
+            <div class="col-9 pr-0">
+              <input ngModel name="name" type="text" class="form-control form-control-sm w-100" placeholder="Tìm tên">
+            </div>
+            <div class="col-3 pl-1">
+              <button (click)="setFilters(['name', f.value?.name])" class="btn btn-sm btn-warning"> <i class="fas fa-search small text-white"> </i> </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Hãng</label>
+          <div class="row">
+            <div class="col-9 pr-0">
+              <input ngModel name="brand" type="text" class="form-control form-control-sm w-100" placeholder="Tìm hãng">
+            </div>
+            <div class="col-3 pl-1">
+              <button (click)="setFilters(['brand', f.value?.brand])" class="btn btn-sm btn-warning"> <i class="fas fa-search small text-white"> </i> </button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="mt-4 mb-2 ml-0" width="90%" />
+
+        <div class="form-group">
+          <label>Giá</label>
+
+          <ul class="price-range">
+            <li (click)="priceRangeSelect(null, 100000, f)">Giá dưới 100.000đ</li>
+            <li (click)="priceRangeSelect(100000, 200000, f)">100.000đ - 200.000đ</li>
+            <li (click)="priceRangeSelect(200000, 300000, f)">200.000đ - 300.000đ</li>
+            <li (click)="priceRangeSelect(300000, 500000, f)">300.000đ - 500.000đ</li>
+            <li (click)="priceRangeSelect(500000, 1000000, f)">500.000đ - 1.000.000đ</li>
+            <li (click)="priceRangeSelect(1000000, null, f)">Giá trên 1.000.000đ</li>
+          </ul>
+
+          <div class="row">
+            <div class="col-9 pr-0">
+              <div class="input-group input-group-sm">
+                <input ngModel name="priceFrom" type="number" class="form-control" placeholder="Từ">
+                <span class="mx-2"> - </span>
+                <input ngModel name="priceTo" type="number" class="form-control" placeholder="Đến">
+              </div>
+            </div>
+            <div class="col-3 pl-1">
+              <button (click)="setFilters(['priceFrom', f.value?.priceFrom], ['priceTo', f.value?.priceTo])" class="btn btn-sm btn-warning"> <i class="fas fa-search small text-white"> </i> </button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="mt-4 mb-4 ml-0" width="90%" />
+
+        <div class="row">
+          <div class="col-11">
+            <button (click)="f.reset();clearAllFilters()" class="btn btn-warning btn-sm text-white w-100">Xóa tất cả</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-12 col-lg-9 order-1">
+      <h4 *ngIf="filters.text"><span class="text-secondary small mr-2">Tìm kiếm: </span> "{{ filters.text }}"</h4>
+      <h4 *ngIf="filters.category"><span class="text-secondary small mr-2">Danh mục: </span> "{{ filters.category }}"</h4>
+      <h4 *ngIf="!filters.category && !filters.text">Tất cả sản phẩm</h4>      
+
+      <div class="row mt-4">
+        <div class="col-12 col-md-8">
+
+          <form #orderForm="ngForm" (change)="setFilters(['orders', orderForm.value?.order])">
+            <label class="mr-2">Xếp theo: </label>
+
+            <div class="pretty p-default p-round">
+              <input ngModel type="radio" name="order" value="-_id">
+              <div class="state p-danger">
+                <label>Mới nhất</label>
+              </div>
+            </div>
+
+            <div class="pretty p-default p-round">
+              <input ngModel type="radio" name="order" value="price">
+              <div class="state p-danger">
+                <label>Giá tăng</label>
+              </div>
+            </div>
+
+            <div class="pretty p-default p-round">
+              <input ngModel type="radio" name="order" value="-price">
+              <div class="state p-danger">
+                <label>Giá giảm</label>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <div class="col-12 col-md-4 mt-3 mt-md-0 text-right">
+          <div class="view-mode">
+            <label class="mr-2">Xem: </label>
+            <button (click)="selectViewMode='GRID_VIEW';" class="btn btn-sm" [class.active]="selectViewMode=='GRID_VIEW'"><i class="fas fa-th"></i> Lưới</button>
+            <button (click)="selectViewMode='COLUMN_VIEW';" class="btn btn-sm" [class.active]="selectViewMode=='COLUMN_VIEW'"><i class="fas fa-th-list"></i> Cột</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="mt-0 mb-4" />
+
+      <div class="products">
+        <div *ngIf="selectViewMode=='COLUMN_VIEW'" class="column-view">
+          <ng-container *ngFor="let product of products | paginate: config | firstSku">
+            <div class="product-box row">
+              <div class="product-thumbnail col-4 col-lg-3">
+                <a [routerLink]="'/products/' + product._id">
+                  <img [attr.data-src]="product.images[0].url" class="lazyload"/>
+                </a>
+              </div>
+
+              <div class="product-info col-8 col-lg-9">
+                <h5 class="product-name mt-lg-3">{{ product.name }}</h5>
+                <div class="product-rating">
+                  <div class="stars">
+                    <i *ngFor="let star of getRatingStarsCount(product.rating)" class="fas fa-star"></i>
+                    <i *ngFor="let star of getRatingStarsCount(5 - product.rating)" class="far fa-star"></i>
+                  </div>
+                </div>
+                <div class="product-price">
+                  {{ product.pricing.salePrice || product.pricing.nomarlPrice | currency: ' đ' }}
+
+                  <span *ngIf="product.pricing.salePrice" class="text-secondary small ml-2">
+                    <del>{{ product.nomarlPrice | currency: ' đ' }}</del>
+                  </span>
+                </div>
+                <div class="product-title">
+                  <p>{{ product.title }}</p>
+                </div>
+                <a [routerLink]="'/products/' + product._id" class="btn btn-warning">Tùy chọn</a>
+              </div>
+            </div>
+          </ng-container>
+
+        </div>
+
+        <div *ngIf="selectViewMode=='GRID_VIEW'" class="grid-view">
+          <div class="row">
+            <ng-container *ngFor="let product of products | paginate: config | firstSku">
+              <div class="col-6 col-sm-4 col-md-4 col-lg-3">
+                <div class="product-wrap">
+                  <div class="product-box">
+
+                    <div class="product-thumbnail">
+                      <a [routerLink]="'/products/' + product._id">
+                        <img [attr.data-src]="product.images[0].url" class="lazyload"/>
+                      </a>
+                    </div>
+
+
+                    <div class="product-info">
+                      <h5 class="product-name mt-3">{{ product.name }}</h5>
+                      <div class="product-rating">
+                        <div class="stars">
+                          <i *ngFor="let star of getRatingStarsCount(product.rating)" class="fas fa-star"></i>
+                          <i *ngFor="let star of getRatingStarsCount(5 - product.rating)" class="far fa-star"></i>
+                        </div>
+                      </div>
+                      <div class="product-price">
+                        {{ product.pricing.salePrice || product.pricing.nomarlPrice | currency: 'đ' }} 
+                        <span *ngIf="product.pricing.salePrice" class="text-secondary small ml-1">
+                          <del>{{ product.pricing.nomarlPrice | currency: ' đ' }}</del>
+                        </span> 
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      
+        <pagination-controls 
+          class="pagination"         
+          autoHide="true"
+          previousLabel=""
+          nextLabel=""
+          responsive="true" 
+          (pageChange)="findProduct($event)">
+        </pagination-controls>
+
+      </div>
+    </div>
+  </div>
+</div>

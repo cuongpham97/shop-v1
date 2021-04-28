@@ -1,0 +1,36 @@
+.profile {
+  background: #fff;
+}
+
+form {
+  padding: 0 30px 30px 30px;
+}
+
+label {
+  font-size: 0.9em;
+}
+
+.pretty label {
+  font-size: 1em;
+}
+
+.form-control:focus {
+  box-shadow: none;
+}
+
+.avatar {
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.custom-file-upload {
+  border: 1px solid #ccc;
+  display: inline-block;
+  padding: 6px 12px;
+  cursor: pointer;
+}

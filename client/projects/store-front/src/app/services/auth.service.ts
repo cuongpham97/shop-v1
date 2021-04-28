@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import * as _ from 'lodash';
 
 interface IUser {
+  uid: string,
   name: string,
   avatar: string,
   accessToken: string,
@@ -34,7 +35,7 @@ export class AuthService {
   }
 
   retrieve() {
-    const keys = ['name', 'avatar', 'accessToken', 'refreshToken'];
+    const keys = ['uid', 'name', 'avatar', 'accessToken', 'refreshToken'];
 
     try {
       const user: IUser = JSON.parse(localStorage.getItem('customer'));

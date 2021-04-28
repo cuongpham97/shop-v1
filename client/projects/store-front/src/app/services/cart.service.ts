@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { takeUntil } from 'rxjs/operators';
+import { mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { CdnService } from './cdn.service';
@@ -17,7 +17,7 @@ export class CartService implements OnDestroy {
   public items$: Observable<any> = this._items.asObservable();
 
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private cdn: CdnService,
     private auth: AuthService
   ) {
@@ -30,76 +30,74 @@ export class CartService implements OnDestroy {
     this.http.get('/carts').subscribe(cart => this._items.next(cart['items']));
   }
 
-  // add(product, sku, quantity) {
-  //   if (quantity > 0) {
-  //     let carted = this._items.getValue().find(line => {
-  //       return (line.product == product && line.sku == sku);
-  //     });
-      
-  //     if (carted) {
-  //       quantity += carted.quantity;
-  //     }
+  add(product, sku, quantity) {
+    if (quantity > 0) {
+      const carted = this._items.getValue().find(line => {
+        return (line.product == product && line.sku == sku);
+      });
 
-  //     return this.updateLine(product, sku, quantity);
-  //   }
-  // }
+      if (carted) {
+        quantity += carted.quantity;
+      }
 
-  // updateLine(product, sku, quantity) {
-  //   const item = { product, sku, quantity };
+      return this.updateLine(product, sku, quantity);
+    }
+  }
 
-  //   let carted = this._items.getValue().find(line => {
-  //     return (line.product == item.product && line.sku == item.sku);
-  //   });
+  updateLine(product, sku, quantity) {
+    const item = { product, sku, quantity };
 
-  //   let total = this._items.getValue().reduce((a, c) => a + c.quantity, 0) + quantity;
-    
-  //   if (carted) {
-  //     total -= carted.quantity;
-  //   }
+    const carted = this._items.getValue().find(line => {
+      return (line.product == item.product && line.sku == item.sku);
+    });
 
-  //   if (total > this.CART_SIZE) {
-  //     // TODO: alert giỏ hàng đầy
+    let total = this._items.getValue().reduce((a, c) => a + c.quantity, 0) + quantity;
 
-  //     return;
-  //   }
+    if (carted) {
+      total -= carted.quantity;
+    }
 
-  //   return this.save(item);
-  // }
+    if (total > this.CART_SIZE) {
+      // TODO: alert giỏ hàng đầy
+      alert('Giỏ hàng đầy');
 
-  // removeLine(index) {
-  //   let items = this._items.getValue();
+      return;
+    }
 
-  //   const item = {
-  //     product: items[index].product,
-  //     sku: items[index].sku,
-  //     quantity: 0
-  //   };
+    return this.save(item);
+  }
 
-  //   return this.save(item);
-  // }
+  removeLine(index) {
+    const items = this._items.getValue();
 
-  // save(item) {
-  //   return this.http.post(`/carts/items`, item, { observe: 'response' })
-  //     .pipe(first())
-  //     .pipe(mergeMap(res => {
-        
-  //       //retrieve cart
-  //       return this.http.get('/carts')
-  //         .pipe(first())
-  //         .pipe(map((cart: any) => {
+    const item = {
+      product: items[index].product,
+      sku: items[index].sku,
+      quantity: 0
+    };
 
-  //           this._items.next(cart.items);
-  //           return res;
-  //         }));
+    return this.save(item);
+  }
 
-  //     }));
-  // }
+  save(item) {
+    return this.http.post(`/carts/items`, item)
+      .pipe(mergeMap(() => this.http.get('/carts')))
+      .pipe(tap(cart => {
+        this._items.next(cart['items']);
 
-  // checkout(items) {
-  //   return this.http.post(`/checkout`, { items: items }, {
-  //     observe: 'response'
-  //   });
-  // }
+        return cart;
+      }));
+  }
+
+  getItems() {
+    return this._items.getValue();
+  }
+
+  checkout(items) {
+    return this.http.post(`/checkouts`, { items: items }, {
+      observe: 'response'
+    });
+  }
 
   ngOnDestroy() {
     this.alive.next();

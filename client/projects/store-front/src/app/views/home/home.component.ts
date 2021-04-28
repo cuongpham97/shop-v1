@@ -56,18 +56,15 @@ export class HomeComponent implements OnInit {
           this.isLoadMaxNewArrival = true;
         }
       });
+    
+    this.service.getCategoriesTree()
+      .subscribe(categories => {
+        this.categories = categories;
+        this.selectedCategory = this.categories[0];
+        this.selectedSubCategory = null;
 
-    try {
-      this.categories = JSON.parse(localStorage.getItem('categories'));
-
-      this.selectedCategory = this.categories[0];
-      this.selectedSubCategory = null;
-
-      this.getProductsOfCategory();
-
-    } catch (e) {
-      this.categories = [];
-    }
+        this.getProductsOfCategory();
+      });
   }
   
   // HOT NEW ARRIVALS
