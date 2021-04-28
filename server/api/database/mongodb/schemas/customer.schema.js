@@ -73,6 +73,27 @@ LocalProvider.pre('save', async function(next) {
   return next();
 });
 
+const Address = new Schema({
+  name: {
+    type: String,
+    trim: true,
+    minLength: 2,
+    maxLength: 100,
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['HOME', 'COMPANY']
+  },
+  phone: {
+    type: String,
+    match: regexes.PHONE_NUMBER
+  },
+  address: {
+    type: Location
+  }
+}, { _id: false });
+
 const CustomerSchema = new Schema({
   name: {
     first: {
@@ -104,14 +125,12 @@ const CustomerSchema = new Schema({
     type: Date,
     required: true
   },
-  phones: {
-    type: [{
-      type: String,
-      match: regexes.PHONE_NUMBER
-    }]
+  phone: {
+    type:  String,
+    match: regexes.PHONE_NUMBER
   },
   addresses: {
-    type: [Location],
+    type: [Address],
     default: []
   },
   avatar: {

@@ -102,11 +102,14 @@ async function _filterNewCustomerInput(input, provider) {
     'displayName': 'required|string|trim|min:2|max:100',
     'gender': ['required', 'lowercase', 'regex:' + regexes.GENDER],
     'birthday': 'date:DD/MM/YYYY',
-    'phones': 'array',
-    'phones.*': 'string|trim|phone',
+    'phone': 'string|trim|phone',
     'avatar': 'mongo_id',
     'addresses': 'array',
-    'addresses.*': 'location',
+    'addresses.*': 'object',
+    'addresses.*.name': 'required|string|trim|min:2|max:100',
+    'addresses.*.type': 'required|string|enum:HOME,COMPANY',
+    'addresses.*.phone': 'required|string|trim|phone',
+    'addresses.*.address': 'required|location',
     'groups': 'not_allow',
     'active': 'not_allow'
   };
@@ -179,7 +182,7 @@ exports.create = async function (data, provider = 'local') {
   });
 }
 
-async function _filterUpdateCustomerInput(input) {
+async function _filterUpdateCustomerInput(input, role) {
   const validation = await validate(input, {
     'id': 'mongo_id',
     'name': 'object',
@@ -188,12 +191,15 @@ async function _filterUpdateCustomerInput(input) {
     'displayName': 'string|trim|min:2|max:100',
     'gender': ['lowercase', 'regex:' + regexes.GENDER],
     'birthday': 'date:DD/MM/YYYY',
-    'phones': 'array',
-    'phones.*': 'string|trim|phone',
-    'avatar': 'mongo_id|nullable',
+    'phone': 'string|trim|phone',
+    'avatar': 'mongo_id',
     'addresses': 'array',
-    'addresses.*': 'location',
-    'groups': 'array|unique|max:20',
+    'addresses.*': 'object',
+    'addresses.*.name': 'required|string|trim|min:2|max:100',
+    'addresses.*.type': 'required|string|enum:HOME,COMPANY',
+    'addresses.*.phone': 'required|string|trim|phone',
+    'addresses.*.address': 'required|location',
+    'groups': role === 'admin' ? 'array|unique|max:20' : 'not_allow',
     'groups.*': 'mongo_id',
     'active': 'not_allow',
     'local': 'not_allow',
@@ -236,7 +242,7 @@ async function _changeAvatar(customer, newImageId, session) {
   return customer;
 }
 
-async function _changeCustomerGroups(customer, newGroups) {
+async function _changeCustomerGroups(customer, newGroups, session) {
   const oldGroups = customer.groups;
   const isChange = _(oldGroups).xorWith(newGroups, (a, b) => a.equals(b)).value().length;
 
@@ -277,8 +283,8 @@ async function _prepareUpdateCustomer(customer, input, session) {
   return updateDocument(customer, clone);
 }
 
-exports.partialUpdate = async function (id, data) {
-  const input = await _filterUpdateCustomerInput({ id, ...data });
+exports.partialUpdate = async function (id, data, role) {
+  const input = await _filterUpdateCustomerInput({ id, ...data }, role);
 
   const customer = await Customer.findById(input.id);
   if (!customer) {
