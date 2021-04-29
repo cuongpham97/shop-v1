@@ -52,51 +52,59 @@
               </ng-template>
 
               <ng-template [ngSwitchCase]="action.CREATE_OR_EDIT">
-                <div class="w-100">
-                  <form class="ml-auto mr-auto">
+                <div *ngIf="isAddressFormReady" class="w-100">
+                  <form [formGroup]="addressForm" class="ml-auto mr-auto">
                     <div class="row form-group">
                       <label class="col-sm-3 col-form-label text-md-right">Họ tên người nhận</label>
                       <div class="col-sm-7">
-                        <input type="text" class="form-control" placeholder="Họ tên người nhận">
+                        <input formControlName="name" type="text" class="form-control" placeholder="Họ tên người nhận">
                       </div>
                     </div>
                     <div class="row form-group">
                       <label class="col-sm-3 col-form-label text-md-right">Số điện thoại</label>
                       <div class="col-sm-7">
-                        <input type="text" class="form-control" placeholder="Số điện thoại người nhận">
+                        <input formControlName="phone" type="text" class="form-control" placeholder="Số điện thoại người nhận">
+                      </div>
+                    </div>
+                    <div formGroupName="address">
+                      <div class="row form-group">
+                        <label class="col-sm-3 col-form-label text-md-right">Tỉnh thành</label>
+                        <div class="col-sm-7">
+                          <select formControlName="province" class="form-control">
+                            <option class="d-none text-secondary" value="" disabled selected>Chọn tỉnh thành</option>
+                            <option *ngFor="let province of provinces" [value]="province.code">{{ province.name }}</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="row form-group">
+                        <label class="col-sm-3 col-form-label text-md-right">Quận huyện</label>
+                        <div class="col-sm-7">
+                          <select formControlName="district" class="form-control">
+                            <option class="d-none text-secondary" value="" disabled selected>Chọn quận huyện</option>
+                            <option *ngFor="let district of districtsAndWards" [value]="district.code">{{ district.pre }} {{ district.name }}</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="row form-group">
+                        <label class="col-sm-3 col-form-label text-md-right">Xã phường</label>
+                        <div class="col-sm-7">
+                          <select formControlName="ward" class="form-control">
+                            <option class="d-none text-secondary" value="" disabled selected>Chọn xã phường</option>
+                            <option *ngFor="let ward of wards" [value]="ward.code">{{ ward.pre }} {{ ward.name }}</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="row form-group">
+                        <label class="col-sm-3 col-form-label text-md-right">Địa chỉ</label>
+                        <div class="col-sm-7">
+                          <input formControlName="address" type="text" class="form-control" placeholder="Nhập số nhà, tên đường">
+                        </div>
                       </div>
                     </div>
                     <div class="row form-group">
-                      <label class="col-sm-3 col-form-label text-md-right">Tỉnh thành</label>
-                      <div class="col-sm-7">
-                        <select class="form-control" (change)="onSelectProvince($event)">
-                          <option class="d-none text-secondary" value="" disabled selected>Chọn tỉnh thành</option>
-                          <option *ngFor="let province of provinces" [value]="province.code">{{ province.name }}</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="row form-group">
-                      <label class="col-sm-3 col-form-label text-md-right">Quận huyện</label>
-                      <div class="col-sm-7">
-                        <select class="form-control" (change)="onSelectDistrict($event)">
-                          <option class="d-none text-secondary" value="" disabled selected>Chọn quận huyện</option>
-                          <option *ngFor="let district of districtsAndWards" [value]="district.code">{{ district.pre }} {{ district.name }}</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="row form-group">
-                      <label class="col-sm-3 col-form-label text-md-right">Xã phường</label>
-                      <div class="col-sm-7">
-                        <select class="form-control">
-                          <option class="d-none text-secondary" value="" disabled selected>Chọn xã phường</option>
-                          <option *ngFor="let ward of wards" [value]="ward.code">{{ ward.pre }} {{ ward.name }}</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="row form-group">
-                      <label class="col-sm-3 col-form-label text-md-right">Địa chỉ</label>
-                      <div class="col-sm-7">
-                        <input type="text" class="form-control" placeholder="Nhập số nhà, tên đường">
+                      <div class="col-sm-7 offset-md-2 pt-3">
+                        <button class="btn btn-danger px-4 mr-2">Thêm mới</button>
+                        <button (click)="onCancelBtnClick()" class="btn btn-secondary px-4">Hủy bỏ</button>
                       </div>
                     </div>
                   </form>

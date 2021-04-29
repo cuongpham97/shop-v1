@@ -3,7 +3,8 @@ import { CheckoutService } from './checkout.service';
 import { Router } from '@angular/router';
 import { CartService, AuthService, UtilsService } from '../../services';
 import { forkJoin } from 'rxjs';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
+import { debounceTime, switchMap } from 'rxjs/operators';
 
 enum action { VIEW, SELECT, CREATE_OR_EDIT };
 
@@ -25,8 +26,10 @@ export class CheckoutComponent implements OnInit {
   isFormReady = false;
 
   addressAction = action.VIEW;
-  addressForm
   selectedAddress;
+  addressForm;
+  isAddressFormReady = false;
+  editingAddressIndex = -1;
 
   constructor(
     private auth: AuthService,
@@ -84,26 +87,75 @@ export class CheckoutComponent implements OnInit {
 
   onCreateAddressBtnClick() {
     this.addressAction = action.CREATE_OR_EDIT;
+    this.editingAddressIndex = -1;
+
+    this._prepareAddressForm();
   }
 
-  onEditAddressBtnClick(event, index) {
-    this.addressAction = action.CREATE_OR_EDIT;
-    event.preventDefault();
-  }
+  _prepareAddressForm(data?) {
+    this.addressForm = this.fb.group({
+      name: ['', Validators.compose([Validators.required, Validators.maxLength(200)])],
+      phone: ['', Validators.compose([Validators.required, Validators.pattern('\d{9,12}')])],
+      address: this.fb.group({
+        address: ['', Validators.maxLength(200)],
+        province: ['', Validators.required],
+        district: ['', Validators.required],
+        ward: ['', Validators.required]
+      })
+    });
 
-  onSelectProvince(event) {
-    this.service.getDistrictsAndWards(event.target.value)
+    if (data) {
+      this.addressForm.patchValue(data);
+    }
+
+    this.addressForm.get('address').get('province').valueChanges
+      .pipe(
+        debounceTime(300),
+        switchMap(provinceCode => this.service.getDistrictsAndWards(provinceCode))
+      )
       .subscribe(response => {
         this.districtsAndWards = <Array<any>>(response);
         this.wards = this.districtsAndWards[0].wards;
       });
+
+    this.addressForm.get('address').get('district').valueChanges
+      .pipe(debounceTime(300))
+      .subscribe(districtCode => {
+        const district = this.districtsAndWards.find(district => district.code === districtCode);
+        this.wards = district.wards;
+      });
+
+    this.isAddressFormReady = true;
   }
 
-  onSelectDistrict(event) {
-    const district = this.districtsAndWards.find(district => district.code === event.target.value);
-    this.wards = district.wards;
+  onEditAddressBtnClick(event, index) {
+    this.addressAction = action.CREATE_OR_EDIT;
+    this.editingAddressIndex = index;
 
-    console.log(this.districtsAndWards, district, this.wards);
+    const data = this.customer.addresses[index];
+
+    this.service.getDistrictsAndWards(data.address.province.code)
+      .subscribe(response => {
+        this.districtsAndWards = <Array<any>>(response);
+        this.wards = this.districtsAndWards.find(district => district.code === data.address.district.code).wards;
+      });
+
+    this._prepareAddressForm({
+      name: data.name,
+      phone: data.phone,
+      address: {
+        address: data.address.address,
+        province: data.address.province.code,
+        district: data.address.district.code,
+        ward: data.address.ward.code
+      }
+    });
+
+    event.preventDefault();
+  }
+
+  onCancelBtnClick() {
+    this.addressAction = action.SELECT;
   }
 
   placeOrder() {
