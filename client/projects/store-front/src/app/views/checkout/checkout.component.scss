@@ -183,10 +183,17 @@
   }
 }
 
-.address {
-  margin-top: -5px;
-}
+.add-address-btn {
+  background: #fff;
+  padding: 0;
+  margin-left: 10px;
+  margin-bottom: 10px;
 
-.pretty {
-  line-height: unset;
+  i {
+    border-radius: 3px;
+    background: #777;
+    color: #fff;
+    padding: 4px 5px;
+    font-size: 12px;
+  }
 }

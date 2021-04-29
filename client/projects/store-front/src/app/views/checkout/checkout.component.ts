@@ -17,6 +17,9 @@ export class CheckoutComponent implements OnInit {
   
   customer;
   checkout;
+  provinces;
+  districtsAndWards = [];
+  wards = [];
 
   form;
   isFormReady = false;
@@ -41,11 +44,13 @@ export class CheckoutComponent implements OnInit {
 
     forkJoin({
       customer: this.service.getCustomer(),
-      checkout: this.service.getCheckOut()
+      checkout: this.service.getCheckOut(),
+      provinces: this.service.getProvinces()
     })
-    .subscribe(({ customer, checkout }) => {
+    .subscribe(({ customer, checkout, provinces }) => {
       this.customer = customer;
       this.checkout = checkout;
+      this.provinces = provinces;
 
       this.selectedAddress = customer['addresses'][0] || null;
       this._prepareForm();
@@ -75,6 +80,30 @@ export class CheckoutComponent implements OnInit {
 
   onAddressRadioChecked(address) {
     this.selectedAddress = address;
+  }
+
+  onCreateAddressBtnClick() {
+    this.addressAction = action.CREATE_OR_EDIT;
+  }
+
+  onEditAddressBtnClick(event, index) {
+    this.addressAction = action.CREATE_OR_EDIT;
+    event.preventDefault();
+  }
+
+  onSelectProvince(event) {
+    this.service.getDistrictsAndWards(event.target.value)
+      .subscribe(response => {
+        this.districtsAndWards = <Array<any>>(response);
+        this.wards = this.districtsAndWards[0].wards;
+      });
+  }
+
+  onSelectDistrict(event) {
+    const district = this.districtsAndWards.find(district => district.code === event.target.value);
+    this.wards = district.wards;
+
+    console.log(this.districtsAndWards, district, this.wards);
   }
 
   placeOrder() {
