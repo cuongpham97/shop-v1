@@ -95,9 +95,9 @@ export class CheckoutComponent implements OnInit {
   _prepareAddressForm(data?) {
     this.addressForm = this.fb.group({
       name: ['', Validators.compose([Validators.required, Validators.maxLength(200)])],
-      phone: ['', Validators.compose([Validators.required, Validators.pattern('\d{9,12}')])],
+      phone: ['', Validators.compose([Validators.required, Validators.pattern('\\d{9,12}')])],
       address: this.fb.group({
-        address: ['', Validators.maxLength(200)],
+        street: ['', Validators.maxLength(200)],
         province: ['', Validators.required],
         district: ['', Validators.required],
         ward: ['', Validators.required]
@@ -116,6 +116,13 @@ export class CheckoutComponent implements OnInit {
       .subscribe(response => {
         this.districtsAndWards = <Array<any>>(response);
         this.wards = this.districtsAndWards[0].wards;
+
+        this.addressForm.patchValue({ 
+          address: { 
+            district: this.districtsAndWards[0].code, 
+            ward: this.wards[0].code 
+          } 
+        });
       });
 
     this.addressForm.get('address').get('district').valueChanges
@@ -123,6 +130,12 @@ export class CheckoutComponent implements OnInit {
       .subscribe(districtCode => {
         const district = this.districtsAndWards.find(district => district.code === districtCode);
         this.wards = district.wards;
+
+        this.addressForm.patchValue({ 
+          address: { 
+            ward: this.wards[0].code 
+          } 
+        });
       });
 
     this.isAddressFormReady = true;
@@ -144,7 +157,7 @@ export class CheckoutComponent implements OnInit {
       name: data.name,
       phone: data.phone,
       address: {
-        address: data.address.address,
+        street: data.address.street,
         province: data.address.province.code,
         district: data.address.district.code,
         ward: data.address.ward.code
@@ -154,8 +167,41 @@ export class CheckoutComponent implements OnInit {
     event.preventDefault();
   }
 
+  onDeleteAddressBtnClick(event, index) {
+    const selectedAddressIndex = this.customer.addresses.findIndex(address => address === this.selectedAddress);
+
+    this.service.deleteAddress(this.customer.addresses, index)
+      .subscribe(addresses => {
+        this.customer['addresses'] = addresses;
+
+        this.selectedAddress = index < selectedAddressIndex 
+          ? addresses[selectedAddressIndex - 1]
+          : addresses[selectedAddressIndex];
+
+        this.addressAction = action.SELECT;
+      });
+
+    event.preventDefault();
+  }
+
   onCancelBtnClick() {
     this.addressAction = action.SELECT;
+  }
+
+  onSaveBtnClick() {
+    this.utils.markFormControlTouched(this.addressForm);
+    if (this.addressForm.invalid) return;
+
+    this.service.createOrEditAddress(this.customer.addresses, this.editingAddressIndex, this.addressForm.value)
+      .subscribe(addresses => {
+        this.customer['addresses'] = addresses;
+
+        this.selectedAddress = this.editingAddressIndex == -1 
+          ? addresses[addresses.length - 1]
+          : addresses[this.editingAddressIndex];
+  
+        this.addressAction = action.SELECT;
+      });
   }
 
   placeOrder() {

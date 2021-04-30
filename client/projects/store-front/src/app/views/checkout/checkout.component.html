@@ -42,11 +42,13 @@
                       <span>{{ address.address.district.name }} - </span>
                       <span>{{ address.address.province.name }}</span>
                     </div>
-                    <div style="width: 80px;"><a (click)="onEditAddressBtnClick($event, index)" href="#">Chỉnh sửa</a></div>
-                  </div>
-                  
+                    <div style="width: 80px;">
+                      <a *ngIf="selectedAddress === address" (click)="onEditAddressBtnClick($event, index)" href="#">Sửa</a>
+                      <a *ngIf="selectedAddress !== address" (click)="onDeleteAddressBtnClick($event, index)" href="#">Xóa</a>
+                    </div>
+                  </div>                  
                 </div>
-                <hr>
+
                 <button (click)="onCreateAddressBtnClick()" class="d-block btn add-address-btn"><i class="fa fa-plus"></i> Thêm địa chỉ nhận hàng</button>
                 <button (click)="onContinueBtnClick()" class="btn btn-danger px-5 mt-3 mb-2">Tiếp tục</button>
               </ng-template>
@@ -97,13 +99,13 @@
                       <div class="row form-group">
                         <label class="col-sm-3 col-form-label text-md-right">Địa chỉ</label>
                         <div class="col-sm-7">
-                          <input formControlName="address" type="text" class="form-control" placeholder="Nhập số nhà, tên đường">
+                          <input formControlName="street" type="text" class="form-control" placeholder="Nhập số nhà, tên đường">
                         </div>
                       </div>
                     </div>
                     <div class="row form-group">
                       <div class="col-sm-7 offset-md-2 pt-3">
-                        <button class="btn btn-danger px-4 mr-2">Thêm mới</button>
+                        <button (click)="onSaveBtnClick()" class="btn btn-danger px-4 mr-2">{{ editingAddressIndex == -1 ? 'Thêm mới' : 'Cập nhật' }}</button>
                         <button (click)="onCancelBtnClick()" class="btn btn-secondary px-4">Hủy bỏ</button>
                       </div>
                     </div>

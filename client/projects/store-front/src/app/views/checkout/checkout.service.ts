@@ -31,6 +31,61 @@ export class CheckoutService {
     return this.http.get(`checkouts`);
   }
 
+  _prepareAddress(formData) {
+    formData['type'] = 'HOME';
+
+    return formData;
+  }
+
+  createOrEditAddress(oldAddresses, index, formData) {
+    const addresses = oldAddresses.map(address => {
+      return {
+        name: address.name,
+        phone: address.phone,
+        type: address.type,
+        address: {
+          street: address.address.street,
+          ward: address.address.ward.code,
+          district: address.address.district.code,
+          province: address.address.province.code
+        }
+      }
+    });
+
+    if (index == -1) {
+      addresses.push(this._prepareAddress(formData));
+    
+    } else {
+      addresses[index] = this._prepareAddress(formData);
+    }
+
+    const uid = this.auth.getCurrentUser().uid;
+    return this.http.patch(`/customers/${uid}`, { addresses: addresses })
+      .pipe(map(response => response['addresses']));
+  }
+
+  deleteAddress(oldAddresses, index) {
+    const addresses = oldAddresses.map(address => {
+      return {
+        name: address.name,
+        phone: address.phone,
+        type: address.type,
+        address: {
+          street: address.address.street,
+          ward: address.address.ward.code,
+          district: address.address.district.code,
+          province: address.address.province.code
+        }
+      }
+    });
+
+    addresses.splice(index, 1);
+
+    const uid = this.auth.getCurrentUser().uid;
+    return this.http.patch(`/customers/${uid}`, { addresses: addresses })
+      .pipe(map(response => response['addresses']));
+  }
+
   _prepareOrder(formValue) {
     return formValue;
   }
