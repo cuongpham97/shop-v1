@@ -86,11 +86,26 @@ export class CheckoutService {
       .pipe(map(response => response['addresses']));
   }
 
-  _prepareOrder(formValue) {
-    return formValue;
+  _prepareOrder(formValue, address) {
+    const order = {
+      message: formValue.message,
+      shipping: {
+        name: address.name,
+        phone: address.phone,
+        type: address.type,
+        address: {
+          street: address.address.street,
+          ward: address.address.ward.code,
+          district: address.address.district.code,
+          province: address.address.province.code,
+        }
+      }
+    };
+
+    return order;
   }
 
-  createOrder(formValue) {
-    return this.http.post(`/orders`, this._prepareOrder(formValue));
+  createOrder(formValue, address) {
+    return this.http.post(`/orders`, this._prepareOrder(formValue, address));
   }
 }

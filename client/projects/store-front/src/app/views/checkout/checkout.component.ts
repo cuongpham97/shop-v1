@@ -66,7 +66,7 @@ export class CheckoutComponent implements OnInit {
 
   _prepareForm() {
     this.form = this.fb.group({
-      message: ''
+      message: ['', Validators.maxLength(2000)]
     });
 
     this.isFormReady = true;
@@ -207,10 +207,10 @@ export class CheckoutComponent implements OnInit {
   placeOrder() {
     this.utils.markFormControlTouched(this.form);
 
-    if (this.form.valid) {
-      this.service.createOrder(this.form.value).subscribe(_order => {
+    if (this.form.valid && this.selectedAddress) {
+      this.service.createOrder(this.form.value, this.selectedAddress).subscribe(_order => {
         this.cart.retrieve();
-        this.router.navigateByUrl('/profile/orders');
+        this.router.navigateByUrl('/customers/orders');
     
       }, _response => {
         // TODO: Alert error

@@ -138,8 +138,8 @@
 
           <hr>
 
-          <form class="form">
-            <textarea class="form-control" rows="2" placeholder="Ghi chú cho cửa hàng"></textarea>
+          <form [formGroup]="form" class="form">
+            <textarea formControlName="message" class="form-control" rows="2" placeholder="Ghi chú cho cửa hàng"></textarea>
           </form>
         </div>
 

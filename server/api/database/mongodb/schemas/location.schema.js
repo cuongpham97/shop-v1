@@ -4,8 +4,7 @@ const Location = new Schema({
   street: {
     type: String,
     trim: true,
-    maxLength: 200,
-    required: true
+    maxLength: 200
   },
   ward: {
     code: {

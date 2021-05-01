@@ -129,6 +129,10 @@ const CustomerSchema = new Schema({
     type:  String,
     match: regexes.PHONE_NUMBER
   },
+  email: {
+    type: String,
+    match: regexes.EMAIL
+  },
   addresses: {
     type: [Address],
     default: []
