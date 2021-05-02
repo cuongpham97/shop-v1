@@ -18,6 +18,7 @@ async function _filterFindQueryInput(query) {
     'search': 'not_allow',
     'regexes': 'object|mongo_guard',
     'filters': 'object|mongo_guard',
+    'filters.customer': 'mongo_id',
     'orders': 'to:array',
     'orders.*': 'string|min:1|max:100|mongo_guard',
     'fields': 'to:array',
@@ -194,13 +195,26 @@ function _prepareNewOrderStatus(input) {
   return status;
 }
 
-exports.createStatus = async function (orderId, data) {
+exports.createStatus = async function (orderId, data, user) {
   const input = await _filterNewOrderStatusInput({ id: orderId, ...data });
 
   const order = await Order.findById(input.id);
   if (!order) {
     throw new NotFoundException({ 
       message: 'Order ID does not exist' 
+    });
+  }
+
+  if (user.type === 'customer' && !user._id.equals(order.customer)) {
+    throw new AuthorizationException({
+      message: 'Don\'t have permission to access'
+    });
+  }
+
+  const last = _.last(order.status);
+  if (input.name === 'CANCELED' && last && last.name === 'CANCELED') {
+    throw new BadRequestException({
+      message: 'Order has been canceled'
     });
   }
 
