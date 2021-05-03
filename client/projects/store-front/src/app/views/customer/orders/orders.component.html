@@ -1,0 +1,150 @@
+<div class="wrap">
+  <div class="p-4">
+    <form [formGroup]="form" class="form" (change)="onFormChange()">
+
+      <div class="pretty p-default p-round mb-3 ml-3">
+        <input formControlName="status" type="radio" [value]="'ALL'" name="status">
+        <div class="state p-success">
+          <label>Tất cả</label>
+        </div>
+      </div>
+
+      <div class="pretty p-default p-round mb-3 ml-3">
+        <input formControlName="status" type="radio" [value]="'PROCESSING'" name="status">
+        <div class="state p-success">
+          <label>Đang xử lí</label>
+        </div>
+      </div>
+
+      <div class="pretty p-default p-round mb-3 mr-5">
+        <input formControlName="status" type="radio" [value]="'CANCELED'" name="status">
+        <div class="state p-danger">
+          <label>Đã hủy</label>
+        </div>
+      </div>
+
+      <span class="d-inline-block mx-3 mb-3">
+        <datetime formControlName="from" format="DD/MM/YYYY" placeholder="Từ ngày"></datetime>
+      </span>
+     
+      <span class="d-inline-block ml-3 mb-3">
+        <datetime formControlName="to" format="DD/MM/YYYY" placeholder="Đến ngày"></datetime>
+      </span>
+    </form>
+  </div>
+  <div *ngFor="let order of orders$ | async; let index = index" [id]="'accordion' + index" class="border-bottom">
+    <div class="card rounded-0 border-0">
+      <div class="card-header border-0" [id]="'heading' + index">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-9">
+              <p class="m-0" style="line-height:38px">Ngày {{ order.createdAt | orderTime }} </p>
+            </div>
+            <div class="col-3 text-right">
+              <button class="btn btn-link px-0" data-toggle="collapse" [attr.data-target]="'#collapse' + index"
+                aria-expanded="true" [attr.aria-controls]="'collapse' + index">
+                Chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div [id]="'collapse' + index" class="panel-collapse collapse" role="tabpanel"
+        [attr.aria-labelledby]="'heading' + index">
+        <div class="panel-body">
+          <div class="container px-md-5 py-4">
+            <div class="row">
+              <div class="col-12 col-sm-6">
+                <h6 class="mb-4">Địa chỉ giao hàng</h6>
+                <p>{{ order.shipping.name }}</p>
+                <p>{{ order.shipping.phone }}</p>
+                <p>{{ order.shipping.email }}</p>
+                <p>
+                  <span *ngIf="order.shipping.address.street">{{ order.shipping.address.street }}, </span>
+                  <span>{{ order.shipping.address.ward.name }} - {{ order.shipping.address.district.name }} - {{ order.shipping.address.province.name }}</span>
+                </p>
+              </div>
+              <div class="col-12 col-sm-6">
+                <h6 class="mb-4">Đơn hàng</h6>
+                <p>ID: #{{ order._id }}</p>
+                <p>Tổng: <span class="text-success"><b>{{ order.total | currency: 'đ' }}</b></span></p>
+                <p>Trạng thái: <span class="text-danger">{{ order | orderStatus }}</span></p>
+                <p *ngIf="!['DONE', 'CANCELED', 'DENIED'].includes(order.status[order.status.length - 1].name)">
+                  <button (click)="showModal(order._id)" class="btn btn-link text-danger p-0" data-toggle="modal"
+                    data-target="#cancelOrderModal">Hủy đơn
+                    hàng</button>
+                </p>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-hover">
+                    <thead></thead>
+                    <tbody>
+                      <tr *ngFor="let item of order.items">
+                        <td class="text-center"><img [src]="item.images[0].url"></td>
+                        <td>
+                          <a [routerLink]="['/products', item.product]" target="_blank"> {{ item.name }}</a> <br>
+                          <span class="join-item">
+                            <span class="attribute" *ngFor="let attr of item.attributes">{{attr.value}}</span></span>
+                        </td>
+                        <td class="align-middle">Số lượng: {{ item.quantity }}</td>
+                        <td class="text-right align-middle">Đơn giá: {{ item.pricing.price | currency: 'đ' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content rounded-0">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cancelOrderTitle">Hủy đơn hàng</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form #f="ngForm">
+          <div class="form-group">
+            <label>Lí do:</label>
+            <textarea ngModel name="comment" rows="4" class="form-control"></textarea>
+          </div>
+          <div class="form-group form-check">
+            <div class="pretty p-svg p-curve">
+              <input type="checkbox" ngModel required #accept="ngModel" name="accept" />
+              <div class="state p-warning">
+                <!-- svg path -->
+                <svg class="svg svg-icon" viewBox="0 0 20 20">
+                  <path
+                    d="M7.629,14.566c0.125,0.125,0.291,0.188,0.456,0.188c0.164,0,0.329-0.062,0.456-0.188l8.219-8.221c0.252-0.252,0.252-0.659,0-0.911c-0.252-0.252-0.659-0.252-0.911,0l-7.764,7.763L4.152,9.267c-0.252-0.251-0.66-0.251-0.911,0c-0.252,0.252-0.252,0.66,0,0.911L7.629,14.566z"
+                    style="stroke: white;fill:white;"></path>
+                </svg>
+                <label>Tôi đồng ý hủy đơn hàng</label>
+              </div>
+            </div>
+            <div *ngIf="accept.touched && accept.invalid" class="form-text text-danger">
+              <small *ngIf="accept.errors?.required"><i>Bạn phải chọn đồng ý</i></small>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" (click)="acceptCancelOrder(f)" class="btn btn-danger btn-sm">Hủy đơn hàng</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>

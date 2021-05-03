@@ -6,10 +6,11 @@ import { CustomerComponent } from './customer.component';
 import { ProfileComponent } from './profile/profile.component';
 import { SharedModule } from '../../shared/shared.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
+import { OrdersComponent } from './orders/orders.component';
+import { OrderTimePipe, OrderStatusPipe } from './orders/orders.pipe';
 
 @NgModule({
-  declarations: [CustomerComponent, ProfileComponent],
+  declarations: [CustomerComponent, ProfileComponent, OrdersComponent, OrderTimePipe, OrderStatusPipe],
   imports: [
     CommonModule,
     CustomerRoutingModule,

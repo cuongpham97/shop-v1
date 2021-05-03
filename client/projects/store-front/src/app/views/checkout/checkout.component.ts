@@ -210,7 +210,7 @@ export class CheckoutComponent implements OnInit {
     if (this.form.valid && this.selectedAddress) {
       this.service.createOrder(this.form.value, this.selectedAddress).subscribe(_order => {
         this.cart.retrieve();
-        this.router.navigateByUrl('/customers/orders');
+        this.router.navigateByUrl('/customer/orders');
     
       }, _response => {
         // TODO: Alert error

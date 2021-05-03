@@ -29,7 +29,10 @@ export class DatetimeComponent implements OnInit, ControlValueAccessor, Validato
   @Input('format') format: string;
   @Input('placeholder') placeholder: string;
    
-  constructor(private cdn: CdnService) { }
+  constructor(
+    private cdn: CdnService, 
+    private element: ElementRef
+  ) { }
 
   ngOnInit(): void {
  
@@ -42,14 +45,16 @@ export class DatetimeComponent implements OnInit, ControlValueAccessor, Validato
 
   onChangeDate(event) {
     this.value = event.target.value;
-
     const isValid = moment(this.value, this.format, true).isValid();
+
     if (isValid) {
       this.propagateChange(this.value);
     
     } else {
       this.propagateChange(null);
     }
+
+    this.triggerChanged();
   }
 
   public writeValue(value: any) {
@@ -60,6 +65,11 @@ export class DatetimeComponent implements OnInit, ControlValueAccessor, Validato
 
   public registerOnChange(fn: any) {
     this.propagateChange = fn;
+  }
+
+  public triggerChanged(){
+    let event = new CustomEvent('change', { bubbles: true });
+    (this.element.nativeElement as any).dispatchEvent(event);
   }
 
   public validate({ value }: FormControl) {
