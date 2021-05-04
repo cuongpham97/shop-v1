@@ -56,7 +56,7 @@ exports.find = async function (query) {
         break;
     }
 
-    _.merge(query, { filters: { "status.-1.name": { "$in": status } } });
+    _.merge(query, { filters: { "$expr": { "$in": [{ "$arrayElemAt": ["$status.name", -1] }, status ]} } });
   }
 
   if ('from' in query) {
