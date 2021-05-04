@@ -24,7 +24,10 @@ async function _filterFindQueryInput(query) {
     'fields': 'to:array',
     'fields.*': 'string|min:1|max:100|mongo_guard',
     'page': 'integer|min:1',
-    'pageSize': 'integer|min:1|max:200'
+    'pageSize': 'integer|min:1|max:200',
+    'status': 'enum:PROCESSING,REJECTED',
+    'from': 'date:DD/MM/YYYY',
+    'to': 'date:DD/MM/YYYY'
   });
 
   if (validation.errors) {
@@ -39,6 +42,31 @@ async function _filterFindQueryInput(query) {
 
 exports.find = async function (query) { 
   query = await _filterFindQueryInput(query);
+  
+  if ('status' in query) {
+    let status;
+
+    switch (query.status) {
+      case 'PROCESSING':
+        status = ['PENDING', 'SHIPPING', 'COMPLETED'];
+        break;
+        
+      case 'REJECTED':
+        status = ['DENIED', 'CANCELED', 'EXPIRED'];
+        break;
+    }
+
+    _.merge(query, { filters: { "status.name": { "$in": status } } });
+  }
+
+  if ('from' in query) {
+    _.merge(query, { filters: { "createdAt": { "$gte": query.from.toDate() } } });
+  }
+
+  if ('to' in query) {
+    _.merge(query, { filters: { "createdAt": { "$lt": query.to.toDate() } } });
+  }
+
   return await Order.paginate(query, _projectDocument);
 }
 
